@@ -6,17 +6,15 @@
 AFRAME.registerComponent('navigation-arrow', {
     schema: {
         targetCheckpoint: { type: 'number', default: 1 },
-        distance: { type: 'number', default: 4 }, // Aumentada para melhor visibilidade
-        size: { type: 'number', default: 0.8 }, // Aumentada para melhor visibilidade
-        color: { type: 'color', default: '#00ff88' }, // Verde mais vibrante
+        distance: { type: 'number', default: 2 }, // Reduzida para ficar mais próxima
+        size: { type: 'number', default: 0.4 }, // Ajustada para melhor proporção
+        color: { type: 'color', default: '#00ff00' }, // Verde padrão
         showDistance: { type: 'boolean', default: true },
         showPhase: { type: 'boolean', default: true } // Nova opção para mostrar fase
     },
 
     init: function () {
-        console.log('🧭 Inicializando sistema de navegação aprimorado...');
-        
-        // Estado da navegação
+        // Estado interno
         this.currentTarget = null;
         this.checkpoints = [];
         this.dronePosition = new THREE.Vector3();
@@ -34,18 +32,18 @@ AFRAME.registerComponent('navigation-arrow', {
             this.findCheckpoints();
             this.updateTarget();
         }, 500);
-        
-        console.log('✅ Sistema de navegação aprimorado inicializado!');
     },
 
     createArrowElements: function () {
         // Container principal da seta
         this.arrowContainer = document.createElement('a-entity');
         this.arrowContainer.setAttribute('id', 'navigation-arrow-container');
+        this.arrowContainer.setAttribute('data-arrow-container', 'true');
         this.el.appendChild(this.arrowContainer);
         
         // Seta principal (cone) - Maior e mais visível
         this.arrowMesh = document.createElement('a-entity');
+        this.arrowMesh.setAttribute('data-arrow-mesh', 'true');
         this.arrowMesh.setAttribute('geometry', {
             primitive: 'cone',
             radiusBottom: this.data.size * 0.4, // Mais larga
@@ -59,7 +57,7 @@ AFRAME.registerComponent('navigation-arrow', {
             transparent: true,
             opacity: 0.9 // Mais opaca
         });
-        this.arrowMesh.setAttribute('position', `0 0 -${this.data.distance}`);
+        this.arrowMesh.setAttribute('position', `0 0.5 -${this.data.distance}`);
         this.arrowMesh.setAttribute('rotation', '90 0 0'); // Apontar para frente
         
         // Animação de pulsação mais intensa
@@ -97,7 +95,7 @@ AFRAME.registerComponent('navigation-arrow', {
             transparent: true,
             opacity: 0.6
         });
-        this.highlightRing.setAttribute('position', `0 0 -${this.data.distance}`);
+        this.highlightRing.setAttribute('position', `0 0.5 -${this.data.distance}`);
         this.highlightRing.setAttribute('rotation', '0 0 0');
         
         // Animação do anel
@@ -114,8 +112,9 @@ AFRAME.registerComponent('navigation-arrow', {
         // Texto de distância melhorado
         if (this.data.showDistance) {
             this.distanceText = document.createElement('a-text');
+            this.distanceText.setAttribute('data-distance-text', 'true');
             this.distanceText.setAttribute('value', '0m');
-            this.distanceText.setAttribute('position', `0 -${this.data.size * 1.2} -${this.data.distance}`);
+            this.distanceText.setAttribute('position', `0 -0.5 -${this.data.distance}`);
             this.distanceText.setAttribute('align', 'center');
             this.distanceText.setAttribute('color', this.data.color);
             this.distanceText.setAttribute('scale', '1.2 1.2 1.2'); // Maior
@@ -126,8 +125,9 @@ AFRAME.registerComponent('navigation-arrow', {
         // Texto de fase/checkpoint
         if (this.data.showPhase) {
             this.phaseText = document.createElement('a-text');
+            this.phaseText.setAttribute('data-phase-text', 'true');
             this.phaseText.setAttribute('value', 'FASE 1');
-            this.phaseText.setAttribute('position', `0 ${this.data.size * 1.2} -${this.data.distance}`);
+            this.phaseText.setAttribute('position', `0 1.7 -${this.data.distance}`);
             this.phaseText.setAttribute('align', 'center');
             this.phaseText.setAttribute('color', '#ffffff');
             this.phaseText.setAttribute('scale', '1.0 1.0 1.0');
@@ -145,7 +145,7 @@ AFRAME.registerComponent('navigation-arrow', {
                 transparent: true,
                 opacity: 0.7
             });
-            this.phaseBackground.setAttribute('position', `0 ${this.data.size * 1.2} -${this.data.distance + 0.01}`);
+            this.phaseBackground.setAttribute('position', `0 1.7 -${this.data.distance + 0.01}`);
             
             this.arrowContainer.appendChild(this.phaseBackground);
             this.arrowContainer.appendChild(this.phaseText);
@@ -165,7 +165,7 @@ AFRAME.registerComponent('navigation-arrow', {
             transparent: true,
             opacity: 0.6
         });
-        this.connectionLine.setAttribute('position', `0 0 -${this.data.distance * 0.5}`);
+        this.connectionLine.setAttribute('position', `0 0.25 -${this.data.distance * 0.5}`);
         this.connectionLine.setAttribute('rotation', '90 0 0');
         
         // Animação da linha
@@ -192,22 +192,22 @@ AFRAME.registerComponent('navigation-arrow', {
         const checkpointElements = document.querySelectorAll('[checkpoint]');
         this.checkpoints = [];
         
-        checkpointElements.forEach(element => {
+        checkpointElements.forEach((element, index) => {
             const checkpointData = element.getAttribute('checkpoint');
             const position = element.getAttribute('position');
             
-            this.checkpoints.push({
-                id: checkpointData.id,
-                element: element,
-                position: new THREE.Vector3(position.x, position.y, position.z),
-                reached: false
-            });
+            if (checkpointData && position) {
+                this.checkpoints.push({
+                    id: checkpointData.id,
+                    element: element,
+                    position: new THREE.Vector3(position.x, position.y, position.z),
+                    reached: false
+                });
+            }
         });
         
         // Ordenar checkpoints por ID
         this.checkpoints.sort((a, b) => a.id - b.id);
-        
-        console.log(`🎯 Encontrados ${this.checkpoints.length} checkpoints`);
     },
 
     updateTarget: function () {
@@ -215,7 +215,6 @@ AFRAME.registerComponent('navigation-arrow', {
          this.currentTarget = this.checkpoints.find(cp => !cp.reached);
          
          if (this.currentTarget) {
-             console.log(`🧭 Navegando para checkpoint ${this.currentTarget.id}`);
              this.arrowContainer.setAttribute('visible', true);
              
              // Atualizar texto da fase
@@ -225,7 +224,6 @@ AFRAME.registerComponent('navigation-arrow', {
                  this.phaseText.setAttribute('value', `FASE ${currentPhase}/${totalPhases}`);
              }
          } else {
-             console.log('🏁 Todos os checkpoints alcançados!');
              this.arrowContainer.setAttribute('visible', false);
          }
      },
@@ -297,5 +295,3 @@ AFRAME.registerComponent('navigation-arrow', {
         }
     }
 });
-
-console.log('📦 Módulo navigation-arrow.js carregado com sucesso!');

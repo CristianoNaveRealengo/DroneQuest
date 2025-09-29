@@ -485,6 +485,7 @@ AFRAME.registerComponent('drone-controller', {
                     this.adjustMasterVolume(-0.1);
                     break;
                 case 'Equal':
+                case 'Plus':
                 case 'NumpadAdd':
                     // Aumentar volume
                     this.adjustMasterVolume(0.1);
