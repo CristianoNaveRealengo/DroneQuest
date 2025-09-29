@@ -4,37 +4,41 @@
  */
 
 // === CONSTANTES ===
-const GAME_CONSTANTS = {
-    // Física
-    GRAVITY: -9.81,
-    AIR_DENSITY: 1.225,
-    DRAG_COEFFICIENT: 0.47,
-    
-    // Drone
-    DRONE_MASS: 1.5, // kg
-    MAX_THRUST: 25, // N
-    MAX_ANGULAR_VELOCITY: 5, // rad/s
-    
-    // Controles
-    DEADZONE: 0.1,
-    SENSITIVITY: 1.0,
-    
-    // Performance
-    TARGET_FPS: 90,
-    MAX_PARTICLES: 100,
-    
-    // Audio
-    MASTER_VOLUME: 0.7,
-    SFX_VOLUME: 0.5,
-    
-    // VR
-    IPD: 0.064, // Distância interpupilar média
-    COMFORT_SETTINGS: {
-        VIGNETTE: true,
-        SNAP_TURN: false,
-        TELEPORT: false
-    }
-};
+// Usando window para garantir que a constante seja global e não seja redeclarada
+if (typeof window.GAME_CONSTANTS === 'undefined') {
+    window.GAME_CONSTANTS = {
+        // Física
+        GRAVITY: -9.81,
+        AIR_DENSITY: 1.225,
+        DRAG_COEFFICIENT: 0.47,
+        
+        // Drone
+        DRONE_MASS: 1.5, // kg
+        MAX_THRUST: 25, // N
+        MAX_ANGULAR_VELOCITY: 5, // rad/s
+        
+        // Controles
+        DEADZONE: 0.1,
+        SENSITIVITY: 1.0,
+        
+        // Performance
+        TARGET_FPS: 90,
+        MAX_PARTICLES: 100,
+        
+        // Audio
+        MASTER_VOLUME: 0.7,
+        SFX_VOLUME: 0.5,
+        
+        // VR
+        IPD: 0.064, // Distância interpupilar média
+        COMFORT_SETTINGS: {
+            VIGNETTE: true,
+            SNAP_TURN: false,
+            TELEPORT: false
+        }
+    };
+    console.log('✅ GAME_CONSTANTS definidas com sucesso!');
+}
 
 // === UTILITÁRIOS MATEMÁTICOS ===
 const MathUtils = {

@@ -14,23 +14,33 @@ if (!AFRAME.components['collision-system']) {
         },
 
         init: function () {
-            console.log('💥 Inicializando sistema de colisão...');
-            
-            // Estado do sistema
-            this.isColliding = false;
-            this.lastCollisionTime = 0;
-            this.collisionCooldown = 500; // ms
-            
-            // Referências
-            this.drone = null;
-            this.droneController = null;
-            
-            // Configurar sistema
-            this.setupCollisionDetection();
-            this.setupCollisionEffects();
-            
-            console.log('✅ Sistema de colisão configurado!');
-        },
+        console.log('💥 Inicializando sistema de colisão...');
+        
+        // Estado do sistema
+        this.isColliding = false;
+        this.lastCollisionTime = 0;
+        this.collisionCooldown = 500; // ms
+        
+        // Referências
+        this.drone = null;
+        this.droneController = null;
+        
+        // Configurar sistema
+        this.setupCollisionDetection();
+        this.setupCollisionEffects();
+        
+        console.log('✅ Sistema de colisão configurado!');
+        
+        // Ativar automaticamente após inicialização
+        setTimeout(() => {
+            this.activateCollisionDetection();
+        }, 1000);
+    },
+    
+    activateCollisionDetection: function() {
+        console.log('💥 Sistema de colisão ativado');
+        this.isActive = true;
+    },
 
         setupCollisionDetection: function () {
             // Encontrar o drone

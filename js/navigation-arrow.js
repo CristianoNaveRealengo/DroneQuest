@@ -10,7 +10,9 @@ AFRAME.registerComponent('navigation-arrow', {
         size: { type: 'number', default: 0.4 }, // Ajustada para melhor proporção
         color: { type: 'color', default: '#00ff00' }, // Verde padrão
         showDistance: { type: 'boolean', default: true },
-        showPhase: { type: 'boolean', default: true } // Nova opção para mostrar fase
+        showPhase: { type: 'boolean', default: true }, // Nova opção para mostrar fase
+        showPath: { type: 'boolean', default: true }, // Mostrar caminho completo
+        pathArrows: { type: 'number', default: 3 } // Número de setas do caminho
     },
 
     init: function () {
@@ -20,6 +22,7 @@ AFRAME.registerComponent('navigation-arrow', {
         this.dronePosition = new THREE.Vector3();
         this.targetPosition = new THREE.Vector3();
         this.totalCheckpoints = 0;
+        this.pathArrows = []; // Array para setas do percurso
         
         // Criar elementos visuais da seta
         this.createArrowElements();
@@ -31,7 +34,10 @@ AFRAME.registerComponent('navigation-arrow', {
         setTimeout(() => {
             this.findCheckpoints();
             this.updateTarget();
-        }, 500);
+            
+            // Iniciar o sistema de navegação
+            this.startNavigation();
+        }, 1000);
     },
 
     createArrowElements: function () {
@@ -57,7 +63,7 @@ AFRAME.registerComponent('navigation-arrow', {
             transparent: true,
             opacity: 0.9 // Mais opaca
         });
-        this.arrowMesh.setAttribute('position', `0 0.5 -${this.data.distance}`);
+        this.arrowMesh.setAttribute('position', `0 0.2 -${this.data.distance + 1}`);
         this.arrowMesh.setAttribute('rotation', '90 0 0'); // Apontar para frente
         
         // Animação de pulsação mais intensa
@@ -179,6 +185,72 @@ AFRAME.registerComponent('navigation-arrow', {
         });
         
         this.arrowContainer.appendChild(this.connectionLine);
+        
+        // Criar setas do percurso se habilitado
+        if (this.data.showPath) {
+            this.createPathArrows();
+        }
+    },
+    
+    createPathArrows: function () {
+        // Limpar setas existentes
+        this.clearPathArrows();
+        
+        // Criar setas para os próximos checkpoints
+        const upcomingCheckpoints = this.checkpoints.filter(cp => !cp.reached).slice(0, this.data.pathArrows);
+        
+        upcomingCheckpoints.forEach((checkpoint, index) => {
+            if (index === 0) return; // Pular o primeiro (já temos a seta principal)
+            
+            const pathArrow = document.createElement('a-cone');
+            pathArrow.setAttribute('geometry', {
+                radiusBottom: this.data.size * 0.6,
+                radiusTop: 0,
+                height: this.data.size * 1.5
+            });
+            
+            // Cores diferentes para cada seta do percurso
+            const colors = ['#ffff00', '#ff8800', '#ff0088'];
+            const arrowColor = colors[index - 1] || '#888888';
+            
+            pathArrow.setAttribute('material', {
+                color: arrowColor,
+                emissive: arrowColor,
+                emissiveIntensity: 0.3,
+                transparent: true,
+                opacity: 0.6
+            });
+            
+            pathArrow.setAttribute('rotation', '90 0 0');
+            pathArrow.setAttribute('scale', '0.8 0.8 0.8');
+            
+            // Animação mais sutil para setas do percurso
+            pathArrow.setAttribute('animation__pulse', {
+                property: 'scale',
+                to: '1.0 1.0 1.0',
+                dur: 1500,
+                direction: 'alternate',
+                loop: true,
+                easing: 'easeInOutSine'
+            });
+            
+            this.pathArrows.push({
+                element: pathArrow,
+                checkpoint: checkpoint,
+                index: index
+            });
+            
+            this.arrowContainer.appendChild(pathArrow);
+        });
+    },
+    
+    clearPathArrows: function () {
+        this.pathArrows.forEach(arrow => {
+            if (arrow.element.parentNode) {
+                arrow.element.parentNode.removeChild(arrow.element);
+            }
+        });
+        this.pathArrows = [];
     },
 
     setupEventListeners: function () {
@@ -223,10 +295,32 @@ AFRAME.registerComponent('navigation-arrow', {
                  const totalPhases = this.checkpoints.length;
                  this.phaseText.setAttribute('value', `FASE ${currentPhase}/${totalPhases}`);
              }
+             
+             // Recriar setas do percurso para mostrar próximos checkpoints
+             if (this.data.showPath) {
+                 this.createPathArrows();
+             }
          } else {
              this.arrowContainer.setAttribute('visible', false);
+             this.clearPathArrows();
          }
      },
+
+    startNavigation: function() {
+        console.log('🧭 Sistema de navegação iniciado');
+        this.updateArrowVisibility(true);
+        
+        // Criar setas de caminho se necessário
+        if (this.data.showPath && this.pathArrows.length === 0) {
+            this.createPathArrows();
+        }
+    },
+    
+    updateArrowVisibility: function(visible) {
+        if (this.arrowContainer) {
+            this.arrowContainer.setAttribute('visible', visible);
+        }
+    },
 
     tick: function (time, timeDelta) {
         if (!this.currentTarget) return;
@@ -263,6 +357,42 @@ AFRAME.registerComponent('navigation-arrow', {
         const lineHeight = Math.min(this.data.distance, distance * 0.1);
         this.connectionLine.setAttribute('geometry', 'height', lineHeight);
         this.connectionLine.setAttribute('position', `0 0 -${lineHeight * 0.5}`);
+        
+        // Atualizar posições das setas do percurso
+        this.updatePathArrows();
+    },
+    
+    updatePathArrows: function () {
+        if (!this.data.showPath || this.pathArrows.length === 0) return;
+        
+        const droneElement = document.querySelector('#drone');
+        if (!droneElement) return;
+        
+        const dronePos = droneElement.getAttribute('position');
+        
+        this.pathArrows.forEach((arrow, index) => {
+            const checkpoint = arrow.checkpoint;
+            if (!checkpoint) return;
+            
+            // Calcular direção para o checkpoint
+            const direction = checkpoint.position.clone().sub(new THREE.Vector3(dronePos.x, dronePos.y, dronePos.z));
+            const distance = direction.length();
+            direction.normalize();
+            
+            // Posicionar seta em direção ao checkpoint, mas mais distante que a principal
+            const arrowDistance = this.data.distance + (index * 1.5);
+            const arrowPos = direction.multiplyScalar(arrowDistance);
+            
+            arrow.element.setAttribute('position', `${arrowPos.x} ${arrowPos.y + 0.2} ${arrowPos.z}`);
+            
+            // Calcular rotação para apontar para o checkpoint
+            const angle = Math.atan2(direction.x, direction.z);
+            arrow.element.setAttribute('rotation', `90 ${THREE.MathUtils.radToDeg(angle)} 0`);
+            
+            // Ajustar opacidade baseada na distância
+            const opacity = Math.max(0.3, Math.min(0.8, 100 / distance));
+            arrow.element.setAttribute('material', 'opacity', opacity);
+        });
     },
 
     onCheckpointReached: function (evt) {

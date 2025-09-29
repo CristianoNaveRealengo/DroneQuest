@@ -20,6 +20,10 @@ if (!AFRAME.components.checkpoint) {
         this.isActivated = false;
         this.glowEffect = null;
         this.particleSystem = null;
+        this.proximityThreshold = 4; // metros
+        this.activationRadius = 2; // metros para ativação
+        this.lastDronePosition = null; // Para detectar passagem
+        this.hasEnteredZone = false; // Para verificar se entrou na zona
         
         // Configurar detecção de colisão
         this.setupCollisionDetection();
@@ -129,13 +133,59 @@ if (!AFRAME.components.checkpoint) {
         // Calcular distância
         const distance = this.calculateDistance(dronePosition, checkpointPosition);
         
-        // Ativar se estiver próximo o suficiente
-        if (distance < 4) { // 4 metros de raio
-            this.activateCheckpoint();
+        // Verificar se está dentro da zona de ativação (passagem pela argola)
+        if (distance < this.activationRadius) {
+            if (!this.hasEnteredZone) {
+                this.hasEnteredZone = true;
+                console.log(`🎯 Drone entrou na zona do checkpoint ${this.data.id}`);
+            }
+            
+            // Verificar se realmente passou pela argola (detecção de movimento através)
+            if (this.lastDronePosition && this.hasEnteredZone) {
+                const hasPassedThrough = this.checkPassageThrough(this.lastDronePosition, dronePosition, checkpointPosition);
+                if (hasPassedThrough) {
+                    this.activateCheckpoint();
+                }
+            }
+        } else if (distance > this.proximityThreshold) {
+            // Reset se saiu da zona de proximidade
+            this.hasEnteredZone = false;
         }
+        
+        // Atualizar posição anterior
+        this.lastDronePosition = {
+            x: dronePosition.x,
+            y: dronePosition.y,
+            z: dronePosition.z
+        };
         
         // Efeito de proximidade
         this.updateProximityEffect(distance);
+    },
+    
+    checkPassageThrough: function (lastPos, currentPos, checkpointPos) {
+        // Verificar se o drone passou através do plano da argola
+        const threshold = 1.0; // Tolerância para passagem
+        
+        // Calcular se houve mudança significativa de posição em relação ao checkpoint
+        const lastDistance = this.calculateDistance(lastPos, checkpointPos);
+        const currentDistance = this.calculateDistance(currentPos, checkpointPos);
+        
+        // Verificar se o movimento foi significativo e passou pelo centro
+        const movementVector = {
+            x: currentPos.x - lastPos.x,
+            y: currentPos.y - lastPos.y,
+            z: currentPos.z - lastPos.z
+        };
+        
+        const movementMagnitude = Math.sqrt(
+            movementVector.x * movementVector.x +
+            movementVector.y * movementVector.y +
+            movementVector.z * movementVector.z
+        );
+        
+        // Se houve movimento significativo e está muito próximo do centro
+        return movementMagnitude > 0.5 && currentDistance < 1.5;
     },
 
     calculateDistance: function (pos1, pos2) {
@@ -262,11 +312,12 @@ if (!AFRAME.components.checkpoint) {
 
     createFloatingText: function () {
         const position = this.el.getAttribute('position');
-        const floatingText = document.createElement('a-text');
         
+        // Texto principal de pontuação
+        const floatingText = document.createElement('a-text');
         floatingText.setAttribute('value', `CHECKPOINT ${this.data.id}\n+${this.data.points} PONTOS`);
         floatingText.setAttribute('color', '#ffd700');
-        floatingText.setAttribute('scale', '3 3 3');
+        floatingText.setAttribute('scale', '4 4 4');
         floatingText.setAttribute('align', 'center');
         floatingText.setAttribute('position', {
             x: position.x,
@@ -274,10 +325,20 @@ if (!AFRAME.components.checkpoint) {
             z: position.z
         });
         
-        floatingText.setAttribute('animation', {
+        // Animação de crescimento e movimento
+        floatingText.setAttribute('animation__grow', {
+            property: 'scale',
+            from: '0.1 0.1 0.1',
+            to: '4 4 4',
+            dur: 500,
+            easing: 'easeOutBack'
+        });
+        
+        floatingText.setAttribute('animation__move', {
             property: 'position',
             to: `${position.x} ${position.y + 6} ${position.z}`,
             dur: 3000,
+            delay: 500,
             easing: 'easeOutQuad'
         });
         
@@ -285,19 +346,67 @@ if (!AFRAME.components.checkpoint) {
             property: 'material.opacity',
             from: 1,
             to: 0,
-            dur: 3000,
-            delay: 1000,
+            dur: 2000,
+            delay: 1500,
             easing: 'easeOutQuad'
         });
         
         this.el.sceneEl.appendChild(floatingText);
+        
+        // Criar efeito de explosão de pontos
+        this.createPointExplosion(position);
         
         // Remover texto após animação
         setTimeout(() => {
             if (floatingText.parentNode) {
                 floatingText.parentNode.removeChild(floatingText);
             }
-        }, 4100);
+        }, 4000);
+    },
+    
+    createPointExplosion: function (position) {
+        // Criar múltiplas partículas de pontos
+        for (let i = 0; i < 8; i++) {
+            const pointParticle = document.createElement('a-text');
+            pointParticle.setAttribute('value', `+${Math.floor(this.data.points / 8)}`);
+            pointParticle.setAttribute('color', '#00ff00');
+            pointParticle.setAttribute('scale', '2 2 2');
+            pointParticle.setAttribute('align', 'center');
+            
+            const angle = (i / 8) * Math.PI * 2;
+            const radius = 3;
+            const targetX = position.x + Math.cos(angle) * radius;
+            const targetZ = position.z + Math.sin(angle) * radius;
+            
+            pointParticle.setAttribute('position', {
+                x: position.x,
+                y: position.y + 1,
+                z: position.z
+            });
+            
+            pointParticle.setAttribute('animation', {
+                property: 'position',
+                to: `${targetX} ${position.y + 4} ${targetZ}`,
+                dur: 1500,
+                easing: 'easeOutQuad'
+            });
+            
+            pointParticle.setAttribute('animation__fade', {
+                property: 'material.opacity',
+                from: 1,
+                to: 0,
+                dur: 1500,
+                easing: 'easeOutQuad'
+            });
+            
+            this.el.sceneEl.appendChild(pointParticle);
+            
+            setTimeout(() => {
+                if (pointParticle.parentNode) {
+                    pointParticle.parentNode.removeChild(pointParticle);
+                }
+            }, 1600);
+        }
     },
 
     playActivationSound: function () {

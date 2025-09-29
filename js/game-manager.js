@@ -3,7 +3,8 @@
  * Controla timer, pontuação, UI, estado do jogo e progressão
  */
 
-AFRAME.registerComponent('game-manager', {
+if (!AFRAME.components['game-manager']) {
+    AFRAME.registerComponent('game-manager', {
     schema: {
         totalCheckpoints: { type: 'number', default: 5 },
         timeLimit: { type: 'number', default: 120 }, // 2 minutos em segundos (tempo máximo)
@@ -283,6 +284,66 @@ AFRAME.registerComponent('game-manager', {
         this.showPauseMenu();
         
         this.el.emit('game-paused');
+    },
+    
+    // Implementação da função showPauseMenu
+    showPauseMenu: function() {
+        console.log('Exibindo menu de pausa');
+        // Seleciona o elemento do menu de pausa
+        const pauseMenu = document.querySelector('#pause-menu');
+        if (pauseMenu) {
+            pauseMenu.style.display = 'flex';
+        } else {
+            console.warn('Menu de pausa não encontrado no DOM');
+            this.createPauseMenu();
+        }
+    },
+    
+    // Implementação da função hidePauseMenu
+    hidePauseMenu: function() {
+        console.log('Ocultando menu de pausa');
+        const pauseMenu = document.querySelector('#pause-menu');
+        if (pauseMenu) {
+            pauseMenu.style.display = 'none';
+        }
+    },
+    
+    // Função auxiliar para criar o menu de pausa caso não exista
+    createPauseMenu: function() {
+        console.log('Criando menu de pausa');
+        const pauseMenu = document.createElement('div');
+        pauseMenu.id = 'pause-menu';
+        pauseMenu.style.position = 'fixed';
+        pauseMenu.style.top = '0';
+        pauseMenu.style.left = '0';
+        pauseMenu.style.width = '100%';
+        pauseMenu.style.height = '100%';
+        pauseMenu.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+        pauseMenu.style.display = 'flex';
+        pauseMenu.style.flexDirection = 'column';
+        pauseMenu.style.justifyContent = 'center';
+        pauseMenu.style.alignItems = 'center';
+        pauseMenu.style.zIndex = '9999';
+        
+        const title = document.createElement('h1');
+        title.textContent = 'JOGO PAUSADO';
+        title.style.color = 'white';
+        title.style.marginBottom = '20px';
+        
+        const resumeBtn = document.createElement('button');
+        resumeBtn.textContent = 'CONTINUAR';
+        resumeBtn.style.padding = '10px 20px';
+        resumeBtn.style.fontSize = '18px';
+        resumeBtn.style.margin = '10px';
+        resumeBtn.style.cursor = 'pointer';
+        resumeBtn.onclick = () => {
+            const gameManager = document.querySelector('[game-manager]').components['game-manager'];
+            gameManager.resumeGame();
+        };
+        
+        pauseMenu.appendChild(title);
+        pauseMenu.appendChild(resumeBtn);
+        document.body.appendChild(pauseMenu);
     },
 
     resumeGame: function () {
@@ -856,5 +917,4 @@ AFRAME.registerComponent('game-manager', {
         // Ajustar UI para desktop
     }
 });
-
-console.log('📦 Módulo game-manager.js carregado com sucesso!');
+console.log('📦 Módulo game-manager.js carregado com sucesso!');}

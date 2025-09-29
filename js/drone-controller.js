@@ -3,6 +3,8 @@
  * Sistema avançado de controle com física realista e suporte a VR
  */
 
+// Registrar o componente no A-Frame apenas se não estiver registrado
+if (!AFRAME.components['drone-controller']) {
 AFRAME.registerComponent('drone-controller', {
     schema: {
         // Configurações de movimento (valores realistas para drone)
@@ -38,6 +40,7 @@ AFRAME.registerComponent('drone-controller', {
         this.targetRotation = new THREE.Euler();
         
         // Estado do drone
+        this.isActive = false; // Corrigido: adicionado estado de ativação
         this.isFlying = false;
         this.currentSpeed = 0;
         this.batteryLevel = 100;
@@ -47,6 +50,11 @@ AFRAME.registerComponent('drone-controller', {
         this.targetThrust = 0; // Potência alvo das hélices
         this.hoverHeight = 3; // Altura preferida para hover
         this.isHovering = false; // Estado de hover automático
+        
+        // Iniciar o drone automaticamente após 1 segundo
+        setTimeout(() => {
+            this.activateDrone();
+        }, 1000);
         
         // Inicializar animações das hélices
         setTimeout(() => {
@@ -406,6 +414,36 @@ AFRAME.registerComponent('drone-controller', {
         this.updatePropellerEffects(false);
         this.updateAudioFeedback(new THREE.Vector3(0, 0, 0));
         console.log('🚁 Drone desativado');
+    },
+    
+    activateDrone: function() {
+        if (this.isActive) {
+            console.log('🚁 Drone desativado');
+            this.isActive = false;
+            this.velocity.set(0, 0, 0);
+            this.angularVelocity.set(0, 0, 0);
+            
+            // Emitir evento de desativação
+            this.el.emit('drone-deactivated');
+        } else {
+            console.log('🚁 Drone ativado');
+            this.isActive = true;
+            
+            // Iniciar o voo
+            this.isFlying = true;
+            
+            // Emitir evento de ativação
+            this.el.emit('drone-activated');
+            
+            // Iniciar o jogo se ainda não estiver iniciado
+            const gameManager = document.querySelector('[game-manager]');
+            if (gameManager && gameManager.components['game-manager']) {
+                const gameComponent = gameManager.components['game-manager'];
+                if (!gameComponent.gameState.isPlaying) {
+                    gameComponent.startGame();
+                }
+            }
+        }
     },
 
     onLeftGripDown: function () {
@@ -952,5 +990,7 @@ AFRAME.registerComponent('drone-controller', {
         this.updateAudioFeedback(new THREE.Vector3(0, 0, 0));
     }
 });
+
+} // fecha o registerComponent
 
 console.log('📦 Módulo drone-controller.js carregado com sucesso!');
