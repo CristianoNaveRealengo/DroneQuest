@@ -21,7 +21,12 @@ AFRAME.registerComponent('drone-controller', {
         
         // Configurações de controle
         deadzone: { type: 'number', default: 0.1 },
-        sensitivity: { type: 'number', default: 1.0 }
+        sensitivity: { type: 'number', default: 1.0 },
+        
+        // Configurações de hover realista
+        hoverThrust: { type: 'number', default: 9.8 }, // Empuxo para contrabalançar gravidade
+        hoverStability: { type: 'number', default: 0.8 }, // Estabilidade do hover
+        windResistance: { type: 'number', default: 0.02 } // Resistência ao vento
     },
 
     init: function () {
@@ -36,6 +41,17 @@ AFRAME.registerComponent('drone-controller', {
         this.isFlying = false;
         this.currentSpeed = 0;
         this.batteryLevel = 100;
+        
+        // Sistema de hover realista
+        this.thrustPower = 0; // Potência atual das hélices (0-1)
+        this.targetThrust = 0; // Potência alvo das hélices
+        this.hoverHeight = 3; // Altura preferida para hover
+        this.isHovering = false; // Estado de hover automático
+        
+        // Inicializar animações das hélices
+        setTimeout(() => {
+            this.initPropellerAnimations();
+        }, 100);
         
         // Controles VR
         this.leftController = null;
@@ -175,9 +191,9 @@ AFRAME.registerComponent('drone-controller', {
 
         helpPanel.innerHTML = `
             <div style="font-weight: bold; margin-bottom: 5px;">🎮 Controles:</div>
-            <div>WASD - Movimento</div>
-            <div>QE - Subir/Descer</div>
-            <div>Setas - Rotação</div>
+            <div>WASD - Movimento (frente/trás/esquerda/direita)</div>
+            <div>↑↓ - Subir/Descer</div>
+            <div>←→ - Rotação (esquerda/direita)</div>
             <div>Space - Ligar/Desligar drone</div>
             <div>Shift - Modo boost</div>
             <div>R - Reset posição</div>
@@ -470,28 +486,24 @@ AFRAME.registerComponent('drone-controller', {
     // === SISTEMA DE MOVIMENTO ===
 
     tick: function (time, timeDelta) {
-        if (!this.isFlying && !this.hasKeyboardInput()) {
-            this.applyGravityAndDrag();
-            return;
-        }
-
         // Processar entrada de controles
         this.processControlInput();
         
-        // Aplicar movimento
+        // Aplicar movimento com física realista
         this.applyMovement(timeDelta);
         
         // Aplicar rotação
         this.applyRotation(timeDelta);
         
+        // Aplicar física realista (gravidade, hover, arrasto)
+        this.applyRealisticPhysics(timeDelta);
+        
         // Atualizar efeitos visuais
+        this.updateAdvancedPropellerEffects();
         this.updateVisualEffects();
         
         // Atualizar HUD
         this.updateHUD();
-        
-        // Aplicar arrasto
-        this.applyDrag();
     },
 
     processControlInput: function () {
@@ -516,21 +528,19 @@ AFRAME.registerComponent('drone-controller', {
     processKeyboardInput: function () {
         const speed = this.data.maxSpeed * this.data.sensitivity;
         
-        // Movimento WASD
+        // Movimento WASD (frente/trás/esquerda/direita)
         if (this.keys['KeyW']) this.targetForwardSpeed = speed;
         if (this.keys['KeyS']) this.targetForwardSpeed = -speed;
         if (this.keys['KeyA']) this.targetStrafeSpeed = -speed;
         if (this.keys['KeyD']) this.targetStrafeSpeed = speed;
         
-        // Altitude QE
-        if (this.keys['KeyQ']) this.targetAltitudeChange = -speed * 0.3;
-        if (this.keys['KeyE']) this.targetAltitudeChange = speed * 0.3;
+        // Altitude com setas verticais (↑/↓)
+        if (this.keys['ArrowUp']) this.targetAltitudeChange = speed * 0.3;
+        if (this.keys['ArrowDown']) this.targetAltitudeChange = -speed * 0.3;
         
-        // Rotação com setas
+        // Rotação yaw com setas horizontais (esquerda/direita)
         if (this.keys['ArrowLeft']) this.targetYawRotation = this.data.rotationSpeed;
         if (this.keys['ArrowRight']) this.targetYawRotation = -this.data.rotationSpeed;
-        if (this.keys['ArrowUp']) this.targetPitchRotation = this.data.rotationSpeed;
-        if (this.keys['ArrowDown']) this.targetPitchRotation = -this.data.rotationSpeed;
     },
 
     applyMovement: function (timeDelta) {
@@ -593,10 +603,24 @@ AFRAME.registerComponent('drone-controller', {
             this.angularVelocity.x += this.targetPitchRotation * deltaTime;
         }
         
-        // Auto-nivelamento
+        // Auto-nivelamento inteligente - só aplica se estiver fora da zona morta
         if (this.data.autoLevel) {
-            this.angularVelocity.x -= rotation.x * this.data.stabilization * deltaTime;
-            this.angularVelocity.z -= rotation.z * this.data.stabilization * deltaTime;
+            const levelingDeadzone = 2.0; // Zona morta de 2 graus para evitar oscilação
+            
+            // Só aplicar auto-nivelamento se a rotação estiver fora da zona morta
+            if (Math.abs(rotation.x) > levelingDeadzone) {
+                this.angularVelocity.x -= rotation.x * this.data.stabilization * deltaTime;
+            } else {
+                // Dentro da zona morta, aplicar amortecimento suave para parar oscilações
+                this.angularVelocity.x *= 0.95;
+            }
+            
+            if (Math.abs(rotation.z) > levelingDeadzone) {
+                this.angularVelocity.z -= rotation.z * this.data.stabilization * deltaTime;
+            } else {
+                // Dentro da zona morta, aplicar amortecimento suave para parar oscilações
+                this.angularVelocity.z *= 0.95;
+            }
         }
         
         // Aplicar rotação
@@ -609,25 +633,82 @@ AFRAME.registerComponent('drone-controller', {
         this.el.setAttribute('rotation', newRotation);
     },
 
-    applyGravityAndDrag: function () {
-        // Aplicar gravidade quando não está voando
-        this.velocity.y -= 9.8 * 0.016; // Gravidade
-        this.velocity.multiplyScalar(0.95); // Arrasto
-        this.angularVelocity.multiplyScalar(0.9); // Arrasto angular
-        
-        // Aplicar movimento gravitacional
+    applyRealisticPhysics: function (timeDelta) {
+        const deltaTime = timeDelta / 1000;
         const position = this.el.getAttribute('position');
-        const newY = Math.max(0.5, position.y + this.velocity.y * 0.016);
         
-        if (newY <= 0.5) {
-            this.velocity.y = 0; // Parar no chão
+        if (this.isFlying) {
+            // === SISTEMA DE HOVER REALISTA ===
+            
+            // Calcular empuxo necessário para hover
+            const gravity = 9.8 * this.data.mass;
+            
+            // Se não há entrada de altitude, ativar hover automático
+            if (Math.abs(this.targetAltitudeChange) < 0.1) {
+                this.isHovering = true;
+                
+                // Calcular diferença da altura ideal
+                const heightDifference = this.hoverHeight - position.y;
+                
+                // Ajustar empuxo baseado na diferença de altura
+                const hoverAdjustment = heightDifference * this.data.hoverStability;
+                this.targetThrust = (gravity + hoverAdjustment) / this.data.hoverThrust;
+            } else {
+                // Controle manual de altitude
+                this.isHovering = false;
+                this.targetThrust = (gravity + this.targetAltitudeChange * this.data.mass) / this.data.hoverThrust;
+            }
+            
+            // Suavizar mudanças de empuxo
+            this.thrustPower += (this.targetThrust - this.thrustPower) * 5.0 * deltaTime;
+            this.thrustPower = Math.max(0, Math.min(2.0, this.thrustPower)); // Limitar entre 0 e 200%
+            
+            // Aplicar empuxo vertical
+            const thrustForce = this.thrustPower * this.data.hoverThrust;
+            this.velocity.y += (thrustForce - gravity) * deltaTime / this.data.mass;
+            
+            // === RESISTÊNCIA AO VENTO E ESTABILIZAÇÃO ===
+            
+            // Aplicar resistência ao vento para estabilização horizontal
+            if (Math.abs(this.targetForwardSpeed) < 0.1 && Math.abs(this.targetStrafeSpeed) < 0.1) {
+                // Sem entrada de movimento - aplicar estabilização
+                this.velocity.x *= Math.pow(this.data.windResistance, deltaTime);
+                this.velocity.z *= Math.pow(this.data.windResistance, deltaTime);
+            }
+            
+        } else {
+            // === DRONE DESLIGADO - APLICAR GRAVIDADE ===
+            this.thrustPower = 0;
+            this.targetThrust = 0;
+            this.isHovering = false;
+            
+            // Aplicar gravidade
+            this.velocity.y -= 9.8 * deltaTime;
         }
         
-        this.el.setAttribute('position', {
-            x: position.x + this.velocity.x * 0.016,
-            y: newY,
-            z: position.z + this.velocity.z * 0.016
-        });
+        // === APLICAR ARRASTO GERAL ===
+        this.velocity.multiplyScalar(Math.pow(this.data.drag, deltaTime));
+        this.angularVelocity.multiplyScalar(Math.pow(this.data.angularDrag, deltaTime));
+        
+        // === APLICAR MOVIMENTO ===
+        const newPosition = {
+            x: position.x + this.velocity.x * deltaTime,
+            y: Math.max(0.5, position.y + this.velocity.y * deltaTime), // Evitar ir abaixo do chão
+            z: position.z + this.velocity.z * deltaTime
+        };
+        
+        // Parar no chão se necessário
+        if (newPosition.y <= 0.5) {
+            this.velocity.y = 0;
+            newPosition.y = 0.5;
+        }
+        
+        this.el.setAttribute('position', newPosition);
+        
+        // Atualizar altura de hover se estiver voando
+        if (this.isFlying && !this.isHovering) {
+            this.hoverHeight = newPosition.y;
+        }
     },
 
     applyDrag: function () {
@@ -651,19 +732,140 @@ AFRAME.registerComponent('drone-controller', {
     updatePropellerEffects: function (isActive) {
         this.propellers.forEach((prop, index) => {
             if (prop) {
-                const speed = isActive ? (this.boostMode ? 50 : 100) : 1000;
+                // Calcular velocidade baseada na potência real das hélices
+                let rotationSpeed;
+                let opacity;
+                
+                if (isActive && this.isFlying) {
+                    // Velocidade baseada na potência das hélices (0-1 -> 50-1000ms)
+                    const thrustFactor = Math.max(0.1, this.thrustPower);
+                    rotationSpeed = Math.max(50, 1000 / (thrustFactor * (this.boostMode ? 2 : 1)));
+                    
+                    // Opacidade baseada na potência
+                    opacity = Math.min(0.8, 0.2 + (thrustFactor * 0.4));
+                    
+                    // Efeito visual de boost
+                    if (this.boostMode) {
+                        opacity = Math.min(0.9, opacity * 1.5);
+                    }
+                } else {
+                    // Hélices paradas ou em idle
+                    rotationSpeed = 2000;
+                    opacity = 0.1;
+                }
+                
                 const direction = (index % 2 === 0) ? '3600' : '-3600';
                 
                 prop.setAttribute('animation', {
                     property: 'rotation',
                     to: `0 ${direction} 0`,
                     loop: true,
-                    dur: speed
+                    dur: rotationSpeed
                 });
                 
-                // Ajustar opacidade baseada na velocidade
-                const opacity = isActive ? (this.boostMode ? 0.6 : 0.4) : 0.1;
                 prop.setAttribute('material', 'opacity', opacity);
+            }
+        });
+    },
+
+    // Sistema avançado de animação das hélices
+    initPropellerAnimations: function () {
+        const propellers = ['prop1', 'prop2', 'prop3', 'prop4'];
+        
+        propellers.forEach((propId, index) => {
+            const propeller = document.querySelector(`#${propId}`);
+            if (propeller) {
+                // Configurar propriedades iniciais
+                propeller.setAttribute('material', {
+                    color: '#ff4444',
+                    transparent: true,
+                    opacity: 0.3,
+                    metalness: 0.1,
+                    roughness: 0.9
+                });
+                
+                // Adicionar efeito de blur quando em alta velocidade
+                propeller.setAttribute('geometry', {
+                    primitive: 'cylinder',
+                    radius: 0.6,
+                    height: 0.03,
+                    segmentsRadial: 8
+                });
+                
+                // Configurar animação inicial
+                const direction = (index % 2 === 0) ? 3600 : -3600;
+                propeller.setAttribute('animation', {
+                    property: 'rotation',
+                    to: `0 ${direction} 0`,
+                    loop: true,
+                    dur: 100
+                });
+            }
+        });
+    },
+
+    // Efeitos visuais avançados das hélices
+    updateAdvancedPropellerEffects: function () {
+        const propellers = ['prop1', 'prop2', 'prop3', 'prop4'];
+        
+        propellers.forEach((propId, index) => {
+            const propeller = document.querySelector(`#${propId}`);
+            if (propeller) {
+                let speed = 100;
+                let opacity = 0.3;
+                let radius = 0.6;
+                let color = '#ff4444';
+                let thrustFactor = 0; // Definir thrustFactor no escopo correto
+                
+                if (this.isFlying) {
+                    // Cálculos baseados no empuxo
+                    thrustFactor = this.thrustPower;
+                    speed = Math.max(15, 100 - (thrustFactor * 85));
+                    opacity = Math.min(0.9, 0.3 + (thrustFactor * 0.6));
+                    
+                    // Efeito de blur - hélices ficam maiores e mais transparentes em alta velocidade
+                    if (thrustFactor > 0.7) {
+                        radius = 0.6 + (thrustFactor - 0.7) * 0.8; // Até 0.84
+                        opacity = Math.max(0.2, opacity - (thrustFactor - 0.7) * 0.3);
+                        color = '#ff6666'; // Cor mais clara em alta velocidade
+                    }
+                    
+                    if (this.boostMode) {
+                        speed = Math.max(8, speed * 0.4);
+                        opacity = Math.min(0.95, opacity + 0.15);
+                        radius += 0.2;
+                        color = '#ff8888'; // Cor ainda mais clara no boost
+                    }
+                }
+                
+                // Direção alternada para realismo
+                const direction = (index % 2 === 0) ? 3600 : -3600;
+                
+                // Atualizar geometria para efeito de blur
+                propeller.setAttribute('geometry', {
+                    primitive: 'cylinder',
+                    radius: radius,
+                    height: 0.03,
+                    segmentsRadial: Math.max(6, Math.min(12, Math.round(8 + thrustFactor * 4)))
+                });
+                
+                // Atualizar material
+                propeller.setAttribute('material', {
+                    color: color,
+                    transparent: true,
+                    opacity: opacity,
+                    metalness: 0.1,
+                    roughness: 0.9
+                });
+                
+                // Atualizar animação
+                propeller.setAttribute('animation', {
+                    property: 'rotation',
+                    to: `0 ${direction} 0`,
+                    loop: true,
+                    dur: speed,
+                    easing: 'linear'
+                });
             }
         });
     },
@@ -683,7 +885,25 @@ AFRAME.registerComponent('drone-controller', {
         const speedElement = document.querySelector('#speed-indicator');
         if (speedElement) {
             const speedKmh = Math.round(this.currentSpeed * 3.6); // Converter para km/h
-            speedElement.setAttribute('value', `Velocidade: ${speedKmh} km/h`);
+            const thrustPercent = Math.round(this.thrustPower * 100);
+            const position = this.el.getAttribute('position');
+            const altitude = Math.round(position.y * 10) / 10; // Uma casa decimal
+            
+            let statusText = `Velocidade: ${speedKmh} km/h | Altitude: ${altitude}m`;
+            
+            if (this.isFlying) {
+                statusText += ` | Empuxo: ${thrustPercent}%`;
+                if (this.isHovering) {
+                    statusText += ` | HOVER`;
+                }
+                if (this.boostMode) {
+                    statusText += ` | BOOST`;
+                }
+            } else {
+                statusText += ` | DESLIGADO`;
+            }
+            
+            speedElement.setAttribute('value', statusText);
         }
     },
 
