@@ -198,7 +198,7 @@ AFRAME.registerComponent('audio-system', {
         
         // Parar som anterior se existir
         if (this.droneSounds.propellers) {
-            this.droneSounds.propellers.stop();
+            this.droneSounds.propellers.source.stop();
         }
         
         const source = this.audioContext.createBufferSource();
@@ -212,20 +212,27 @@ AFRAME.registerComponent('audio-system', {
         filter.type = 'lowpass';
         filter.frequency.setValueAtTime(800 + intensity * 400, this.audioContext.currentTime);
         
-        // Volume baseado na intensidade
-        gainNode.gain.setValueAtTime(intensity * 0.3, this.audioContext.currentTime);
+        // Volume baseado na intensidade; sfx/master volumes são aplicados nos nós sfxGain/masterGain
+        const effectiveVolume = this.isMuted ? 0 : intensity * 0.3;
+        gainNode.gain.setValueAtTime(effectiveVolume, this.audioContext.currentTime);
         
         source.connect(filter);
         filter.connect(gainNode);
         gainNode.connect(this.sfxGain);
         
         source.start();
-        this.droneSounds.propellers = source;
+        // Armazenar referências para controle posterior
+        this.droneSounds.propellers = {
+            source: source,
+            gain: gainNode,
+            filter: filter,
+            intensity: intensity
+        };
     },
 
     stopPropellerSound: function () {
         if (this.droneSounds.propellers) {
-            this.droneSounds.propellers.stop();
+            this.droneSounds.propellers.source.stop();
             this.droneSounds.propellers = null;
         }
     },
@@ -410,6 +417,9 @@ AFRAME.registerComponent('audio-system', {
         this.musicGain.gain.setValueAtTime(this.data.musicVolume, this.audioContext.currentTime);
         this.sfxGain.gain.setValueAtTime(this.data.sfxVolume, this.audioContext.currentTime);
         this.ambientGain.gain.setValueAtTime(this.data.ambientVolume, this.audioContext.currentTime);
+        
+        // Atualizar também o volume do drone
+        this.updateDroneVolume();
     },
 
     toggleMute: function () {
@@ -417,11 +427,27 @@ AFRAME.registerComponent('audio-system', {
         this.updateVolumes();
         console.log(this.isMuted ? '🔇 Áudio mutado' : '🔊 Áudio ativado');
         
+        // Atualizar volume do drone se estiver tocando
+        this.updateDroneVolume();
+        
         // Atualizar indicação visual
         if (this.isMuted) {
             this.showMuteIndicator();
         } else {
             this.hideMuteIndicator();
+        }
+    },
+    
+    updateDroneVolume: function() {
+        // Atualizar volume do som das hélices se estiver tocando
+        if (this.droneSounds.propellers) {
+            const intensity = this.droneSounds.propellers.intensity;
+            // Aplicar apenas intensidade aqui; sfx/master volumes são aplicados nos nós de mixagem
+            const effectiveVolume = this.isMuted ? 0 : intensity * 0.3;
+            this.droneSounds.propellers.gain.gain.setValueAtTime(
+                effectiveVolume,
+                this.audioContext.currentTime
+            );
         }
     },
 

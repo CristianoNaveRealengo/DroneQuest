@@ -302,33 +302,15 @@ AFRAME.registerComponent('drone-controller', {
     },
 
     setupAudioSystem: function () {
-        // Sistema de áudio para feedback do drone
-        this.audioContext = null;
-        this.motorSound = null;
+        // Integração com o sistema de áudio global
+        // O audio-system gerencia os sons do drone, respeitando masterVolume e mute
         this.lastMovementIntensity = 0;
-        
-        // Configurar áudio se disponível
-        if (typeof AudioContext !== 'undefined' || typeof webkitAudioContext !== 'undefined') {
-            this.audioContext = new (AudioContext || webkitAudioContext)();
-            this.setupMotorSound();
-        }
+        this.audioSystem = this.el.sceneEl.components['audio-system'];
     },
 
     setupMotorSound: function () {
-        // Criar oscilador para som do motor
-        if (this.audioContext) {
-            this.motorOscillator = this.audioContext.createOscillator();
-            this.motorGain = this.audioContext.createGain();
-            
-            this.motorOscillator.type = 'sawtooth';
-            this.motorOscillator.frequency.setValueAtTime(100, this.audioContext.currentTime);
-            this.motorGain.gain.setValueAtTime(0, this.audioContext.currentTime);
-            
-            this.motorOscillator.connect(this.motorGain);
-            this.motorGain.connect(this.audioContext.destination);
-            
-            this.motorOscillator.start();
-        }
+        // Som do motor agora é gerenciado pelo audio-system.
+        // Esta função permanece por compatibilidade, mas não cria áudio próprio.
     },
 
     stabilizeInitialPosition: function () {
@@ -355,25 +337,19 @@ AFRAME.registerComponent('drone-controller', {
     },
 
     updateAudioFeedback: function (movementVector) {
-        if (!this.audioContext || !this.motorGain) return;
-        
+        // Enviar intensidade de movimento para o sistema de áudio
         const movementIntensity = movementVector.length();
-        const baseFrequency = this.isFlying ? 150 : 50;
-        const maxFrequency = this.boostMode ? 300 : 200;
-        
-        // Calcular frequência baseada na intensidade do movimento
-        const targetFrequency = baseFrequency + (movementIntensity * 50);
-        const clampedFrequency = Math.min(targetFrequency, maxFrequency);
-        
-        // Calcular volume baseado no estado do drone
-        const targetVolume = this.isFlying ? Math.min(0.3, movementIntensity * 0.1 + 0.1) : 0;
-        
-        // Aplicar mudanças suaves
-        const currentTime = this.audioContext.currentTime;
-        this.motorOscillator.frequency.linearRampToValueAtTime(clampedFrequency, currentTime + 0.1);
-        this.motorGain.gain.linearRampToValueAtTime(targetVolume, currentTime + 0.1);
-        
         this.lastMovementIntensity = movementIntensity;
+
+        const audioSystem = this.el.sceneEl.components['audio-system'];
+        if (audioSystem) {
+            audioSystem.updatePropellerSound(movementIntensity);
+        }
+
+        // Emitir evento para compatibilidade com listeners existentes
+        if (this.el.sceneEl) {
+            this.el.sceneEl.emit('drone-throttle-change', { intensity: movementIntensity });
+        }
     },
 
     // === EVENTOS DOS CONTROLES VR ===
