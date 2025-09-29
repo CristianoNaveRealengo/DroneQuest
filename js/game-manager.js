@@ -333,6 +333,17 @@ AFRAME.registerComponent('game-manager', {
         // Salvar melhor tempo
         this.saveBestTime();
         
+        // Salvar high score
+        const isNewRecord = this.isNewHighScore();
+        this.saveHighScore();
+        
+        if (isNewRecord) {
+            console.log('🎉 NOVO RECORDE! Parabéns!');
+        }
+        
+        // Mostrar ranking
+        this.showHighScores();
+        
         // Mostrar tela de resultados
         this.showResultsScreen();
         
@@ -365,6 +376,46 @@ AFRAME.registerComponent('game-manager', {
         
         this.updateUI();
         this.saveGameData();
+    },
+
+    onCollision: function (type, object) {
+        console.log(`💥 Colisão registrada: ${type}`);
+        
+        // Registrar estatísticas de colisão
+        if (!this.gameState.collisions) {
+            this.gameState.collisions = 0;
+        }
+        this.gameState.collisions++;
+        
+        // Penalidade de pontos por colisão (opcional)
+        const penalty = this.getCollisionPenalty(type);
+        if (penalty > 0) {
+            this.gameState.score = Math.max(0, this.gameState.score - penalty);
+            console.log(`⚠️ Penalidade de ${penalty} pontos por colisão!`);
+        }
+        
+        // Atualizar UI
+        this.updateUI();
+        
+        // Emitir evento para outros sistemas
+        this.el.emit('collision-registered', {
+            type: type,
+            object: object,
+            totalCollisions: this.gameState.collisions,
+            penalty: penalty
+        });
+    },
+
+    getCollisionPenalty: function (type) {
+        // Definir penalidades por tipo de colisão
+        switch (type) {
+            case 'building': return 50;
+            case 'obstacle': return 30;
+            case 'boundary': return 20;
+            case 'ceiling': return 10;
+            case 'ground': return 15;
+            default: return 0;
+        }
     },
 
     onRaceFinished: function (evt) {
@@ -538,6 +589,12 @@ AFRAME.registerComponent('game-manager', {
         }
     },
 
+    addScore: function (points) {
+        this.gameState.score += points;
+        this.updateUI();
+        console.log(`💰 Score atualizado: ${this.gameState.score} pontos`);
+    },
+
     calculateFinalScore: function () {
         // Bônus por tempo
         const timeBonus = Math.max(0, (this.data.timeLimit * 1000 - this.gameState.elapsedTime) / 1000);
@@ -580,6 +637,68 @@ AFRAME.registerComponent('game-manager', {
         } catch (error) {
             console.warn('Erro ao carregar dados salvos:', error);
         }
+    },
+
+    // === SISTEMA DE RANKING ===
+    
+    saveHighScore: function () {
+        try {
+            // Carregar ranking existente
+            let highScores = JSON.parse(localStorage.getItem('droneRacingHighScores') || '[]');
+            
+            // Adicionar nova pontuação
+            const newScore = {
+                score: this.gameState.score,
+                time: this.gameState.elapsedTime,
+                date: new Date().toISOString(),
+                checkpoints: this.gameState.checkpointsReached,
+                laps: this.gameState.currentLap - 1
+            };
+            
+            highScores.push(newScore);
+            
+            // Ordenar por pontuação (maior primeiro)
+            highScores.sort((a, b) => b.score - a.score);
+            
+            // Manter apenas top 10
+            highScores = highScores.slice(0, 10);
+            
+            // Salvar ranking atualizado
+            localStorage.setItem('droneRacingHighScores', JSON.stringify(highScores));
+            
+            console.log('🏆 Pontuação salva no ranking!');
+            return highScores;
+        } catch (error) {
+            console.warn('Erro ao salvar ranking:', error);
+            return [];
+        }
+    },
+
+    getHighScores: function () {
+        try {
+            return JSON.parse(localStorage.getItem('droneRacingHighScores') || '[]');
+        } catch (error) {
+            console.warn('Erro ao carregar ranking:', error);
+            return [];
+        }
+    },
+
+    showHighScores: function () {
+        const highScores = this.getHighScores();
+        
+        console.log('🏆 === RANKING DE MAIORES PONTUAÇÕES ===');
+        highScores.forEach((score, index) => {
+            const timeFormatted = this.formatTime(score.time);
+            const dateFormatted = new Date(score.date).toLocaleDateString('pt-BR');
+            console.log(`${index + 1}º - ${score.score} pts | ${timeFormatted} | ${dateFormatted}`);
+        });
+        
+        return highScores;
+    },
+
+    isNewHighScore: function () {
+        const highScores = this.getHighScores();
+        return highScores.length < 10 || this.gameState.score > highScores[highScores.length - 1].score;
     },
 
     // === VR ===

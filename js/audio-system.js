@@ -515,6 +515,36 @@ AFRAME.registerComponent('audio-system', {
         if (this.audioContext && this.audioContext.state !== 'closed') {
             this.audioContext.close();
         }
+    },
+
+    // Criar tom sintético para efeitos sonoros
+    createTone: function (frequency, duration, volume) {
+        if (!this.isInitialized) return;
+        
+        // Valor padrão para volume
+        volume = volume || 0.3;
+        
+        try {
+            const oscillator = this.audioContext.createOscillator();
+            const gainNode = this.audioContext.createGain();
+            
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(frequency, this.audioContext.currentTime);
+            
+            // Envelope ADSR simples
+            gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(volume, this.audioContext.currentTime + 0.01);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + duration / 1000);
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(this.sfxGain);
+            
+            oscillator.start(this.audioContext.currentTime);
+            oscillator.stop(this.audioContext.currentTime + duration / 1000);
+            
+        } catch (error) {
+            console.warn('⚠️ Erro ao criar tom:', error);
+        }
     }
 });
 

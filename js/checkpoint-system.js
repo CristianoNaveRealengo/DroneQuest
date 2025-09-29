@@ -104,12 +104,8 @@ if (!AFRAME.components.checkpoint) {
     },
 
     setupAudio: function () {
-        // Adicionar som de checkpoint (placeholder)
-        this.checkpointSound = document.createElement('a-sound');
-        this.checkpointSound.setAttribute('src', '#checkpoint-sound');
-        this.checkpointSound.setAttribute('autoplay', false);
-        this.checkpointSound.setAttribute('volume', 0.5);
-        this.el.appendChild(this.checkpointSound);
+        // Sistema de áudio será usado via audio-system
+        this.audioSystem = null;
     },
 
     onCollision: function (evt) {
@@ -176,6 +172,9 @@ if (!AFRAME.components.checkpoint) {
         
         // Tocar som
         this.playActivationSound();
+        
+        // Adicionar pontos ao jogador
+        this.addPoints();
         
         // Notificar o sistema de jogo
         this.notifyGameManager();
@@ -302,13 +301,18 @@ if (!AFRAME.components.checkpoint) {
     },
 
     playActivationSound: function () {
-        // Tocar som de checkpoint (se disponível)
-        if (this.checkpointSound) {
-            this.checkpointSound.components.sound.playSound();
+        // Usar o sistema de áudio principal
+        if (!this.audioSystem) {
+            this.audioSystem = this.el.sceneEl.components['audio-system'];
         }
         
-        // Som sintético como fallback
-        this.playSyntheticSound();
+        if (this.audioSystem && this.audioSystem.createTone) {
+            // Som de checkpoint: tom agudo e alegre (800Hz por 300ms)
+            this.audioSystem.createTone(800, 300, 0.3);
+        } else {
+            // Som sintético como fallback
+            this.playSyntheticSound();
+        }
     },
 
     playSyntheticSound: function () {
@@ -451,6 +455,69 @@ if (!AFRAME.components['finish-line']) {
             position: this.el.getAttribute('position'),
             time: Date.now()
         });
+    },
+
+    addPoints: function () {
+        // Calcular pontos baseado no checkpoint e tempo
+        let points = this.data.points;
+        
+        // Bônus por velocidade (se passou rapidamente)
+        const gameManager = document.querySelector('[game-manager]');
+        if (gameManager && gameManager.components['game-manager']) {
+            const manager = gameManager.components['game-manager'];
+            
+            // Adicionar pontos ao score total
+            if (manager.addScore) {
+                manager.addScore(points);
+            }
+            
+            // Mostrar pontos na tela
+            this.showPointsDisplay(points);
+        }
+        
+        console.log(`💰 +${points} pontos pelo checkpoint ${this.data.id}!`);
+    },
+
+    showPointsDisplay: function (points) {
+        // Criar display de pontos flutuante
+        const pointsDisplay = document.createElement('a-text');
+        const position = this.el.getAttribute('position');
+        
+        pointsDisplay.setAttribute('value', `+${points} pts`);
+        pointsDisplay.setAttribute('position', {
+            x: position.x,
+            y: position.y + 2,
+            z: position.z
+        });
+        pointsDisplay.setAttribute('align', 'center');
+        pointsDisplay.setAttribute('color', '#00ff00');
+        pointsDisplay.setAttribute('scale', '3 3 3');
+        
+        // Animação de subida e fade
+        pointsDisplay.setAttribute('animation', {
+            property: 'position',
+            to: `${position.x} ${position.y + 8} ${position.z}`,
+            dur: 2000,
+            easing: 'easeOutQuad'
+        });
+        
+        pointsDisplay.setAttribute('animation__fade', {
+            property: 'material.opacity',
+            from: 1,
+            to: 0,
+            dur: 2000,
+            delay: 500,
+            easing: 'easeOutQuad'
+        });
+        
+        this.el.sceneEl.appendChild(pointsDisplay);
+        
+        // Remover após animação
+        setTimeout(() => {
+            if (pointsDisplay.parentNode) {
+                pointsDisplay.parentNode.removeChild(pointsDisplay);
+            }
+        }, 2500);
     },
 
     remove: function () {

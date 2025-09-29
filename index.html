@@ -30,7 +30,8 @@
         game-manager="totalCheckpoints: 5; timeLimit: 300"
         urban-environment="citySize: 150; buildingCount: 40; obstacleCount: 25; treeCount: 15"
         performance-monitor="targetFPS: 60; minFPS: 45; autoOptimize: true; showStats: true"
-        audio-system="masterVolume: 0.7; musicVolume: 0.4; sfxVolume: 0.8; ambientVolume: 0.3; enableAudio: true">
+        audio-system="masterVolume: 0.7; musicVolume: 0.4; sfxVolume: 0.8; ambientVolume: 0.3; enableAudio: true"
+        collision-system="enabled: true; bounceForce: 0.5; showEffects: true; soundEnabled: true">
         
         <!-- Assets -->
         <a-assets>
@@ -192,6 +193,7 @@
     <!-- Scripts do Jogo -->
         <script src="js/drone-controller.js"></script>
         <script src="js/checkpoint-system.js"></script>
+        <script src="js/collision-system.js"></script>
         <script src="js/game-manager.js"></script>
         <script src="js/urban-environment.js"></script>
         <script src="js/performance-monitor.js"></script>

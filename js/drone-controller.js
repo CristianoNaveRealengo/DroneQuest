@@ -5,18 +5,18 @@
 
 AFRAME.registerComponent('drone-controller', {
     schema: {
-        // Configurações de movimento
-        maxSpeed: { type: 'number', default: 15 },
-        acceleration: { type: 'number', default: 8 },
-        rotationSpeed: { type: 'number', default: 2 },
+        // Configurações de movimento (valores realistas para drone)
+        maxSpeed: { type: 'number', default: 6 }, // Reduzido de 15 para 6 m/s (~22 km/h)
+        acceleration: { type: 'number', default: 3 }, // Reduzido de 8 para 3 m/s²
+        rotationSpeed: { type: 'number', default: 1.2 }, // Reduzido de 2 para 1.2 rad/s
         
-        // Configurações de física
-        mass: { type: 'number', default: 2 },
-        drag: { type: 'number', default: 0.98 },
-        angularDrag: { type: 'number', default: 0.95 },
+        // Configurações de física (ajustadas para realismo)
+        mass: { type: 'number', default: 1.5 }, // Massa mais leve
+        drag: { type: 'number', default: 0.92 }, // Mais resistência ao ar
+        angularDrag: { type: 'number', default: 0.88 }, // Mais resistência angular
         
-        // Configurações de estabilização
-        stabilization: { type: 'number', default: 0.1 },
+        // Configurações de estabilização (melhor estabilidade)
+        stabilization: { type: 'number', default: 0.25 }, // Maior estabilização
         autoLevel: { type: 'boolean', default: true },
         
         // Configurações de controle
