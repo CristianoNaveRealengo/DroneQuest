@@ -31,7 +31,7 @@ AFRAME.registerComponent('audio-system', {
         
         // Estado do sistema
         this.isInitialized = false;
-        this.isMuted = false;
+        this.isMuted = true; // Iniciar mudo por padrão
         
         // Configurar sistema de áudio
         this.setupAudioSystem();
@@ -39,6 +39,10 @@ AFRAME.registerComponent('audio-system', {
         this.setupEventListeners();
         
         console.log('✅ Sistema de áudio inicializado!');
+        console.log('🔇 Áudio iniciado em modo mudo - Pressione M para ativar');
+        
+        // Mostrar indicação visual de áudio mudo
+        this.showMuteIndicator();
     },
 
     setupAudioSystem: function () {
@@ -412,6 +416,57 @@ AFRAME.registerComponent('audio-system', {
         this.isMuted = !this.isMuted;
         this.updateVolumes();
         console.log(this.isMuted ? '🔇 Áudio mutado' : '🔊 Áudio ativado');
+        
+        // Atualizar indicação visual
+        if (this.isMuted) {
+            this.showMuteIndicator();
+        } else {
+            this.hideMuteIndicator();
+        }
+    },
+
+    showMuteIndicator: function () {
+        // Remover indicador existente se houver
+        this.hideMuteIndicator();
+        
+        const indicator = document.createElement('div');
+        indicator.id = 'mute-indicator';
+        indicator.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 0, 0, 0.8);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            animation: pulse 2s infinite;
+        `;
+        indicator.innerHTML = '🔇 ÁUDIO MUDO<br><small>Pressione M para ativar</small>';
+        
+        // Adicionar animação CSS
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes pulse {
+                0%, 100% { opacity: 1; }
+                50% { opacity: 0.7; }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        document.body.appendChild(indicator);
+        this.muteIndicatorElement = indicator;
+    },
+
+    hideMuteIndicator: function () {
+        if (this.muteIndicatorElement && this.muteIndicatorElement.parentNode) {
+            this.muteIndicatorElement.parentNode.removeChild(this.muteIndicatorElement);
+            this.muteIndicatorElement = null;
+        }
     },
 
     setMasterVolume: function (volume) {
@@ -452,6 +507,9 @@ AFRAME.registerComponent('audio-system', {
             if (sound.source) sound.source.stop();
             if (sound.lfo) sound.lfo.stop();
         });
+        
+        // Remover indicador de mute
+        this.hideMuteIndicator();
         
         // Fechar contexto de áudio
         if (this.audioContext && this.audioContext.state !== 'closed') {
