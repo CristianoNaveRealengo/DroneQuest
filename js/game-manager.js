@@ -6,7 +6,7 @@
 AFRAME.registerComponent('game-manager', {
     schema: {
         totalCheckpoints: { type: 'number', default: 5 },
-        timeLimit: { type: 'number', default: 300 }, // 5 minutos em segundos
+        timeLimit: { type: 'number', default: 120 }, // 2 minutos em segundos (tempo máximo)
         bestTime: { type: 'number', default: 0 }
     },
 
@@ -21,12 +21,15 @@ AFRAME.registerComponent('game-manager', {
             startTime: 0,
             currentTime: 0,
             elapsedTime: 0,
+            remainingTime: this.data.timeLimit * 1000, // Tempo restante em milissegundos
             score: 0,
             checkpointsReached: 0,
             currentLap: 1,
             totalLaps: 3,
             bestLapTime: 0,
-            currentLapStartTime: 0
+            currentLapStartTime: 0,
+            timeWarningShown: false, // Para mostrar aviso apenas uma vez
+            timeCriticalShown: false // Para mostrar aviso crítico apenas uma vez
         };
         
         // Elementos da UI
@@ -57,7 +60,7 @@ AFRAME.registerComponent('game-manager', {
         // Eventos de controle
         this.el.addEventListener('game-start', this.startGame.bind(this));
         this.el.addEventListener('game-pause', this.pauseGame.bind(this));
-        this.el.addEventListener('game-reset', this.resetGame.bind(this));
+        // Removido listener de 'game-reset' para evitar loop infinito
         
         // Eventos de VR
         this.el.addEventListener('enter-vr', this.onEnterVR.bind(this));
@@ -300,14 +303,24 @@ AFRAME.registerComponent('game-manager', {
 
     resetGame: function () {
         console.log('🔄 Resetando jogo...');
+        console.trace('🔍 Stack trace do resetGame:');
+        
+        // Remover tela de game over se existir
+        if (this.gameOverScreen && this.gameOverScreen.parentNode) {
+            this.gameOverScreen.parentNode.removeChild(this.gameOverScreen);
+            this.gameOverScreen = null;
+        }
         
         this.gameState.isPlaying = false;
         this.gameState.isPaused = false;
         this.gameState.isFinished = false;
         this.gameState.elapsedTime = 0;
+        this.gameState.remainingTime = this.data.timeLimit * 1000; // Reset do tempo restante
         this.gameState.score = 0;
         this.gameState.checkpointsReached = 0;
         this.gameState.currentLap = 1;
+        this.gameState.timeWarningShown = false; // Reset dos avisos de tempo
+        this.gameState.timeCriticalShown = false;
         
         this.stopTimer();
         this.resetAllCheckpoints();
@@ -315,7 +328,8 @@ AFRAME.registerComponent('game-manager', {
         this.updateUI();
         this.showMainMenu();
         
-        this.el.emit('game-reset');
+        // Emitir evento de reset - TEMPORARIAMENTE REMOVIDO PARA TESTE
+        // this.el.emit('game-reset');
     },
 
     finishGame: function () {
@@ -479,8 +493,44 @@ AFRAME.registerComponent('game-manager', {
     },
 
     updateTimer: function () {
+        // Calcular tempo restante
+        this.gameState.remainingTime = (this.data.timeLimit * 1000) - this.gameState.elapsedTime;
+        
         if (this.uiElements.timer) {
-            this.uiElements.timer.setAttribute('value', this.formatTime(this.gameState.elapsedTime));
+            // Mostrar tempo restante em vez de tempo decorrido
+            const timeToShow = Math.max(0, this.gameState.remainingTime);
+            this.uiElements.timer.setAttribute('value', `TEMPO: ${this.formatTime(timeToShow)}`);
+            
+            // Mudar cor do timer baseado no tempo restante
+            const timeInSeconds = timeToShow / 1000;
+            if (timeInSeconds <= 10) {
+                // Vermelho crítico - últimos 10 segundos
+                this.uiElements.timer.setAttribute('color', '#ff0000');
+                this.uiElements.timer.setAttribute('scale', '1.2 1.2 1.2');
+                
+                if (!this.gameState.timeCriticalShown) {
+                    this.showTimeWarning('TEMPO CRÍTICO!', '#ff0000');
+                    this.gameState.timeCriticalShown = true;
+                }
+            } else if (timeInSeconds <= 30) {
+                // Laranja - últimos 30 segundos
+                this.uiElements.timer.setAttribute('color', '#ff8800');
+                this.uiElements.timer.setAttribute('scale', '1.1 1.1 1.1');
+                
+                if (!this.gameState.timeWarningShown) {
+                    this.showTimeWarning('ATENÇÃO: Tempo acabando!', '#ff8800');
+                    this.gameState.timeWarningShown = true;
+                }
+            } else {
+                // Verde normal
+                this.uiElements.timer.setAttribute('color', '#00ff00');
+                this.uiElements.timer.setAttribute('scale', '1.0 1.0 1.0');
+            }
+        }
+        
+        // Verificar se o tempo acabou
+        if (this.gameState.remainingTime <= 0 && this.gameState.isPlaying) {
+            this.onTimeUp();
         }
     },
 
@@ -491,6 +541,97 @@ AFRAME.registerComponent('game-manager', {
         const ms = Math.floor((milliseconds % 1000) / 10);
         
         return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${ms.toString().padStart(2, '0')}`;
+    },
+
+    // === SISTEMA DE TEMPO LIMITE ===
+    
+    showTimeWarning: function (message, color) {
+        // Criar elemento de aviso temporário
+        const warningEl = document.createElement('a-text');
+        warningEl.setAttribute('value', message);
+        warningEl.setAttribute('color', color);
+        warningEl.setAttribute('position', '0 2 -3');
+        warningEl.setAttribute('align', 'center');
+        warningEl.setAttribute('scale', '2 2 2');
+        warningEl.setAttribute('animation', 'property: scale; to: 2.5 2.5 2.5; dur: 500; dir: alternate; loop: 3');
+        
+        this.el.sceneEl.appendChild(warningEl);
+        
+        // Remover após 3 segundos
+        setTimeout(() => {
+            if (warningEl.parentNode) {
+                warningEl.parentNode.removeChild(warningEl);
+            }
+        }, 3000);
+        
+        console.log(`⏰ ${message}`);
+    },
+    
+    onTimeUp: function () {
+        console.log('⏰ Tempo esgotado! Game Over');
+        
+        // Parar o jogo
+        this.gameState.isPlaying = false;
+        this.gameState.isFinished = true;
+        this.stopTimer();
+        this.disableDroneControls();
+        
+        // Mostrar tela de game over
+        this.showGameOverScreen('TEMPO ESGOTADO!');
+        
+        // Emitir evento de fim de jogo
+        this.el.emit('game-over', { 
+            reason: 'timeout',
+            score: this.gameState.score,
+            checkpoints: this.gameState.checkpointsReached,
+            timeElapsed: this.gameState.elapsedTime
+        });
+    },
+    
+    showGameOverScreen: function (title) {
+        // Criar container de game over
+        const gameOverContainer = document.createElement('a-entity');
+        gameOverContainer.setAttribute('id', 'game-over-screen');
+        gameOverContainer.setAttribute('position', '0 0 -5');
+        
+        // Fundo escuro
+        const background = document.createElement('a-plane');
+        background.setAttribute('width', '10');
+        background.setAttribute('height', '6');
+        background.setAttribute('color', '#000000');
+        background.setAttribute('opacity', '0.8');
+        gameOverContainer.appendChild(background);
+        
+        // Título
+        const titleEl = document.createElement('a-text');
+        titleEl.setAttribute('value', title);
+        titleEl.setAttribute('color', '#ff0000');
+        titleEl.setAttribute('position', '0 1.5 0.1');
+        titleEl.setAttribute('align', 'center');
+        titleEl.setAttribute('scale', '3 3 3');
+        gameOverContainer.appendChild(titleEl);
+        
+        // Estatísticas
+        const statsEl = document.createElement('a-text');
+        const stats = [
+            `PONTUAÇÃO FINAL: ${this.gameState.score}`,
+            `CHECKPOINTS: ${this.gameState.checkpointsReached}/${this.data.totalCheckpoints}`,
+            `TEMPO DECORRIDO: ${this.formatTime(this.gameState.elapsedTime)}`,
+            '',
+            'Pressione R para reiniciar'
+        ].join('\n');
+        
+        statsEl.setAttribute('value', stats);
+        statsEl.setAttribute('color', '#ffffff');
+        statsEl.setAttribute('position', '0 -0.5 0.1');
+        statsEl.setAttribute('align', 'center');
+        statsEl.setAttribute('scale', '1.5 1.5 1.5');
+        gameOverContainer.appendChild(statsEl);
+        
+        this.el.sceneEl.appendChild(gameOverContainer);
+        
+        // Armazenar referência para poder remover depois
+        this.gameOverScreen = gameOverContainer;
     },
 
     // === UI ===
@@ -561,8 +702,10 @@ AFRAME.registerComponent('game-manager', {
     
     resetAllCheckpoints: function () {
         const checkpoints = document.querySelectorAll('[checkpoint]');
-        checkpoints.forEach(checkpoint => {
-            if (checkpoint.components.checkpoint) {
+        
+        checkpoints.forEach((checkpoint) => {
+            if (checkpoint.components && checkpoint.components.checkpoint && 
+                typeof checkpoint.components.checkpoint.reset === 'function') {
                 checkpoint.components.checkpoint.reset();
             }
         });
@@ -585,7 +728,7 @@ AFRAME.registerComponent('game-manager', {
     resetDrone: function () {
         const drone = document.querySelector('#drone');
         if (drone && drone.components['drone-controller']) {
-            drone.components['drone-controller'].resetDrone();
+            drone.components['drone-controller'].resetDronePosition();
         }
     },
 

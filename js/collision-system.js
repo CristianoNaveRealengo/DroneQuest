@@ -123,8 +123,8 @@ if (!AFRAME.components['collision-system']) {
                 this.handleCollision('ceiling', null, dronePosition);
             }
             
-            // Verificar chão
-            if (dronePosition.y < 1) {
+            // Verificar chão - permitir voo baixo mas evitar colisão real
+            if (dronePosition.y < 0.3) {
                 this.handleCollision('ground', null, dronePosition);
             }
         },

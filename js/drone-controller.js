@@ -77,6 +77,9 @@ AFRAME.registerComponent('drone-controller', {
         // Sistema de som (placeholder)
         this.setupAudioSystem();
         
+        // Estabilizar drone na posição inicial
+        this.stabilizeInitialPosition();
+        
         console.log('✅ Controlador do drone inicializado com sucesso!');
     },
 
@@ -320,6 +323,29 @@ AFRAME.registerComponent('drone-controller', {
         }
     },
 
+    stabilizeInitialPosition: function () {
+        // Aguardar um frame para garantir que a posição inicial foi definida
+        setTimeout(() => {
+            const currentPosition = this.el.getAttribute('position');
+            
+            // Definir a altura de hover como a altura atual do drone
+            this.hoverHeight = currentPosition.y;
+            
+            // Zerar velocidades para evitar movimento inicial
+            this.velocity.set(0, 0, 0);
+            this.angularVelocity.set(0, 0, 0);
+            
+            // Definir empuxo inicial para manter posição
+            this.thrustPower = 1.0; // Empuxo neutro para contrabalançar gravidade
+            this.targetThrust = 1.0;
+            
+            // Ativar modo hover para estabilidade
+            this.isHovering = true;
+            
+            console.log(`🎯 Drone estabilizado na altura: ${this.hoverHeight.toFixed(2)}m`);
+        }, 100);
+    },
+
     updateAudioFeedback: function (movementVector) {
         if (!this.audioContext || !this.motorGain) return;
         
@@ -423,9 +449,10 @@ AFRAME.registerComponent('drone-controller', {
                     this.updatePropellerEffects(this.isFlying);
                     console.log(`🚁 Drone ${this.isFlying ? 'ativado' : 'desativado'}`);
                     break;
-                case 'KeyR':
-                    this.resetDronePosition();
-                    break;
+                // KeyR removido - reset é gerenciado pelo game-manager.js
+                // case 'KeyR':
+                //     this.resetDronePosition();
+                //     break;
                 case 'KeyT':
                     this.data.autoLevel = !this.data.autoLevel;
                     console.log(`🎯 Auto-nivelamento: ${this.data.autoLevel ? 'ON' : 'OFF'}`);

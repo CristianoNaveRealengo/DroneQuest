@@ -399,7 +399,7 @@ if (!AFRAME.components.checkpoint) {
             clearInterval(this.proximityCheck);
         }
     }
-    });
+});
 }
 
 // Componente para linha de chegada
@@ -518,6 +518,32 @@ if (!AFRAME.components['finish-line']) {
                 pointsDisplay.parentNode.removeChild(pointsDisplay);
             }
         }, 2500);
+    },
+
+    reset: function () {
+        console.log(`🔄 Resetando checkpoint ${this.data.id}...`);
+        
+        // Resetar estado
+        this.isActivated = false;
+        this.data.activated = false;
+        
+        // Restaurar cor original
+        this.el.setAttribute('material', {
+            color: '#00ff00',
+            emissive: '#004400',
+            emissiveIntensity: 0.3
+        });
+        
+        // Remover animação de ativação se existir
+        this.el.removeAttribute('animation__activation');
+        
+        // Reiniciar verificação de proximidade
+        if (this.proximityCheck) {
+            clearInterval(this.proximityCheck);
+        }
+        this.setupCollisionDetection();
+        
+        console.log(`✅ Checkpoint ${this.data.id} resetado!`);
     },
 
     remove: function () {
