@@ -410,10 +410,10 @@ AFRAME.registerComponent('audio-system', {
     updateVolumes: function () {
         if (!this.isInitialized) return;
         
-        this.masterGain.gain.setValueAtTime(
-            this.isMuted ? 0 : this.data.masterVolume, 
-            this.audioContext.currentTime
-        );
+        const masterVolume = this.isMuted ? 0 : this.data.masterVolume;
+        console.log(`🎛️ Atualizando volumes - Master: ${masterVolume.toFixed(2)}, SFX: ${this.data.sfxVolume.toFixed(2)}, Muted: ${this.isMuted}`);
+        
+        this.masterGain.gain.setValueAtTime(masterVolume, this.audioContext.currentTime);
         this.musicGain.gain.setValueAtTime(this.data.musicVolume, this.audioContext.currentTime);
         this.sfxGain.gain.setValueAtTime(this.data.sfxVolume, this.audioContext.currentTime);
         this.ambientGain.gain.setValueAtTime(this.data.ambientVolume, this.audioContext.currentTime);
@@ -444,6 +444,7 @@ AFRAME.registerComponent('audio-system', {
             const intensity = this.droneSounds.propellers.intensity;
             // Aplicar apenas intensidade aqui; sfx/master volumes são aplicados nos nós de mixagem
             const effectiveVolume = this.isMuted ? 0 : intensity * 0.3;
+            console.log(`🚁 Atualizando volume do drone - Intensidade: ${intensity.toFixed(2)}, Volume efetivo: ${effectiveVolume.toFixed(2)}`);
             this.droneSounds.propellers.gain.gain.setValueAtTime(
                 effectiveVolume,
                 this.audioContext.currentTime
@@ -497,6 +498,7 @@ AFRAME.registerComponent('audio-system', {
 
     setMasterVolume: function (volume) {
         this.data.masterVolume = Math.max(0, Math.min(1, volume));
+        console.log(`🔊 Master volume ajustado para: ${this.data.masterVolume.toFixed(2)}`);
         this.updateVolumes();
     },
 

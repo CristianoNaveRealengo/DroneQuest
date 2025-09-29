@@ -124,7 +124,7 @@ AFRAME.registerComponent('navigation-arrow', {
             this.distanceText.setAttribute('align', 'center');
             this.distanceText.setAttribute('color', this.data.color);
             this.distanceText.setAttribute('scale', '1.2 1.2 1.2'); // Maior
-            this.distanceText.setAttribute('font', 'roboto');
+            this.distanceText.setAttribute('font', 'dejavu');
             this.arrowContainer.appendChild(this.distanceText);
         }
         
@@ -137,7 +137,7 @@ AFRAME.registerComponent('navigation-arrow', {
             this.phaseText.setAttribute('align', 'center');
             this.phaseText.setAttribute('color', '#ffffff');
             this.phaseText.setAttribute('scale', '1.0 1.0 1.0');
-            this.phaseText.setAttribute('font', 'roboto');
+            this.phaseText.setAttribute('font', 'dejavu');
             
             // Fundo para o texto da fase
             this.phaseBackground = document.createElement('a-entity');
