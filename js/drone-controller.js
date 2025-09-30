@@ -66,6 +66,8 @@ AFRAME.registerComponent('drone-controller', {
         this.rightController = null;
         this.leftStick = { x: 0, y: 0 };
         this.rightStick = { x: 0, y: 0 };
+        this.leftTriggerPressed = false;
+        this.rightTriggerPressed = false;
         
         // Controles de teclado (fallback)
         this.keys = {};
@@ -361,9 +363,9 @@ AFRAME.registerComponent('drone-controller', {
         this.leftStick.x = x;
         this.leftStick.y = y;
         
-        // Stick esquerdo: Altitude (Y) e Rotação Yaw (X)
-        this.targetAltitudeChange = y * this.data.maxSpeed * 0.3;
+        // Stick esquerdo: Rotação Yaw (X) e Pitch (Y)
         this.targetYawRotation = -x * this.data.rotationSpeed;
+        this.targetPitchRotation = -y * this.data.rotationSpeed * 0.8; // Pitch mais suave
     },
 
     onRightStickMove: function (evt) {
@@ -373,23 +375,20 @@ AFRAME.registerComponent('drone-controller', {
         this.rightStick.x = x;
         this.rightStick.y = y;
         
-        // Stick direito: Movimento frente/trás (Y) e lateral (X)
-        this.targetForwardSpeed = -y * this.data.maxSpeed;
-        this.targetStrafeSpeed = x * this.data.maxSpeed;
+        // Stick direito: Movimento WASD - frente/trás (Y), esquerda/direita (X)
+        this.targetForwardSpeed = -y * this.data.maxSpeed;  // W/S (frente/trás)
+        this.targetStrafeSpeed = x * this.data.maxSpeed;    // A/D (esquerda/direita)
     },
 
     onLeftTriggerDown: function () {
-        this.isFlying = true;
-        this.updatePropellerEffects(true);
-        this.updateAudioFeedback(new THREE.Vector3(0, 0, 0));
-        console.log('🚁 Drone ativado - Voando!');
+        // Trigger esquerdo: Subir (altitude positiva)
+        this.leftTriggerPressed = true;
+        console.log('⬆️ Subindo...');
     },
 
     onLeftTriggerUp: function () {
-        this.isFlying = false;
-        this.updatePropellerEffects(false);
-        this.updateAudioFeedback(new THREE.Vector3(0, 0, 0));
-        console.log('🚁 Drone desativado');
+        this.leftTriggerPressed = false;
+        console.log('⬆️ Parou de subir');
     },
     
     activateDrone: function() {
@@ -434,14 +433,14 @@ AFRAME.registerComponent('drone-controller', {
     },
 
     onRightTriggerDown: function () {
-        // Trigger direito: Boost de velocidade
-        this.boostMode = true;
-        console.log('⚡ Modo boost ativado!');
+        // Trigger direito: Descer (altitude negativa)
+        this.rightTriggerPressed = true;
+        console.log('⬇️ Descendo...');
     },
 
     onRightTriggerUp: function () {
-        this.boostMode = false;
-        console.log('⚡ Modo boost desativado');
+        this.rightTriggerPressed = false;
+        console.log('⬇️ Parou de descer');
     },
 
     onRightButtonDown: function (evt) {
@@ -554,8 +553,17 @@ AFRAME.registerComponent('drone-controller', {
         this.targetStrafeSpeed = 0;
         this.targetAltitudeChange = 0;
         this.targetYawRotation = 0;
+        this.targetPitchRotation = 0;
         
         // Processar controles VR (já processados nos eventos)
+        // Processar triggers VR para altitude
+        if (this.leftTriggerPressed) {
+            this.targetAltitudeChange = this.data.maxSpeed * 0.4; // Subir
+        }
+        if (this.rightTriggerPressed) {
+            this.targetAltitudeChange = -this.data.maxSpeed * 0.4; // Descer
+        }
+        
         // Processar controles de teclado
         this.processKeyboardInput();
         

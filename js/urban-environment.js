@@ -11,7 +11,8 @@ AFRAME.registerComponent('urban-environment', {
         obstacleCount: { type: 'number', default: 30 },
         treeCount: { type: 'number', default: 20 },
         streetWidth: { type: 'number', default: 8 },
-        seed: { type: 'number', default: 12345 }
+        seed: { type: 'number', default: 12345 },
+        vrOptimized: { type: 'boolean', default: false }
     },
 
     init: function () {
@@ -238,16 +239,19 @@ AFRAME.registerComponent('urban-environment', {
         building.classList.add('building');
         building.setAttribute('data-building', 'true');
         
-        // Dimensões aleatórias
-        const width = 8 + this.random() * 12; // 8-20m
-        const depth = 8 + this.random() * 12; // 8-20m
-        const height = 15 + this.random() * 40; // 15-55m
+        // Dimensões aleatórias (menores para VR)
+        const baseWidth = this.data.vrOptimized ? 6 : 8;
+        const baseDepth = this.data.vrOptimized ? 6 : 8;
+        const baseHeight = this.data.vrOptimized ? 12 : 15;
+        const maxWidth = this.data.vrOptimized ? 8 : 12;
+        const maxDepth = this.data.vrOptimized ? 8 : 12;
+        const maxHeight = this.data.vrOptimized ? 25 : 40;
         
-        // Versão de alto detalhe
-        const highDetailBuilding = document.createElement('a-entity');
-        highDetailBuilding.setAttribute('class', 'building-details');
+        const width = baseWidth + this.random() * maxWidth;
+        const depth = baseDepth + this.random() * maxDepth;
+        const height = baseHeight + this.random() * maxHeight;
         
-        // Estrutura principal
+        // Estrutura principal simplificada
         const mainStructure = document.createElement('a-box');
         mainStructure.setAttribute('geometry', {
             width: width,
@@ -255,53 +259,35 @@ AFRAME.registerComponent('urban-environment', {
             depth: depth
         });
         
-        // Material do prédio
+        // Material do prédio (simplificado para VR)
         const buildingColors = ['#666666', '#888888', '#555555', '#777777', '#999999'];
         const color = buildingColors[Math.floor(this.random() * buildingColors.length)];
         
-        mainStructure.setAttribute('material', {
+        const materialConfig = {
             color: color,
-            roughness: 0.8,
-            metalness: 0.2
-        });
+            roughness: this.data.vrOptimized ? 1.0 : 0.8,
+            metalness: this.data.vrOptimized ? 0.0 : 0.2
+        };
         
+        mainStructure.setAttribute('material', materialConfig);
         mainStructure.setAttribute('position', `0 ${height / 2} 0`);
-        highDetailBuilding.appendChild(mainStructure);
+        building.appendChild(mainStructure);
         
-        // Adicionar janelas (apenas na versão de alto detalhe)
-        this.addWindows(highDetailBuilding, width, height, depth);
-        
-        // Adicionar telhado ocasionalmente
-        if (this.random() > 0.7) {
-            this.addRoof(highDetailBuilding, width, height, depth);
-        }
-        
-        // Adicionar antenas/equipamentos no topo
-        if (this.random() > 0.6) {
-            this.addRooftopEquipment(highDetailBuilding, width, height, depth);
-        }
-        
-        // Versão de baixo detalhe (mais simples)
-        const lowDetailBuilding = document.createElement('a-entity');
-        lowDetailBuilding.setAttribute('class', 'building-simple');
-        lowDetailBuilding.setAttribute('visible', false);
-        
-        const simpleBuilding = document.createElement('a-box');
-        simpleBuilding.setAttribute('geometry', {
-            width: width,
-            height: height,
-            depth: depth
-        });
-        simpleBuilding.setAttribute('material', {
-            color: color,
-            roughness: 0.9
-        });
-        simpleBuilding.setAttribute('position', `0 ${height / 2} 0`);
-        
-        lowDetailBuilding.appendChild(simpleBuilding);
-        
-        building.appendChild(highDetailBuilding);
-        building.appendChild(lowDetailBuilding);
+        // Adicionar detalhes apenas se não for otimizado para VR
+        if (!this.data.vrOptimized) {
+            // Adicionar janelas (apenas na versão de alto detalhe)
+            this.addWindows(building, width, height, depth);
+            
+            // Adicionar telhado ocasionalmente
+            if (this.random() > 0.7) {
+                this.addRoof(building, width, height, depth);
+            }
+            
+            // Adicionar antenas/equipamentos no topo
+             if (this.random() > 0.6) {
+                 this.addRooftopEquipment(building, width, height, depth);
+             }
+         }
         
         return building;
     },
@@ -430,12 +416,13 @@ AFRAME.registerComponent('urban-environment', {
 
     // Gerar obstáculos urbanos
     generateObstacles: function () {
-        console.log('🚧 Gerando obstáculos urbanos...');
+        console.log('🚧 Gerando obstáculos...');
         
         const obstacleContainer = document.createElement('a-entity');
         obstacleContainer.setAttribute('id', 'obstacles');
         
-        const obstacleCount = this.data.obstacleCount;
+        // Reduzir obstáculos para VR
+        const obstacleCount = this.data.vrOptimized ? Math.min(this.data.obstacleCount, 5) : this.data.obstacleCount;
         
         for (let i = 0; i < obstacleCount; i++) {
             const obstacle = this.createObstacle();
@@ -453,20 +440,39 @@ AFRAME.registerComponent('urban-environment', {
 
     // Criar obstáculo individual
     createObstacle: function () {
-        const obstacleTypes = ['tower', 'crane', 'billboard', 'antenna'];
-        const type = obstacleTypes[Math.floor(this.random() * obstacleTypes.length)];
-        
-        switch (type) {
-            case 'tower':
-                return this.createTower();
-            case 'crane':
-                return this.createCrane();
-            case 'billboard':
-                return this.createBillboard();
-            case 'antenna':
-                return this.createAntenna();
-            default:
-                return this.createTower();
+        if (this.data.vrOptimized) {
+            // Versão simplificada para VR - apenas obstáculos básicos
+            const obstacle = document.createElement('a-entity');
+            obstacle.setAttribute('class', 'obstacle');
+            
+            const obstacleGeometry = document.createElement('a-box');
+            obstacleGeometry.setAttribute('geometry', {
+                width: 1,
+                height: 2,
+                depth: 1
+            });
+            obstacleGeometry.setAttribute('material', {
+                color: '#666666'
+            });
+            obstacle.appendChild(obstacleGeometry);
+            return obstacle;
+        } else {
+            // Versão detalhada
+            const obstacleTypes = ['tower', 'crane', 'billboard', 'antenna'];
+            const type = obstacleTypes[Math.floor(this.random() * obstacleTypes.length)];
+            
+            switch (type) {
+                case 'tower':
+                    return this.createTower();
+                case 'crane':
+                    return this.createCrane();
+                case 'billboard':
+                    return this.createBillboard();
+                case 'antenna':
+                    return this.createAntenna();
+                default:
+                    return this.createTower();
+            }
         }
     },
 
@@ -685,19 +691,20 @@ AFRAME.registerComponent('urban-environment', {
 
     // Gerar vegetação urbana
     generateVegetation: function () {
-        console.log('🌳 Gerando vegetação urbana...');
+        console.log('🌳 Gerando vegetação...');
         
         const vegetationContainer = document.createElement('a-entity');
         vegetationContainer.setAttribute('id', 'vegetation');
         
-        const treeCount = this.data.treeCount;
+        // Reduzir vegetação para VR
+        const treeCount = this.data.vrOptimized ? Math.min(this.data.treeCount, 3) : this.data.treeCount;
         
         for (let i = 0; i < treeCount; i++) {
             const tree = this.createTree();
             
-            // Posicionar em parques ou ao longo das ruas
-            const x = (this.random() - 0.5) * this.data.citySize * 1.2;
-            const z = (this.random() - 0.5) * this.data.citySize * 1.2;
+            // Posicionar aleatoriamente
+            const x = (this.random() - 0.5) * this.data.citySize * 1.5;
+            const z = (this.random() - 0.5) * this.data.citySize * 1.5;
             
             tree.setAttribute('position', `${x} 0 ${z}`);
             vegetationContainer.appendChild(tree);
@@ -711,32 +718,46 @@ AFRAME.registerComponent('urban-environment', {
         const tree = document.createElement('a-entity');
         tree.classList.add('tree');
         
-        // Tronco
-        const trunk = document.createElement('a-cylinder');
-        trunk.setAttribute('geometry', {
-            radius: 0.5,
-            height: 8
-        });
-        trunk.setAttribute('material', {
-            color: '#8B4513',
-            roughness: 0.9,
-            metalness: 0.1
-        });
-        trunk.setAttribute('position', '0 4 0');
-        tree.appendChild(trunk);
-        
-        // Copa da árvore
-        const foliage = document.createElement('a-sphere');
-        foliage.setAttribute('geometry', {
-            radius: 4 + this.random() * 2
-        });
-        foliage.setAttribute('material', {
-            color: '#228B22',
-            roughness: 0.8,
-            metalness: 0.1
-        });
-        foliage.setAttribute('position', '0 10 0');
-        tree.appendChild(foliage);
+        if (this.data.vrOptimized) {
+            // Versão simplificada para VR
+            const simpleTree = document.createElement('a-cylinder');
+            simpleTree.setAttribute('geometry', {
+                radius: 1,
+                height: 4
+            });
+            simpleTree.setAttribute('material', {
+                color: '#228B22'
+            });
+            simpleTree.setAttribute('position', '0 2 0');
+            tree.appendChild(simpleTree);
+        } else {
+            // Versão detalhada
+            // Tronco
+            const trunk = document.createElement('a-cylinder');
+            const trunkHeight = 3 + this.random() * 2;
+            trunk.setAttribute('geometry', {
+                radius: 0.3,
+                height: trunkHeight
+            });
+            trunk.setAttribute('material', {
+                color: '#8B4513'
+            });
+            trunk.setAttribute('position', `0 ${trunkHeight / 2} 0`);
+            
+            // Copa da árvore
+            const foliage = document.createElement('a-sphere');
+            const foliageRadius = 2 + this.random() * 1.5;
+            foliage.setAttribute('geometry', {
+                radius: foliageRadius
+            });
+            foliage.setAttribute('material', {
+                color: '#228B22'
+            });
+            foliage.setAttribute('position', `0 ${trunkHeight + foliageRadius * 0.7} 0`);
+            
+            tree.appendChild(trunk);
+            tree.appendChild(foliage);
+        }
         
         return tree;
     },
