@@ -14,7 +14,7 @@ if (typeof window.GAME_CONSTANTS === 'undefined') {
         
         // Drone
         DRONE_MASS: 1.5, // kg
-        MAX_THRUST: 25, // N
+        MAX_THRUST: 18, // N
         MAX_ANGULAR_VELOCITY: 5, // rad/s
         
         // Controles

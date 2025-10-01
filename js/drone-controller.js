@@ -8,9 +8,9 @@ if (!AFRAME.components['drone-controller']) {
 AFRAME.registerComponent('drone-controller', {
     schema: {
         // Configurações de movimento (valores realistas para drone)
-        maxSpeed: { type: 'number', default: 6 }, // Reduzido de 15 para 6 m/s (~22 km/h)
-        acceleration: { type: 'number', default: 3 }, // Reduzido de 8 para 3 m/s²
-        rotationSpeed: { type: 'number', default: 1.2 }, // Reduzido de 2 para 1.2 rad/s
+        maxSpeed: { type: 'number', default: 3 }, // Reduzido de 6 para 3 m/s (~11 km/h)
+        acceleration: { type: 'number', default: 1.5 }, // Reduzido de 3 para 1.5 m/s²
+        rotationSpeed: { type: 'number', default: 0.6 }, // Reduzido de 1.2 para 0.6 rad/s
         
         // Configurações de física (ajustadas para realismo)
         mass: { type: 'number', default: 1.5 }, // Massa mais leve
@@ -26,7 +26,7 @@ AFRAME.registerComponent('drone-controller', {
         sensitivity: { type: 'number', default: 1.0 },
         
         // Configurações de hover realista
-        hoverThrust: { type: 'number', default: 9.8 }, // Empuxo para contrabalançar gravidade
+        hoverThrust: { type: 'number', default: 7.0 }, // Empuxo para contrabalançar gravidade
         hoverStability: { type: 'number', default: 0.8 }, // Estabilidade do hover
         windResistance: { type: 'number', default: 0.02 } // Resistência ao vento
     },
@@ -328,8 +328,8 @@ AFRAME.registerComponent('drone-controller', {
             this.angularVelocity.set(0, 0, 0);
             
             // Definir empuxo inicial para manter posição
-            this.thrustPower = 1.0; // Empuxo neutro para contrabalançar gravidade
-            this.targetThrust = 1.0;
+            this.thrustPower = 0.7; // Empuxo neutro para contrabalançar gravidade
+            this.targetThrust = 0.7;
             
             // Ativar modo hover para estabilidade
             this.isHovering = true;
@@ -710,7 +710,7 @@ AFRAME.registerComponent('drone-controller', {
             }
             
             // Suavizar mudanças de empuxo
-            this.thrustPower += (this.targetThrust - this.thrustPower) * 5.0 * deltaTime;
+            this.thrustPower += (this.targetThrust - this.thrustPower) * 3.0 * deltaTime;
             this.thrustPower = Math.max(0, Math.min(2.0, this.thrustPower)); // Limitar entre 0 e 200%
             
             // Aplicar empuxo vertical
@@ -787,9 +787,9 @@ AFRAME.registerComponent('drone-controller', {
                 let opacity;
                 
                 if (isActive && this.isFlying) {
-                    // Velocidade baseada na potência das hélices (0-1 -> 50-1000ms)
+                    // Velocidade baseada na potência das hélices (0-1 -> 150-3000ms)
                     const thrustFactor = Math.max(0.1, this.thrustPower);
-                    rotationSpeed = Math.max(50, 1000 / (thrustFactor * (this.boostMode ? 2 : 1)));
+                    rotationSpeed = Math.max(150, 3000 / (thrustFactor * (this.boostMode ? 2 : 1)));
                     
                     // Opacidade baseada na potência
                     opacity = Math.min(0.8, 0.2 + (thrustFactor * 0.4));
@@ -848,7 +848,7 @@ AFRAME.registerComponent('drone-controller', {
                     property: 'rotation',
                     to: `0 ${direction} 0`,
                     loop: true,
-                    dur: 100
+                    dur: 300
                 });
             }
         });
@@ -861,7 +861,7 @@ AFRAME.registerComponent('drone-controller', {
         propellers.forEach((propId, index) => {
             const propeller = document.querySelector(`#${propId}`);
             if (propeller) {
-                let speed = 100;
+                let speed = 300;
                 let opacity = 0.3;
                 let radius = 0.6;
                 let color = '#ff4444';
@@ -870,7 +870,7 @@ AFRAME.registerComponent('drone-controller', {
                 if (this.isFlying) {
                     // Cálculos baseados no empuxo
                     thrustFactor = this.thrustPower;
-                    speed = Math.max(15, 100 - (thrustFactor * 85));
+                    speed = Math.max(50, 300 - (thrustFactor * 250));
                     opacity = Math.min(0.9, 0.3 + (thrustFactor * 0.6));
                     
                     // Efeito de blur - hélices ficam maiores e mais transparentes em alta velocidade
