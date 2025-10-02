@@ -33,10 +33,9 @@
         <script src="js/navigation-arrow.js?v=1.0.2"></script>
 
         <!-- ÚNICA A-SCENE - Combinando atributos das duas anteriores -->
-        <a-scene vr-mode-ui="enabled: true" 
+        <a-scene vr-mode-ui="enabled: true"
             webxr="requiredFeatures: local-floor; optionalFeatures: bounded-floor,hand-tracking"
-            background="color: #87CEEB"
-            fog="type: linear; color: #87CEEB; near: 50; far: 200" 
+            background="color: #87CEEB" fog="type: linear; color: #87CEEB; near: 50; far: 200"
             game-manager="totalCheckpoints: 5; timeLimit: 120"
             urban-environment="citySize: 100; buildingCount: 15; obstacleCount: 8; treeCount: 5; vrOptimized: true"
             performance-monitor="targetFPS: 60; minFPS: 45; autoOptimize: true; showStats: true"
@@ -135,22 +134,14 @@
                 shadow="receive: true"></a-plane>
 
             <!-- Controles VR Meta Quest 3 -->
-            <a-entity id="leftHand" 
-                hand-controls="hand: left; handModelStyle: lowPoly; color: #ffcccc"
-                oculus-touch-controls="hand: left; model: true"
-                quest-controls="hand: left"
-                vive-controls="hand: left"
-                windows-motion-controls="hand: left"
-                position="-0.5 1 -0.5">
+            <a-entity id="leftHand" hand-controls="hand: left; handModelStyle: lowPoly; color: #ffcccc"
+                oculus-touch-controls="hand: left; model: true" quest-controls="hand: left" vive-controls="hand: left"
+                windows-motion-controls="hand: left" position="-0.5 1 -0.5">
             </a-entity>
 
-            <a-entity id="rightHand" 
-                hand-controls="hand: right; handModelStyle: lowPoly; color: #ccffcc"
-                oculus-touch-controls="hand: right; model: true"
-                quest-controls="hand: right"
-                vive-controls="hand: right"
-                windows-motion-controls="hand: right"
-                position="0.5 1 -0.5">
+            <a-entity id="rightHand" hand-controls="hand: right; handModelStyle: lowPoly; color: #ccffcc"
+                oculus-touch-controls="hand: right; model: true" quest-controls="hand: right"
+                vive-controls="hand: right" windows-motion-controls="hand: right" position="0.5 1 -0.5">
             </a-entity>
 
             <!-- Linha de chegada -->
