@@ -20,6 +20,12 @@ if (!AFRAME.components["drone-controller"]) {
 			// Configurações de estabilização (melhor estabilidade)
 			stabilization: { type: "number", default: 0.25 }, // Maior estabilização
 			autoLevel: { type: "boolean", default: true },
+			
+			// Configurações de estabilização de altitude
+			minAltitude: { type: "number", default: 0.5 }, // Altitude mínima de 0.5m
+			targetAltitude: { type: "number", default: 0.5 }, // Altitude alvo inicial
+			altitudeStabilization: { type: "boolean", default: true }, // Ativar estabilização de altitude
+			altitudeStabilizationForce: { type: "number", default: 2.0 }, // Força da estabilização
 
 			// Configurações de controle
 			deadzone: { type: "number", default: 0.1 },
@@ -83,6 +89,18 @@ if (!AFRAME.components["drone-controller"]) {
 			this.targetAltitudeChange = 0;
 			this.targetYawRotation = 0;
 			this.targetPitchRotation = 0;
+			
+			// Variáveis para simulação de voo realista
+			this.flightSimulation = {
+				enabled: true,
+				lastDescendTime: 0,
+				descendCooldown: 5000, // 5 segundos entre descidas automáticas
+				isAutoDescending: false,
+				autoDescentDuration: 1000, // 1 segundo de descida
+				autoAscentDuration: 1500, // 1.5 segundos de subida
+				currentPhase: 'stable', // 'stable', 'descending', 'ascending'
+				phaseStartTime: 0
+			};
 
 			// Controles de teclado (fallback)
 			this.keys = {};
@@ -286,7 +304,7 @@ if (!AFRAME.components["drone-controller"]) {
 			helpPanel.innerHTML = `
             <div style="font-weight: bold; margin-bottom: 5px;">🎮 Controles:</div>
             <div style="color: #00ff00; font-weight: bold; margin-bottom: 3px;">🥽 VR Simulado (Alavancas):</div>
-            <div>Z/X - Subir/Descer (Alavanca Esquerda Y)</div>
+            <div>Z/X - Descer/Subir (Alavanca Esquerda Y) ⚠️ INVERTIDO</div>
             <div>Q/E - Giro esquerda/direita (Alavanca Esquerda X)</div>
             <div>I/K - Frente/Trás (Alavanca Direita Y)</div>
             <div>J/L - Esquerda/Direita (Alavanca Direita X)</div>
@@ -462,8 +480,8 @@ if (!AFRAME.components["drone-controller"]) {
 			this.leftStick.x = x;
 			this.leftStick.y = y;
 
-			// Alavanca Esquerda: Altitude (Y) e Giro no próprio eixo/Yaw (X)
-			this.targetAltitudeChange = y * this.data.maxSpeed * 0.6; // Cima/Baixo (Y)
+			// Alavanca Esquerda: Altitude (Y) e Giro no próprio eixo/Yaw (X) - INVERTIDO
+			this.targetAltitudeChange = -y * this.data.maxSpeed * 0.6; // Cima/Baixo (Y) - INVERTIDO
 			this.targetYawRotation = -x * this.data.rotationSpeed; // Giro no próprio eixo (X)
 
 			console.log(
@@ -651,19 +669,19 @@ if (!AFRAME.components["drone-controller"]) {
 						break;
 
 					// === CONTROLES VR SIMULADOS ===
-					// Alavanca Esquerda: Altitude e Giro
-					case "KeyZ": // Subir (altitude positiva)
-						if (this.VR_SIMULATOR) {
-							this.VR_SIMULATOR.leftStick.y = 0.8;
-							this.targetAltitudeChange =
-								0.8 * this.data.maxSpeed * 0.6;
-						}
-						break;
-					case "KeyX": // Descer (altitude negativa)
+					// Alavanca Esquerda: Altitude e Giro - INVERTIDO
+					case "KeyZ": // Descer (altitude negativa) - INVERTIDO
 						if (this.VR_SIMULATOR) {
 							this.VR_SIMULATOR.leftStick.y = -0.8;
 							this.targetAltitudeChange =
 								-0.8 * this.data.maxSpeed * 0.6;
+						}
+						break;
+					case "KeyX": // Subir (altitude positiva) - INVERTIDO
+						if (this.VR_SIMULATOR) {
+							this.VR_SIMULATOR.leftStick.y = 0.8;
+							this.targetAltitudeChange =
+								0.8 * this.data.maxSpeed * 0.6;
 						}
 						break;
 					case "KeyQ": // Giro esquerda (yaw negativo)
@@ -743,7 +761,75 @@ if (!AFRAME.components["drone-controller"]) {
 
 		// === SISTEMA DE MOVIMENTO ===
 
+		simulateRealisticFlight: function (time) {
+			if (!this.flightSimulation.enabled || !this.isActive) return;
+			
+			// Pausar simulação se há entrada manual do usuário
+			const hasManualInput = this.hasKeyboardInput() || this.hasVRInput();
+			if (hasManualInput) {
+				// Resetar para fase estável quando há entrada manual
+				this.flightSimulation.currentPhase = 'stable';
+				this.flightSimulation.lastDescendTime = time;
+				return;
+			}
+			
+			const currentTime = time;
+			const timeSinceLastDescend = currentTime - this.flightSimulation.lastDescendTime;
+			const timeSincePhaseStart = currentTime - this.flightSimulation.phaseStartTime;
+			
+			// Verificar se deve iniciar uma nova fase de descida automática
+			if (this.flightSimulation.currentPhase === 'stable' && 
+				timeSinceLastDescend > this.flightSimulation.descendCooldown) {
+				
+				// Iniciar descida automática apenas se não há entrada manual de altitude
+				if (Math.abs(this.targetAltitudeChange) < 0.1) {
+					this.flightSimulation.currentPhase = 'descending';
+					this.flightSimulation.phaseStartTime = currentTime;
+					this.flightSimulation.lastDescendTime = currentTime;
+					console.log("🚁 Iniciando descida automática para simular voo realista");
+				}
+			}
+			
+			// Processar fases da simulação
+			switch (this.flightSimulation.currentPhase) {
+				case 'descending':
+					if (timeSincePhaseStart < this.flightSimulation.autoDescentDuration) {
+						// Aplicar descida suave de 0.5m
+						this.targetAltitudeChange = -0.5;
+					} else {
+						// Transição para fase de subida
+						this.flightSimulation.currentPhase = 'ascending';
+						this.flightSimulation.phaseStartTime = currentTime;
+						console.log("🚁 Iniciando subida automática");
+					}
+					break;
+					
+				case 'ascending':
+					if (timeSincePhaseStart < this.flightSimulation.autoAscentDuration) {
+						// Aplicar subida suave para retornar à altitude alvo
+						this.targetAltitudeChange = 0.3;
+					} else {
+						// Retornar ao estado estável
+						this.flightSimulation.currentPhase = 'stable';
+						this.flightSimulation.phaseStartTime = currentTime;
+						console.log("🚁 Retornando ao voo estável");
+					}
+					break;
+					
+				case 'stable':
+					// Pequenas oscilações naturais quando estável
+					const naturalOscillation = Math.sin(currentTime * 0.0008) * 0.05;
+					if (Math.abs(this.targetAltitudeChange) < 0.1) {
+						this.targetAltitudeChange += naturalOscillation;
+					}
+					break;
+			}
+		},
+
 		tick: function (time, timeDelta) {
+			// Simular voo realista com descidas e subidas automáticas
+			this.simulateRealisticFlight(time);
+			
 			// Processar entrada de controles
 			this.processControlInput();
 
@@ -805,9 +891,9 @@ if (!AFRAME.components["drone-controller"]) {
 			if (this.keys["KeyD"]) this.targetStrafeSpeed = speed;
 
 			// Altitude com setas verticais (↑/↓)
-			if (this.keys["ArrowUp"]) this.targetAltitudeChange = speed * 0.3;
+			if (this.keys["ArrowUp"]) this.targetAltitudeChange = speed * 0.3; // Seta para cima = SOBE
 			if (this.keys["ArrowDown"])
-				this.targetAltitudeChange = -speed * 0.3;
+				this.targetAltitudeChange = -speed * 0.3; // Seta para baixo = DESCE
 
 			// Rotação yaw com setas horizontais (esquerda/direita)
 			if (this.keys["ArrowLeft"])
@@ -853,10 +939,34 @@ if (!AFRAME.components["drone-controller"]) {
 					this.targetStrafeSpeed * acceleration
 				)
 			);
+			
+			// Sistema de estabilização de altitude
+			let altitudeForce = this.targetAltitudeChange;
+			
+			if (this.data.altitudeStabilization) {
+				// Verificar se há entrada manual de altitude (prioridade máxima)
+				const hasManualAltitudeInput = Math.abs(this.targetAltitudeChange) > 0.1;
+				
+				if (!hasManualAltitudeInput) {
+					// Verificar se a simulação de voo está ativa
+					if (this.flightSimulation && this.flightSimulation.enabled) {
+						// Durante a simulação automática, usar a altitude alvo da simulação
+						const altitudeDifference = this.data.targetAltitude - position.y;
+						altitudeForce += altitudeDifference * this.data.altitudeStabilizationForce * 0.5; // Força reduzida durante simulação
+					} else {
+						// Estabilização normal quando não há simulação ativa
+						const altitudeDifference = this.data.targetAltitude - position.y;
+						altitudeForce += altitudeDifference * this.data.altitudeStabilizationForce;
+						
+						// Pequena oscilação natural apenas quando estável
+						const oscillation = Math.sin(Date.now() * 0.001) * 0.05;
+						altitudeForce += oscillation;
+					}
+				}
+			}
+			
 			this.velocity.add(
-				upVector.multiplyScalar(
-					this.targetAltitudeChange * acceleration
-				)
+				upVector.multiplyScalar(altitudeForce * acceleration)
 			);
 
 			// Limitar velocidade máxima
@@ -867,7 +977,7 @@ if (!AFRAME.components["drone-controller"]) {
 			// Aplicar movimento
 			const newPosition = {
 				x: position.x + this.velocity.x * deltaTime,
-				y: Math.max(0.5, position.y + this.velocity.y * deltaTime), // Evitar ir abaixo do chão
+				y: Math.max(this.data.minAltitude, position.y + this.velocity.y * deltaTime), // Respeitar altitude mínima
 				z: position.z + this.velocity.z * deltaTime,
 			};
 
