@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Teste - Sistema de Estabilização do Drone</title>
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <script src="js/drone-controller.js"></script>
+</head>
+<body>
+    <a-scene background="color: #87CEEB" vr-mode-ui="enabled: false">
+        <!-- Câmera -->
+        <a-camera position="0 5 10" look-controls wasd-controls></a-camera>
+        
+        <!-- Luzes -->
+        <a-light type="ambient" color="#404040"></a-light>
+        <a-light type="directional" position="0 10 0" color="#ffffff"></a-light>
+        
+        <!-- Solo -->
+        <a-plane position="0 0 0" rotation="-90 0 0" width="100" height="100" color="#228B22"></a-plane>
+        
+        <!-- Drone de teste com configurações otimizadas -->
+        <a-entity id="drone" position="0 3 0" 
+                  drone-controller="
+                    groundStabilization: true;
+                    groundDetectionHeight: 0.8;
+                    stabilizationLift: 3.0;
+                    stabilizationSmoothing: 0.8;
+                    hoverThrust: 10.0;
+                    minAltitude: 0.5;
+                    targetAltitude: 3.0;
+                  ">
+            <!-- Corpo do drone -->
+            <a-box position="0 0 0" width="1" height="0.2" depth="1" color="#333333"></a-box>
+            
+            <!-- Hélices -->
+            <a-cylinder id="prop1" position="0.4 0.15 0.4" radius="0.6" height="0.03" color="#ff4444" material="transparent: true; opacity: 0.3"></a-cylinder>
+            <a-cylinder id="prop2" position="-0.4 0.15 0.4" radius="0.6" height="0.03" color="#ff4444" material="transparent: true; opacity: 0.3"></a-cylinder>
+            <a-cylinder id="prop3" position="0.4 0.15 -0.4" radius="0.6" height="0.03" color="#ff4444" material="transparent: true; opacity: 0.3"></a-cylinder>
+            <a-cylinder id="prop4" position="-0.4 0.15 -0.4" radius="0.6" height="0.03" color="#ff4444" material="transparent: true; opacity: 0.3"></a-cylinder>
+        </a-entity>
+        
+        <!-- HUD -->
+        <a-text id="speed-indicator" position="0 8 -5" value="Carregando..." color="white" align="center"></a-text>
+        
+        <!-- Instruções -->
+        <a-text position="0 6 -5" value="TESTE DE ESTABILIZAÇÃO - CORRIGIDO&#10;Space: Ligar drone (AUTOMÁTICO)&#10;G: Toggle estabilização de solo&#10;Setas: Controlar altitude&#10;WASD: Movimento&#10;&#10;O drone deve SUBIR automaticamente!" 
+                color="yellow" align="center" scale="0.8 0.8 0.8"></a-text>
+    </a-scene>
+    
+    <script>
+        // Debug adicional
+        setTimeout(() => {
+            const drone = document.querySelector('#drone');
+            if (drone && drone.components['drone-controller']) {
+                const controller = drone.components['drone-controller'];
+                console.log('🔍 Estado do drone:', {
+                    isActive: controller.isActive,
+                    isFlying: controller.isFlying,
+                    groundStabilization: controller.data.groundStabilization,
+                    position: drone.getAttribute('position')
+                });
+            }
+        }, 2000);
+    </script>
+</body>
+</html>

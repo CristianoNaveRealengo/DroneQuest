@@ -13,27 +13,33 @@ if (!AFRAME.components["drone-controller"]) {
 			rotationSpeed: { type: "number", default: 0.6 }, // Reduzido de 1.2 para 0.6 rad/s
 
 			// Configurações de física (ajustadas para realismo)
-			mass: { type: "number", default: 1.5 }, // Massa mais leve
+			mass: { type: "number", default: 0.5 }, // Massa mais leve
 			drag: { type: "number", default: 0.92 }, // Mais resistência ao ar
 			angularDrag: { type: "number", default: 0.88 }, // Mais resistência angular
 
 			// Configurações de estabilização (melhor estabilidade)
 			stabilization: { type: "number", default: 0.25 }, // Maior estabilização
 			autoLevel: { type: "boolean", default: true },
-			
+
 			// Configurações de estabilização de altitude
 			minAltitude: { type: "number", default: 0.5 }, // Altitude mínima de 0.5m
 			targetAltitude: { type: "number", default: 0.5 }, // Altitude alvo inicial
 			altitudeStabilization: { type: "boolean", default: true }, // Ativar estabilização de altitude
-			altitudeStabilizationForce: { type: "number", default: 2.0 }, // Força da estabilização
+			altitudeStabilizationForce: { type: "number", default: 1.0 }, // Força da estabilização reduzida
+
+			// Configurações de estabilização automática quando não toca o solo
+			groundStabilization: { type: "boolean", default: true }, // Ativar estabilização quando não toca o solo
+			groundDetectionHeight: { type: "number", default: 0.6 }, // Altura para detectar se está "tocando" o solo
+			stabilizationLift: { type: "number", default: 2.0 }, // Força de subida para estabilização (mais forte)
+			stabilizationSmoothing: { type: "number", default: 0.5 }, // Suavização da estabilização (mais responsiva)
 
 			// Configurações de controle
 			deadzone: { type: "number", default: 0.1 },
 			sensitivity: { type: "number", default: 1.0 },
 
 			// Configurações de hover realista
-			hoverThrust: { type: "number", default: 7.0 }, // Empuxo para contrabalançar gravidade
-			hoverStability: { type: "number", default: 0.8 }, // Estabilidade do hover
+			hoverThrust: { type: "number", default: 6.0 }, // Empuxo aumentado para melhor sustentação
+			hoverStability: { type: "number", default: 0.4 }, // Estabilidade do hover reduzida
 			windResistance: { type: "number", default: 0.02 }, // Resistência ao vento
 		},
 
@@ -57,9 +63,25 @@ if (!AFRAME.components["drone-controller"]) {
 			this.hoverHeight = 3; // Altura preferida para hover
 			this.isHovering = false; // Estado de hover automático
 
+			// Sistema de estabilização quando não toca o solo
+			this.isGrounded = false; // Se está tocando o solo
+			this.lastGroundCheck = 0; // Último tempo de verificação do solo
+			this.stabilizationActive = false; // Se a estabilização automática está ativa
+			this.stabilizationStartTime = 0; // Quando a estabilização começou
+
 			// Iniciar o drone automaticamente após 1 segundo
 			setTimeout(() => {
+				console.log("🚁 Ativando drone automaticamente...");
 				this.activateDrone();
+
+				// Garantir que está voando
+				setTimeout(() => {
+					if (!this.isFlying) {
+						console.log("🚁 Forçando ativação do voo...");
+						this.isFlying = true;
+						this.isActive = true;
+					}
+				}, 500);
 			}, 1000);
 
 			// Inicializar animações das hélices
@@ -89,17 +111,16 @@ if (!AFRAME.components["drone-controller"]) {
 			this.targetAltitudeChange = 0;
 			this.targetYawRotation = 0;
 			this.targetPitchRotation = 0;
-			
-			// Variáveis para simulação de voo realista
+
+			// Variáveis para simulação de voo realista estabilizado
 			this.flightSimulation = {
 				enabled: true,
-				lastDescendTime: 0,
-				descendCooldown: 5000, // 5 segundos entre descidas automáticas
-				isAutoDescending: false,
-				autoDescentDuration: 1000, // 1 segundo de descida
-				autoAscentDuration: 1500, // 1.5 segundos de subida
-				currentPhase: 'stable', // 'stable', 'descending', 'ascending'
-				phaseStartTime: 0
+				naturalHover: true, // Ativar hover natural com oscilações
+				oscillationAmplitude: 0.05, // Amplitude das oscilações reduzida (±5cm)
+				oscillationSpeed: 0.001, // Velocidade das oscilações mais lenta
+				baseAltitude: 3.0, // Altitude base para manter
+				lastOscillationUpdate: 0,
+				stabilizationStrength: 0.3, // Força da estabilização reduzida
 			};
 
 			// Controles de teclado (fallback)
@@ -317,10 +338,12 @@ if (!AFRAME.components["drone-controller"]) {
             <div>Shift - Modo boost</div>
             <div>R - Reset posição</div>
             <div>T - Toggle auto-nivelamento</div>
+            <div>G - Toggle estabilização de solo</div>
             <div>F - Toggle estatísticas</div>
             <div>M - Mutar/Desmutar áudio</div>
             <div>+/- - Aumentar/Diminuir volume</div>
             <div>1/2/3 - Qualidade baixa/média/alta</div>
+            <div>H - Definir altitude atual como base</div>
         `;
 
 			document.body.appendChild(helpPanel);
@@ -339,6 +362,46 @@ if (!AFRAME.components["drone-controller"]) {
 				scene.components["performance-monitor"].setQuality(level);
 				console.log(`🎮 Qualidade definida para: ${level}`);
 			}
+		},
+
+		setNewBaseAltitude: function () {
+			const currentPosition = this.el.getAttribute("position");
+			const newBaseAltitude = currentPosition.y;
+
+			// Atualizar altitude base da simulação
+			this.flightSimulation.baseAltitude = newBaseAltitude;
+			this.hoverHeight = newBaseAltitude;
+			this.data.targetAltitude = newBaseAltitude;
+
+			console.log(
+				`🎯 Nova altitude base definida: ${newBaseAltitude.toFixed(2)}m`
+			);
+
+			// Mostrar feedback visual
+			const indicator = document.createElement("div");
+			indicator.style.cssText = `
+				position: fixed;
+				top: 50%;
+				left: 50%;
+				transform: translate(-50%, -50%);
+				background: rgba(0, 100, 0, 0.9);
+				color: white;
+				padding: 20px;
+				border-radius: 10px;
+				font-size: 18px;
+				z-index: 1000;
+				pointer-events: none;
+			`;
+			indicator.textContent = `🎯 Altitude base: ${newBaseAltitude.toFixed(
+				1
+			)}m`;
+			document.body.appendChild(indicator);
+
+			setTimeout(() => {
+				if (indicator.parentNode) {
+					document.body.removeChild(indicator);
+				}
+			}, 2000);
 		},
 
 		adjustMasterVolume: function (delta) {
@@ -434,12 +497,15 @@ if (!AFRAME.components["drone-controller"]) {
 				// Definir a altura de hover como a altura atual do drone
 				this.hoverHeight = currentPosition.y;
 
+				// Atualizar altitude base da simulação para a posição atual
+				this.flightSimulation.baseAltitude = currentPosition.y;
+
 				// Zerar velocidades para evitar movimento inicial
 				this.velocity.set(0, 0, 0);
 				this.angularVelocity.set(0, 0, 0);
 
-				// Definir empuxo inicial para manter posição
-				this.thrustPower = 0.7; // Empuxo neutro para contrabalançar gravidade
+				// Definir empuxo inicial para manter posição (70%)
+				this.thrustPower = 0.7; // Empuxo em 70% para melhor sustentação
 				this.targetThrust = 0.7;
 
 				// Ativar modo hover para estabilidade
@@ -448,7 +514,9 @@ if (!AFRAME.components["drone-controller"]) {
 				console.log(
 					`🎯 Drone estabilizado na altura: ${this.hoverHeight.toFixed(
 						2
-					)}m`
+					)}m (base: ${this.flightSimulation.baseAltitude.toFixed(
+						2
+					)}m)`
 				);
 			}, 100);
 		},
@@ -619,6 +687,15 @@ if (!AFRAME.components["drone-controller"]) {
 							}`
 						);
 						break;
+					case "KeyG":
+						this.data.groundStabilization =
+							!this.data.groundStabilization;
+						console.log(
+							`🌍 Estabilização de solo: ${
+								this.data.groundStabilization ? "ON" : "OFF"
+							}`
+						);
+						break;
 					case "ShiftLeft":
 						this.boostMode = true;
 						console.log("⚡ Modo boost ativado!");
@@ -666,6 +743,10 @@ if (!AFRAME.components["drone-controller"]) {
 					case "Digit3":
 						// Qualidade alta
 						this.setQuality("high");
+						break;
+					case "KeyH":
+						// Definir altitude atual como nova altitude base
+						this.setNewBaseAltitude();
 						break;
 
 					// === CONTROLES VR SIMULADOS ===
@@ -762,74 +843,87 @@ if (!AFRAME.components["drone-controller"]) {
 		// === SISTEMA DE MOVIMENTO ===
 
 		simulateRealisticFlight: function (time) {
-			if (!this.flightSimulation.enabled || !this.isActive) return;
-			
-			// Pausar simulação se há entrada manual do usuário
+			if (
+				!this.flightSimulation.enabled ||
+				!this.isActive ||
+				!this.isFlying
+			)
+				return;
+
+			// Verificar se há entrada manual do usuário
 			const hasManualInput = this.hasKeyboardInput() || this.hasVRInput();
-			if (hasManualInput) {
-				// Resetar para fase estável quando há entrada manual
-				this.flightSimulation.currentPhase = 'stable';
-				this.flightSimulation.lastDescendTime = time;
+			const hasManualAltitudeInput =
+				Math.abs(this.targetAltitudeChange) > 0.1;
+
+			// Se há entrada manual, não aplicar simulação automática
+			if (hasManualInput || hasManualAltitudeInput) {
 				return;
 			}
-			
-			const currentTime = time;
-			const timeSinceLastDescend = currentTime - this.flightSimulation.lastDescendTime;
-			const timeSincePhaseStart = currentTime - this.flightSimulation.phaseStartTime;
-			
-			// Verificar se deve iniciar uma nova fase de descida automática
-			if (this.flightSimulation.currentPhase === 'stable' && 
-				timeSinceLastDescend > this.flightSimulation.descendCooldown) {
-				
-				// Iniciar descida automática apenas se não há entrada manual de altitude
-				if (Math.abs(this.targetAltitudeChange) < 0.1) {
-					this.flightSimulation.currentPhase = 'descending';
-					this.flightSimulation.phaseStartTime = currentTime;
-					this.flightSimulation.lastDescendTime = currentTime;
-					console.log("🚁 Iniciando descida automática para simular voo realista");
+
+			// Sistema de hover natural com oscilações suaves
+			if (this.flightSimulation.naturalHover) {
+				const currentTime = time;
+				const position = this.el.getAttribute("position");
+
+				// Calcular oscilação natural baseada no tempo
+				const oscillationPhase =
+					currentTime * this.flightSimulation.oscillationSpeed;
+				const primaryOscillation =
+					Math.sin(oscillationPhase) *
+					this.flightSimulation.oscillationAmplitude;
+
+				// Adicionar uma segunda oscilação mais sutil para mais realismo
+				const secondaryOscillation =
+					Math.sin(oscillationPhase * 1.7 + 0.2) *
+					(this.flightSimulation.oscillationAmplitude * 0.3);
+
+				// Combinar oscilações
+				const totalOscillation =
+					primaryOscillation + secondaryOscillation;
+
+				// Calcular diferença da altitude alvo (incluindo oscilação)
+				const targetAltitudeWithOscillation =
+					this.flightSimulation.baseAltitude + totalOscillation;
+				const altitudeDifference =
+					targetAltitudeWithOscillation - position.y;
+
+				// Aplicar força de estabilização suave
+				const stabilizationForce =
+					altitudeDifference *
+					this.flightSimulation.stabilizationStrength;
+
+				// Limitar a força para evitar movimentos bruscos (muito mais restritivo)
+				const maxForce = 0.08; // Reduzido de 0.15 para 0.08
+				const limitedForce = Math.max(
+					-maxForce,
+					Math.min(maxForce, stabilizationForce)
+				);
+
+				// Aplicar a força de estabilização
+				this.targetAltitudeChange += limitedForce;
+
+				// Log ocasional para debug (a cada 3 segundos)
+				if (
+					currentTime -
+						(this.flightSimulation.lastOscillationUpdate || 0) >
+					3000
+				) {
+					console.log(
+						`🌊 Hover natural: altitude=${position.y.toFixed(
+							2
+						)}m, alvo=${targetAltitudeWithOscillation.toFixed(
+							2
+						)}m, força=${limitedForce.toFixed(3)}`
+					);
+					this.flightSimulation.lastOscillationUpdate = currentTime;
 				}
-			}
-			
-			// Processar fases da simulação
-			switch (this.flightSimulation.currentPhase) {
-				case 'descending':
-					if (timeSincePhaseStart < this.flightSimulation.autoDescentDuration) {
-						// Aplicar descida suave de 0.5m
-						this.targetAltitudeChange = -0.5;
-					} else {
-						// Transição para fase de subida
-						this.flightSimulation.currentPhase = 'ascending';
-						this.flightSimulation.phaseStartTime = currentTime;
-						console.log("🚁 Iniciando subida automática");
-					}
-					break;
-					
-				case 'ascending':
-					if (timeSincePhaseStart < this.flightSimulation.autoAscentDuration) {
-						// Aplicar subida suave para retornar à altitude alvo
-						this.targetAltitudeChange = 0.3;
-					} else {
-						// Retornar ao estado estável
-						this.flightSimulation.currentPhase = 'stable';
-						this.flightSimulation.phaseStartTime = currentTime;
-						console.log("🚁 Retornando ao voo estável");
-					}
-					break;
-					
-				case 'stable':
-					// Pequenas oscilações naturais quando estável
-					const naturalOscillation = Math.sin(currentTime * 0.0008) * 0.05;
-					if (Math.abs(this.targetAltitudeChange) < 0.1) {
-						this.targetAltitudeChange += naturalOscillation;
-					}
-					break;
 			}
 		},
 
 		tick: function (time, timeDelta) {
 			// Simular voo realista com descidas e subidas automáticas
 			this.simulateRealisticFlight(time);
-			
+
 			// Processar entrada de controles
 			this.processControlInput();
 
@@ -939,32 +1033,50 @@ if (!AFRAME.components["drone-controller"]) {
 					this.targetStrafeSpeed * acceleration
 				)
 			);
-			
+
 			// Sistema de estabilização de altitude
 			let altitudeForce = this.targetAltitudeChange;
-			
+
+			// NOVA FUNCIONALIDADE: Estabilização quando não toca o solo (temporariamente desabilitada)
+			// const groundStabilizationForce = this.applyGroundStabilization(deltaTime);
+			// altitudeForce += groundStabilizationForce;
+
 			if (this.data.altitudeStabilization) {
 				// Verificar se há entrada manual de altitude (prioridade máxima)
-				const hasManualAltitudeInput = Math.abs(this.targetAltitudeChange) > 0.1;
-				
-				if (!hasManualAltitudeInput) {
-					// Verificar se a simulação de voo está ativa
-					if (this.flightSimulation && this.flightSimulation.enabled) {
-						// Durante a simulação automática, usar a altitude alvo da simulação
-						const altitudeDifference = this.data.targetAltitude - position.y;
-						altitudeForce += altitudeDifference * this.data.altitudeStabilizationForce * 0.5; // Força reduzida durante simulação
-					} else {
-						// Estabilização normal quando não há simulação ativa
-						const altitudeDifference = this.data.targetAltitude - position.y;
-						altitudeForce += altitudeDifference * this.data.altitudeStabilizationForce;
-						
-						// Pequena oscilação natural apenas quando estável
-						const oscillation = Math.sin(Date.now() * 0.001) * 0.05;
-						altitudeForce += oscillation;
+				const hasManualAltitudeInput =
+					Math.abs(this.targetAltitudeChange) > 0.15; // Aumentar threshold para permitir oscilações naturais
+
+				if (!hasManualAltitudeInput && !this.stabilizationActive) {
+					// Usar a altitude base da simulação como referência
+					const targetAltitude =
+						this.flightSimulation.baseAltitude ||
+						this.data.targetAltitude;
+					const altitudeDifference = targetAltitude - position.y;
+
+					// Aplicar força de estabilização muito mais suave
+					const stabilizationForce =
+						altitudeDifference *
+						this.data.altitudeStabilizationForce *
+						0.1; // Reduzido de 0.3 para 0.1
+					altitudeForce += stabilizationForce;
+
+					// Log ocasional para debug
+					if (
+						Date.now() - (this.lastAltitudeStabilizationLog || 0) >
+						4000
+					) {
+						console.log(
+							`📏 Estabilização altitude: atual=${position.y.toFixed(
+								2
+							)}m, alvo=${targetAltitude.toFixed(
+								2
+							)}m, força=${stabilizationForce.toFixed(3)}`
+						);
+						this.lastAltitudeStabilizationLog = Date.now();
 					}
 				}
 			}
-			
+
 			this.velocity.add(
 				upVector.multiplyScalar(altitudeForce * acceleration)
 			);
@@ -977,9 +1089,18 @@ if (!AFRAME.components["drone-controller"]) {
 			// Aplicar movimento
 			const newPosition = {
 				x: position.x + this.velocity.x * deltaTime,
-				y: Math.max(this.data.minAltitude, position.y + this.velocity.y * deltaTime), // Respeitar altitude mínima
+				y: Math.max(
+					this.data.minAltitude,
+					position.y + this.velocity.y * deltaTime
+				), // Respeitar altitude mínima
 				z: position.z + this.velocity.z * deltaTime,
 			};
+
+			// Parar velocidade vertical se tocar o chão
+			if (newPosition.y <= this.data.minAltitude && this.velocity.y < 0) {
+				this.velocity.y = 0;
+				newPosition.y = this.data.minAltitude;
+			}
 
 			this.el.setAttribute("position", newPosition);
 
@@ -1058,16 +1179,18 @@ if (!AFRAME.components["drone-controller"]) {
 				// Calcular empuxo necessário para hover
 				const gravity = 9.8 * this.data.mass;
 
-				// Se não há entrada de altitude, ativar hover automático
-				if (Math.abs(this.targetAltitudeChange) < 0.1) {
+				// Se não há entrada manual significativa de altitude, ativar hover automático
+				if (Math.abs(this.targetAltitudeChange) < 0.2) {
 					this.isHovering = true;
 
-					// Calcular diferença da altura ideal
-					const heightDifference = this.hoverHeight - position.y;
+					// Usar a altitude base da simulação como referência para hover
+					const targetHoverHeight =
+						this.flightSimulation.baseAltitude || this.hoverHeight;
+					const heightDifference = targetHoverHeight - position.y;
 
-					// Ajustar empuxo baseado na diferença de altura
+					// Ajustar empuxo baseado na diferença de altura (muito mais suave)
 					const hoverAdjustment =
-						heightDifference * this.data.hoverStability;
+						heightDifference * this.data.hoverStability * 0.3; // Reduzido de 0.8 para 0.3
 					this.targetThrust =
 						(gravity + hoverAdjustment) / this.data.hoverThrust;
 				} else {
@@ -1078,10 +1201,10 @@ if (!AFRAME.components["drone-controller"]) {
 						this.data.hoverThrust;
 				}
 
-				// Suavizar mudanças de empuxo
+				// Suavizar mudanças de empuxo (mais gradual)
 				this.thrustPower +=
-					(this.targetThrust - this.thrustPower) * 3.0 * deltaTime;
-				this.thrustPower = Math.max(0, Math.min(2.0, this.thrustPower)); // Limitar entre 0 e 200%
+					(this.targetThrust - this.thrustPower) * 1.5 * deltaTime; // Reduzido de 3.0 para 1.5
+				this.thrustPower = Math.max(0, Math.min(1.5, this.thrustPower)); // Limitar entre 0 e 150%
 
 				// Aplicar empuxo vertical
 				const thrustForce = this.thrustPower * this.data.hoverThrust;
@@ -1121,24 +1244,14 @@ if (!AFRAME.components["drone-controller"]) {
 				Math.pow(this.data.angularDrag, deltaTime)
 			);
 
-			// === APLICAR MOVIMENTO ===
-			const newPosition = {
-				x: position.x + this.velocity.x * deltaTime,
-				y: Math.max(0.5, position.y + this.velocity.y * deltaTime), // Evitar ir abaixo do chão
-				z: position.z + this.velocity.z * deltaTime,
-			};
-
-			// Parar no chão se necessário
-			if (newPosition.y <= 0.5) {
-				this.velocity.y = 0;
-				newPosition.y = 0.5;
-			}
-
-			this.el.setAttribute("position", newPosition);
+			// === MOVIMENTO É APLICADO EM applyMovement() ===
+			// Não aplicar movimento aqui para evitar duplicação
+			// O movimento já é aplicado na função applyMovement()
 
 			// Atualizar altura de hover se estiver voando
+			const currentPosition = this.el.getAttribute("position");
 			if (this.isFlying && !this.isHovering) {
-				this.hoverHeight = newPosition.y;
+				this.hoverHeight = currentPosition.y;
 			}
 		},
 
@@ -1166,6 +1279,112 @@ if (!AFRAME.components["drone-controller"]) {
 				this.keys["ArrowLeft"] ||
 				this.keys["ArrowRight"]
 			);
+		},
+
+		// === SISTEMA DE ESTABILIZAÇÃO QUANDO NÃO TOCA O SOLO ===
+
+		checkGroundContact: function () {
+			const position = this.el.getAttribute("position");
+			const currentTime = Date.now();
+
+			// Verificar se está próximo ao solo (considerando altura de detecção)
+			this.isGrounded = position.y <= this.data.groundDetectionHeight;
+
+			// Log para debug (apenas a cada 2 segundos para não poluir)
+			if (currentTime - this.lastGroundCheck > 2000) {
+				console.log(
+					`🌍 Verificação do solo: altura=${position.y.toFixed(
+						2
+					)}m, tocando=${this.isGrounded ? "SIM" : "NÃO"}`
+				);
+				this.lastGroundCheck = currentTime;
+			}
+
+			return this.isGrounded;
+		},
+
+		applyGroundStabilization: function (deltaTime) {
+			// Debug detalhado
+			const debugInfo = {
+				groundStabilization: this.data.groundStabilization,
+				isActive: this.isActive,
+				isFlying: this.isFlying,
+				position: this.el.getAttribute("position"),
+			};
+
+			if (Date.now() - (this.lastDebugLog || 0) > 3000) {
+				console.log("🔍 Debug estabilização:", debugInfo);
+				this.lastDebugLog = Date.now();
+			}
+
+			if (
+				!this.data.groundStabilization ||
+				!this.isActive ||
+				!this.isFlying
+			) {
+				this.stabilizationActive = false;
+				return 0; // Não aplicar estabilização
+			}
+
+			const position = this.el.getAttribute("position");
+			const currentTime = Date.now();
+
+			// Verificar se há entrada manual de altitude (prioridade máxima)
+			const hasManualAltitudeInput =
+				Math.abs(this.targetAltitudeChange) > 0.1;
+
+			if (hasManualAltitudeInput) {
+				this.stabilizationActive = false;
+				return 0; // Não interferir com controle manual
+			}
+
+			// Verificar contato com o solo
+			this.checkGroundContact();
+
+			if (!this.isGrounded) {
+				// Drone não está tocando o solo - ativar estabilização
+				if (!this.stabilizationActive) {
+					this.stabilizationActive = true;
+					this.stabilizationStartTime = currentTime;
+					console.log(
+						`🚁 Estabilização automática ATIVADA - altura atual: ${position.y.toFixed(
+							2
+						)}m`
+					);
+				}
+
+				// Aplicar força de estabilização suave para subir 0.1m
+				const stabilizationForce =
+					this.data.stabilizationLift *
+					this.data.stabilizationSmoothing;
+
+				// Adicionar pequena oscilação natural para simular ajustes constantes
+				const timeOffset =
+					(currentTime - this.stabilizationStartTime) * 0.001;
+				const naturalOscillation = Math.sin(timeOffset * 2) * 0.02; // Oscilação de ±2cm
+
+				const totalForce = stabilizationForce + naturalOscillation;
+
+				// Log ocasional para debug
+				if (currentTime - this.lastGroundCheck > 2000) {
+					console.log(
+						`🔧 Aplicando estabilização: força=${totalForce.toFixed(
+							4
+						)}, oscilação=${naturalOscillation.toFixed(4)}`
+					);
+				}
+
+				return totalForce;
+			} else {
+				// Drone está tocando o solo - desativar estabilização
+				if (this.stabilizationActive) {
+					this.stabilizationActive = false;
+					console.log(
+						`🌍 Estabilização automática DESATIVADA - drone tocando o solo`
+					);
+				}
+				return 0;
+			}
 		},
 
 		updatePropellerEffects: function (isActive) {
@@ -1348,6 +1567,12 @@ if (!AFRAME.components["drone-controller"]) {
 					statusText += ` | Empuxo: ${thrustPercent}%`;
 					if (this.isHovering) {
 						statusText += ` | HOVER`;
+					}
+					if (this.stabilizationActive) {
+						statusText += ` | ESTABILIZANDO`;
+					}
+					if (this.isGrounded) {
+						statusText += ` | SOLO`;
 					}
 					if (this.boostMode) {
 						statusText += ` | BOOST`;
