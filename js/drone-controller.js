@@ -69,6 +69,12 @@ if (!AFRAME.components["drone-controller"]) {
 			this.stabilizationActive = false; // Se a estabilização automática está ativa
 			this.stabilizationStartTime = 0; // Quando a estabilização começou
 
+			// Sistema de estabilização automática restritiva (ativada por padrão)
+			this.autoStabilizationActive = true; // Ativada por padrão
+			this.stabilizationTolerance = 0.2; // ±20cm de tolerância
+			this.lastStabilizationCheck = 0; // Controle de tempo para logs
+			this.wasManuallyControllingAltitude = false; // Controle de transição manual->automático
+
 			// Iniciar o drone automaticamente após 1 segundo
 			setTimeout(() => {
 				console.log("🚁 Ativando drone automaticamente...");
@@ -145,6 +151,13 @@ if (!AFRAME.components["drone-controller"]) {
 			this.stabilizeInitialPosition();
 
 			console.log("✅ Controlador do drone inicializado com sucesso!");
+			console.log(
+				`🎯 Estabilização automática: ${
+					this.autoStabilizationActive ? "ATIVA" : "INATIVA"
+				} por padrão (±${(this.stabilizationTolerance * 100).toFixed(
+					0
+				)}cm)`
+			);
 		},
 
 		setupVRControls: function () {
@@ -343,7 +356,7 @@ if (!AFRAME.components["drone-controller"]) {
             <div>M - Mutar/Desmutar áudio</div>
             <div>+/- - Aumentar/Diminuir volume</div>
             <div>1/2/3 - Qualidade baixa/média/alta</div>
-            <div>H - Definir altitude atual como base</div>
+            <div>H - Redefinir altitude base (estabilização sempre ativa ±20cm)</div>
         `;
 
 			document.body.appendChild(helpPanel);
@@ -374,7 +387,9 @@ if (!AFRAME.components["drone-controller"]) {
 			this.data.targetAltitude = newBaseAltitude;
 
 			console.log(
-				`🎯 Nova altitude base definida: ${newBaseAltitude.toFixed(2)}m`
+				`🎯 Nova altitude base definida: ${newBaseAltitude.toFixed(
+					2
+				)}m (±${(this.stabilizationTolerance * 100).toFixed(0)}cm)`
 			);
 
 			// Mostrar feedback visual
@@ -384,7 +399,7 @@ if (!AFRAME.components["drone-controller"]) {
 				top: 50%;
 				left: 50%;
 				transform: translate(-50%, -50%);
-				background: rgba(0, 100, 0, 0.9);
+				background: rgba(0, 120, 255, 0.9);
 				color: white;
 				padding: 20px;
 				border-radius: 10px;
@@ -392,16 +407,18 @@ if (!AFRAME.components["drone-controller"]) {
 				z-index: 1000;
 				pointer-events: none;
 			`;
-			indicator.textContent = `🎯 Altitude base: ${newBaseAltitude.toFixed(
+			indicator.innerHTML = `🎯 NOVA ALTITUDE BASE<br>Altitude: ${newBaseAltitude.toFixed(
 				1
-			)}m`;
+			)}m<br>📏 Tolerância: ±${(
+				this.stabilizationTolerance * 100
+			).toFixed(0)}cm<br><small>Estabilização sempre ativa</small>`;
 			document.body.appendChild(indicator);
 
 			setTimeout(() => {
 				if (indicator.parentNode) {
 					document.body.removeChild(indicator);
 				}
-			}, 2000);
+			}, 3000);
 		},
 
 		adjustMasterVolume: function (delta) {
@@ -499,6 +516,7 @@ if (!AFRAME.components["drone-controller"]) {
 
 				// Atualizar altitude base da simulação para a posição atual
 				this.flightSimulation.baseAltitude = currentPosition.y;
+				this.data.targetAltitude = currentPosition.y;
 
 				// Zerar velocidades para evitar movimento inicial
 				this.velocity.set(0, 0, 0);
@@ -516,7 +534,9 @@ if (!AFRAME.components["drone-controller"]) {
 						2
 					)}m (base: ${this.flightSimulation.baseAltitude.toFixed(
 						2
-					)}m)`
+					)}m) - Estabilização automática ATIVA por padrão (±${(
+						this.stabilizationTolerance * 100
+					).toFixed(0)}cm)`
 				);
 			}, 100);
 		},
@@ -745,7 +765,7 @@ if (!AFRAME.components["drone-controller"]) {
 						this.setQuality("high");
 						break;
 					case "KeyH":
-						// Definir altitude atual como nova altitude base
+						// Redefinir altitude base para a posição atual
 						this.setNewBaseAltitude();
 						break;
 
@@ -1041,13 +1061,75 @@ if (!AFRAME.components["drone-controller"]) {
 			// const groundStabilizationForce = this.applyGroundStabilization(deltaTime);
 			// altitudeForce += groundStabilizationForce;
 
-			if (this.data.altitudeStabilization) {
+			// Sistema de estabilização automática restritiva (sempre ativo)
+			if (this.autoStabilizationActive) {
 				// Verificar se há entrada manual de altitude (prioridade máxima)
 				const hasManualAltitudeInput =
-					Math.abs(this.targetAltitudeChange) > 0.15; // Aumentar threshold para permitir oscilações naturais
+					Math.abs(this.targetAltitudeChange) > 0.1;
+
+				// Detectar transição de controle manual para automático
+				if (
+					!hasManualAltitudeInput &&
+					this.wasManuallyControllingAltitude
+				) {
+					// Acabou de soltar o controle - atualizar altitude base para posição atual
+					this.flightSimulation.baseAltitude = position.y;
+					this.data.targetAltitude = position.y;
+					this.hoverHeight = position.y;
+					console.log(
+						`🎯 Controle solto - Estabilizando na altitude atual: ${position.y.toFixed(
+							2
+						)}m (±${(this.stabilizationTolerance * 100).toFixed(
+							0
+						)}cm)`
+					);
+				}
+
+				// Atualizar estado de controle manual
+				this.wasManuallyControllingAltitude = hasManualAltitudeInput;
+
+				// Só aplicar estabilização automática se não há entrada manual
+				if (!hasManualAltitudeInput) {
+					const targetAltitude =
+						this.flightSimulation.baseAltitude ||
+						this.data.targetAltitude;
+					const altitudeDifference = targetAltitude - position.y;
+					const absAltitudeDifference = Math.abs(altitudeDifference);
+
+					// Aplicar estabilização restritiva apenas se estiver fora da tolerância
+					if (absAltitudeDifference > this.stabilizationTolerance) {
+						// Força de estabilização mais forte para manter dentro da tolerância
+						const stabilizationForce = altitudeDifference * 2.0; // Força mais intensa
+						altitudeForce += stabilizationForce;
+
+						// Log para debug
+						if (
+							Date.now() - (this.lastStabilizationCheck || 0) >
+							2000
+						) {
+							console.log(
+								`🎯 Estabilização automática: atual=${position.y.toFixed(
+									2
+								)}m, alvo=${targetAltitude.toFixed(
+									2
+								)}m, diferença=${altitudeDifference.toFixed(
+									2
+								)}m, força=${stabilizationForce.toFixed(2)}`
+							);
+							this.lastStabilizationCheck = Date.now();
+						}
+					} else {
+						// Dentro da tolerância - aplicar estabilização suave para evitar oscilações
+						const fineStabilizationForce = altitudeDifference * 0.5;
+						altitudeForce += fineStabilizationForce;
+					}
+				}
+			} else if (this.data.altitudeStabilization) {
+				// Sistema de estabilização original (mais suave)
+				const hasManualAltitudeInput =
+					Math.abs(this.targetAltitudeChange) > 0.15;
 
 				if (!hasManualAltitudeInput && !this.stabilizationActive) {
-					// Usar a altitude base da simulação como referência
 					const targetAltitude =
 						this.flightSimulation.baseAltitude ||
 						this.data.targetAltitude;
@@ -1057,7 +1139,7 @@ if (!AFRAME.components["drone-controller"]) {
 					const stabilizationForce =
 						altitudeDifference *
 						this.data.altitudeStabilizationForce *
-						0.1; // Reduzido de 0.3 para 0.1
+						0.1;
 					altitudeForce += stabilizationForce;
 
 					// Log ocasional para debug
@@ -1180,7 +1262,7 @@ if (!AFRAME.components["drone-controller"]) {
 				const gravity = 9.8 * this.data.mass;
 
 				// Se não há entrada manual significativa de altitude, ativar hover automático
-				if (Math.abs(this.targetAltitudeChange) < 0.2) {
+				if (Math.abs(this.targetAltitudeChange) < 0.1) {
 					this.isHovering = true;
 
 					// Usar a altitude base da simulação como referência para hover
@@ -1188,9 +1270,24 @@ if (!AFRAME.components["drone-controller"]) {
 						this.flightSimulation.baseAltitude || this.hoverHeight;
 					const heightDifference = targetHoverHeight - position.y;
 
-					// Ajustar empuxo baseado na diferença de altura (muito mais suave)
+					// Se estabilização automática está ativa, usar força mais intensa e responsiva
+					let hoverStabilityMultiplier = 0.3; // Padrão
+					if (this.autoStabilizationActive) {
+						if (
+							Math.abs(heightDifference) >
+							this.stabilizationTolerance
+						) {
+							hoverStabilityMultiplier = 1.2; // Muito mais forte para correção rápida
+						} else {
+							hoverStabilityMultiplier = 0.6; // Força moderada dentro da tolerância
+						}
+					}
+
+					// Ajustar empuxo baseado na diferença de altura
 					const hoverAdjustment =
-						heightDifference * this.data.hoverStability * 0.3; // Reduzido de 0.8 para 0.3
+						heightDifference *
+						this.data.hoverStability *
+						hoverStabilityMultiplier;
 					this.targetThrust =
 						(gravity + hoverAdjustment) / this.data.hoverThrust;
 				} else {
@@ -1201,9 +1298,25 @@ if (!AFRAME.components["drone-controller"]) {
 						this.data.hoverThrust;
 				}
 
-				// Suavizar mudanças de empuxo (mais gradual)
+				// Suavizar mudanças de empuxo - mais responsivo com estabilização automática
+				let thrustResponseSpeed = 1.5; // Padrão
+				if (this.autoStabilizationActive && this.isHovering) {
+					const targetHoverHeight =
+						this.flightSimulation.baseAltitude || this.hoverHeight;
+					const heightDifference = Math.abs(
+						targetHoverHeight - position.y
+					);
+					if (heightDifference > this.stabilizationTolerance) {
+						thrustResponseSpeed = 3.0; // Mais rápido para correções grandes
+					} else {
+						thrustResponseSpeed = 2.0; // Moderadamente rápido dentro da tolerância
+					}
+				}
+
 				this.thrustPower +=
-					(this.targetThrust - this.thrustPower) * 1.5 * deltaTime; // Reduzido de 3.0 para 1.5
+					(this.targetThrust - this.thrustPower) *
+					thrustResponseSpeed *
+					deltaTime;
 				this.thrustPower = Math.max(0, Math.min(1.5, this.thrustPower)); // Limitar entre 0 e 150%
 
 				// Aplicar empuxo vertical
@@ -1279,6 +1392,16 @@ if (!AFRAME.components["drone-controller"]) {
 				this.keys["ArrowLeft"] ||
 				this.keys["ArrowRight"]
 			);
+		},
+
+		isDroneStopped: function () {
+			// Verificar se o drone está parado (sem entrada manual e velocidade baixa)
+			const hasManualInput = this.hasKeyboardInput() || this.hasVRInput();
+			const hasManualAltitudeInput =
+				Math.abs(this.targetAltitudeChange) > 0.1;
+			const isMovingSlowly = this.velocity.length() < 0.5; // Velocidade menor que 0.5 m/s
+
+			return !hasManualInput && !hasManualAltitudeInput && isMovingSlowly;
 		},
 
 		// === SISTEMA DE ESTABILIZAÇÃO QUANDO NÃO TOCA O SOLO ===
@@ -1568,7 +1691,25 @@ if (!AFRAME.components["drone-controller"]) {
 					if (this.isHovering) {
 						statusText += ` | HOVER`;
 					}
-					if (this.stabilizationActive) {
+					if (this.autoStabilizationActive) {
+						const targetAltitude =
+							this.flightSimulation.baseAltitude ||
+							this.data.targetAltitude;
+						const altitudeDifference = Math.abs(
+							targetAltitude - position.y
+						);
+						const withinTolerance =
+							altitudeDifference <= this.stabilizationTolerance;
+						const toleranceCm = Math.round(
+							this.stabilizationTolerance * 100
+						);
+						statusText += ` | AUTO-ESTAB (±${toleranceCm}cm)`;
+						if (withinTolerance) {
+							statusText += ` ✅`;
+						} else {
+							statusText += ` ⚠️`;
+						}
+					} else if (this.stabilizationActive) {
 						statusText += ` | ESTABILIZANDO`;
 					}
 					if (this.isGrounded) {
@@ -1583,6 +1724,59 @@ if (!AFRAME.components["drone-controller"]) {
 
 				speedElement.setAttribute("value", statusText);
 			}
+
+			// Mostrar indicador visual da estabilização automática
+			this.updateStabilizationIndicator();
+		},
+
+		updateStabilizationIndicator: function () {
+			// Estabilização sempre ativa - sempre mostrar indicador
+
+			// Criar ou atualizar indicador
+			let indicator = document.querySelector("#stabilization-indicator");
+			if (!indicator) {
+				indicator = document.createElement("div");
+				indicator.id = "stabilization-indicator";
+				indicator.style.cssText = `
+					position: fixed;
+					top: 20px;
+					right: 20px;
+					background: rgba(0, 0, 0, 0.8);
+					color: white;
+					padding: 10px 15px;
+					border-radius: 8px;
+					font-family: Arial, sans-serif;
+					font-size: 14px;
+					z-index: 1000;
+					border-left: 4px solid #00ff00;
+				`;
+				document.body.appendChild(indicator);
+			}
+
+			const position = this.el.getAttribute("position");
+			const targetAltitude =
+				this.flightSimulation.baseAltitude || this.data.targetAltitude;
+			const altitudeDifference = targetAltitude - position.y;
+			const absAltitudeDifference = Math.abs(altitudeDifference);
+			const withinTolerance =
+				absAltitudeDifference <= this.stabilizationTolerance;
+
+			// Atualizar cor baseada no status
+			const borderColor = withinTolerance ? "#00ff00" : "#ffaa00";
+			indicator.style.borderLeftColor = borderColor;
+
+			// Atualizar conteúdo
+			const toleranceCm = Math.round(this.stabilizationTolerance * 100);
+			const differenceCm = Math.round(absAltitudeDifference * 100);
+			const status = withinTolerance ? "✅ ESTÁVEL" : "⚠️ AJUSTANDO";
+
+			indicator.innerHTML = `
+				<div style="font-weight: bold; color: ${borderColor};">🎯 ESTABILIZAÇÃO ATIVA</div>
+				<div>Alvo: ${targetAltitude.toFixed(1)}m (±${toleranceCm}cm)</div>
+				<div>Atual: ${position.y.toFixed(1)}m</div>
+				<div>Diferença: ${differenceCm}cm</div>
+				<div style="color: ${borderColor}; font-weight: bold;">${status}</div>
+			`;
 		},
 
 		resetDronePosition: function () {
