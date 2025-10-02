@@ -72,6 +72,23 @@ async function build() {
 		console.error("❌ Error copying assets:", error.message);
 	}
 
+	// Copy libs directory
+	console.log("📚 Copying libraries...");
+	try {
+		if (fs.existsSync("libs")) {
+			// Create libs directory in dist
+			fs.mkdirSync("dist/libs", { recursive: true });
+			execSync('npx copyfiles -u 1 "libs/**/*" dist/libs/', {
+				stdio: "inherit",
+			});
+			console.log("✅ Libraries copied successfully!");
+		} else {
+			console.log("⚠️  No libs directory found");
+		}
+	} catch (error) {
+		console.error("❌ Error copying libraries:", error.message);
+	}
+
 	// Build HTML
 	console.log("📄 Optimizing HTML...");
 	try {
