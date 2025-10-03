@@ -8,9 +8,9 @@ if (!AFRAME.components["drone-controller"]) {
 	AFRAME.registerComponent("drone-controller", {
 		schema: {
 			// Configurações de movimento (valores realistas para drone)
-			maxSpeed: { type: "number", default: 3 }, // Reduzido de 6 para 3 m/s (~11 km/h)
-			acceleration: { type: "number", default: 1.5 }, // Reduzido de 3 para 1.5 m/s²
-			rotationSpeed: { type: "number", default: 0.6 }, // Reduzido de 1.2 para 0.6 rad/s
+			maxSpeed: { type: "number", default: 6 }, // 6 m/s (~21.6 km/h)
+			acceleration: { type: "number", default: 3 }, // 3 m/s² para melhor responsividade
+			rotationSpeed: { type: "number", default: 1.2 }, // 1.2 rad/s para melhor manobrabilidade
 
 			// Configurações de física (ajustadas para realismo)
 			mass: { type: "number", default: 0.5 }, // Massa mais leve
@@ -58,7 +58,7 @@ if (!AFRAME.components["drone-controller"]) {
 			this.batteryLevel = 100;
 
 			// Sistema de hover realista
-			this.thrustPower = 0; // Potência atual das hélices (0-1)
+			this.thrustPower = 1; // Potência atual das hélices (0-1)
 			this.targetThrust = 0; // Potência alvo das hélices
 			this.hoverHeight = 3; // Altura preferida para hover
 			this.isHovering = false; // Estado de hover automático
@@ -522,9 +522,9 @@ if (!AFRAME.components["drone-controller"]) {
 				this.velocity.set(0, 0, 0);
 				this.angularVelocity.set(0, 0, 0);
 
-				// Definir empuxo inicial para manter posição (70%)
-				this.thrustPower = 0.7; // Empuxo em 70% para melhor sustentação
-				this.targetThrust = 0.7;
+				// Definir empuxo inicial para manter posição (60%)
+				this.thrustPower = 0.6; // Empuxo em 60% para sustentação otimizada
+				this.targetThrust = 0.6;
 
 				// Ativar modo hover para estabilidade
 				this.isHovering = true;
