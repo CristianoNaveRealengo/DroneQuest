@@ -3,8 +3,8 @@
 
     <head>
         <meta charset="utf-8">
-        <title>VR Drone Racing</title>
-        <meta name="description" content="Corrida de Drone em VR">
+        <title>VR Drone Racing - Cidade Futurista</title>
+        <meta name="description" content="Corrida de Drone em Cidade Futurista VR - Otimizado para Oculus">
         <!-- Evitar cache -->
         <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
         <meta http-equiv="Pragma" content="no-cache">
@@ -40,7 +40,7 @@
             game-manager="totalCheckpoints: 3; timeLimit: 180"
             urban-environment="citySize: 60; buildingCount: 8; obstacleCount: 3; treeCount: 0; vrOptimized: true"
             performance-monitor="targetFPS: 72; minFPS: 60; autoOptimize: true; showStats: false"
-            audio-system="masterVolume: 0.7; musicVolume: 0.4; sfxVolume: 0.8; ambientVolume: 0.3; enableAudio: true"
+            audio-system="masterVolume: 0.5; musicVolume: 0.2; sfxVolume: 0.6; ambientVolume: 0.1; enableAudio: true"
             collision-system="enabled: true; bounceForce: 0.5; showEffects: true; soundEnabled: true">
 
             <!-- Assets -->
@@ -58,8 +58,8 @@
                     physics-body="type: static; shape: box">
                 </a-mixin>
 
-                <a-mixin id="propeller" geometry="primitive: cylinder; radius: 0.6; height: 0.03"
-                    material="color: #ff4444; transparent: true; opacity: 0.4">
+                <a-mixin id="propeller" geometry="primitive: cylinder; radius: 0.4; height: 0.02"
+                    material="color: #ff4444; transparent: true; opacity: 0.3">
                 </a-mixin>
             </a-assets>
 
@@ -100,15 +100,15 @@
                 <a-entity geometry="primitive: cylinder; radius: 0.05; height: 1.4"
                     material="color: #333; metalness: 0.3" position="-0.6 0 -0.6" rotation="0 45 0"></a-entity>
 
-                <!-- Hélices -->
-                <a-entity id="prop1" mixin="propeller" position="1.1 0.3 1.1"
-                    animation="property: rotation; to: 0 3600 0; loop: true; dur: 300"></a-entity>
-                <a-entity id="prop2" mixin="propeller" position="-1.1 0.3 1.1"
-                    animation="property: rotation; to: 0 -3600 0; loop: true; dur: 300"></a-entity>
-                <a-entity id="prop3" mixin="propeller" position="1.1 0.3 -1.1"
-                    animation="property: rotation; to: 0 -3600 0; loop: true; dur: 300"></a-entity>
-                <a-entity id="prop4" mixin="propeller" position="-1.1 0.3 -1.1"
-                    animation="property: rotation; to: 0 3600 0; loop: true; dur: 300"></a-entity>
+                <!-- Hélices Otimizadas -->
+                <a-entity id="prop1" mixin="propeller" position="0.8 0.2 0.8"
+                    animation="property: rotation; to: 0 3600 0; loop: true; dur: 400"></a-entity>
+                <a-entity id="prop2" mixin="propeller" position="-0.8 0.2 0.8"
+                    animation="property: rotation; to: 0 -3600 0; loop: true; dur: 400"></a-entity>
+                <a-entity id="prop3" mixin="propeller" position="0.8 0.2 -0.8"
+                    animation="property: rotation; to: 0 -3600 0; loop: true; dur: 400"></a-entity>
+                <a-entity id="prop4" mixin="propeller" position="-0.8 0.2 -0.8"
+                    animation="property: rotation; to: 0 3600 0; loop: true; dur: 400"></a-entity>
 
                 <!-- Câmera do Drone -->
                 <a-camera id="drone-camera" position="0 -0.30 -0.5" rotation="-15 0 0" wasd-controls="enabled: false"
@@ -154,14 +154,15 @@
             </a-entity>
 
             <!-- Linha de chegada -->
-            <a-entity geometry="primitive: box; width: 20; height: 0.5; depth: 2"
-                material="color: #ff0000; transparent: true; opacity: 0.7" position="0 1 -90" finish-line></a-entity>
+            <a-entity geometry="primitive: box; width: 15; height: 0.3; depth: 1.5"
+                material="color: #ff0000; transparent: true; opacity: 0.6" position="0 1 -50" finish-line></a-entity>
         </a-scene>
 
         <!-- Tela de carregamento -->
         <div id="loading">
-            <h2>Carregando Drone Racing VR...</h2>
-            <p>Prepare seu Meta Quest 3!</p>
+            <h2>🚁 Carregando Cidade Futurista VR...</h2>
+            <p>🥽 Otimizado para Oculus Quest</p>
+            <p>🎬 Abby & Drone Adventure</p>
             <div class="progress-bar">
                 <div class="progress"></div>
             </div>

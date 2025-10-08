@@ -37,7 +37,67 @@ AFRAME.registerComponent("urban-environment", {
 		console.log("✅ Ambiente urbano criado com sucesso!");
 	},
 
-	// Sistema de LOD (Level of Detail) para otimização
+	// Sistema de LOD ultra-otimizado para VR
+	setupVROptimizedLOD() {
+		console.log("🔧 Configurando LOD otimizado para VR...");
+
+		this.vrLOD = {
+			camera: null,
+			buildings: [],
+			updateInterval: null,
+			updateFrequency: 200, // Menos frequente para economizar performance
+		};
+
+		setTimeout(() => {
+			this.vrLOD.camera = document.querySelector("#drone-camera");
+			if (this.vrLOD.camera) {
+				this.collectBuildingsForVRLOD();
+				this.startVRLODUpdates();
+			}
+		}, 1000);
+	},
+
+	// Coletar prédios para LOD VR
+	collectBuildingsForVRLOD() {
+		const buildings = this.el.querySelectorAll('[data-building="true"]');
+		this.vrLOD.buildings = Array.from(buildings).map((building) => ({
+			element: building,
+			position: building.getAttribute("position"),
+		}));
+	},
+
+	// Iniciar atualizações LOD VR
+	startVRLODUpdates() {
+		this.vrLOD.updateInterval = setInterval(() => {
+			this.updateVRLOD();
+		}, this.vrLOD.updateFrequency);
+	},
+
+	// Atualizar LOD para VR (mais agressivo)
+	updateVRLOD() {
+		if (!this.vrLOD.camera) return;
+
+		const cameraPosition = this.vrLOD.camera.getAttribute("position");
+		if (!cameraPosition) return;
+
+		this.vrLOD.buildings.forEach((building) => {
+			const distance = this.calculateDistance(
+				cameraPosition,
+				building.position
+			);
+
+			// LOD mais agressivo para VR
+			if (distance > 40) {
+				// Ocultar completamente se muito distante
+				building.element.setAttribute("visible", false);
+			} else {
+				// Mostrar se próximo
+				building.element.setAttribute("visible", true);
+			}
+		});
+	},
+
+	// Sistema de LOD (Level of Detail) para otimização (manter compatibilidade)
 	setupLODSystem() {
 		console.log("🔧 Configurando sistema de LOD...");
 
@@ -149,7 +209,9 @@ AFRAME.registerComponent("urban-environment", {
 	// Gerar sistema de ruas
 	generateStreets: function () {
 		console.log("🛣️ Gerando sistema de ruas...");
-		console.log(`📏 Configurações: citySize=${this.data.citySize}, streetWidth=${this.data.streetWidth}`);
+		console.log(
+			`📏 Configurações: citySize=${this.data.citySize}, streetWidth=${this.data.streetWidth}`
+		);
 
 		const streetContainer = document.createElement("a-entity");
 		streetContainer.setAttribute("id", "streets");
@@ -260,25 +322,24 @@ AFRAME.registerComponent("urban-environment", {
 		}
 	},
 
-	// Gerar prédios proceduralmente
+	// Gerar prédios proceduralmente - OTIMIZADO PARA VR
 	generateBuildings: function () {
-		console.log("🏢 Gerando prédios...");
+		console.log("🏢 Gerando cidade futurista otimizada para VR...");
 
 		const buildingContainer = document.createElement("a-entity");
 		buildingContainer.setAttribute("id", "buildings");
 
 		const citySize = this.data.citySize;
-		const buildingCount = this.data.buildingCount;
+		const buildingCount = Math.min(this.data.buildingCount, 6); // Máximo 6 prédios para VR
 
 		for (let i = 0; i < buildingCount; i++) {
-			const building = this.createBuilding();
+			const building = this.createFuturisticBuilding();
 
-			// Posicionar aleatoriamente, evitando ruas
-			let x, z;
-			do {
-				x = (this.random() - 0.5) * citySize * 1.8;
-				z = (this.random() - 0.5) * citySize * 1.8;
-			} while (this.isOnStreet(x, z));
+			// Posicionar estrategicamente para melhor performance
+			const angle = (i / buildingCount) * Math.PI * 2;
+			const distance = citySize * 0.6;
+			const x = Math.cos(angle) * distance;
+			const z = Math.sin(angle) * distance;
 
 			building.setAttribute("position", `${x} 0 ${z}`);
 			buildingContainer.appendChild(building);
@@ -286,29 +347,22 @@ AFRAME.registerComponent("urban-environment", {
 
 		this.urbanContainer.appendChild(buildingContainer);
 
-		// Configurar sistema de LOD
-		this.setupLODSystem();
+		// Sistema de LOD simplificado para VR
+		this.setupVROptimizedLOD();
 	},
 
-	// Criar um prédio individual
-	createBuilding: function () {
+	// Criar prédio futurista otimizado para VR
+	createFuturisticBuilding: function () {
 		const building = document.createElement("a-entity");
-		building.classList.add("building");
+		building.classList.add("futuristic-building");
 		building.setAttribute("data-building", "true");
 
-		// Dimensões aleatórias (menores para VR)
-		const baseWidth = this.data.vrOptimized ? 6 : 8;
-		const baseDepth = this.data.vrOptimized ? 6 : 8;
-		const baseHeight = this.data.vrOptimized ? 12 : 15;
-		const maxWidth = this.data.vrOptimized ? 8 : 12;
-		const maxDepth = this.data.vrOptimized ? 8 : 12;
-		const maxHeight = this.data.vrOptimized ? 25 : 40;
+		// Dimensões otimizadas para VR (menores e mais simples)
+		const width = 4 + this.random() * 3; // 4-7m
+		const depth = 4 + this.random() * 3; // 4-7m
+		const height = 8 + this.random() * 12; // 8-20m
 
-		const width = baseWidth + this.random() * maxWidth;
-		const depth = baseDepth + this.random() * maxDepth;
-		const height = baseHeight + this.random() * maxHeight;
-
-		// Estrutura principal simplificada
+		// Estrutura principal ultra-simplificada
 		const mainStructure = document.createElement("a-box");
 		mainStructure.setAttribute("geometry", {
 			width: width,
@@ -316,47 +370,82 @@ AFRAME.registerComponent("urban-environment", {
 			depth: depth,
 		});
 
-		// Material do prédio (simplificado para VR)
-		const buildingColors = [
-			"#666666",
-			"#888888",
-			"#555555",
-			"#777777",
-			"#999999",
+		// Cores futuristas com emissão para efeito cyberpunk
+		const futuristicColors = [
+			{ color: "#1a1a2e", emissive: "#16213e" },
+			{ color: "#0f3460", emissive: "#0e6ba8" },
+			{ color: "#16537e", emissive: "#1e88e5" },
+			{ color: "#2d1b69", emissive: "#3f51b5" },
+			{ color: "#1a1a1a", emissive: "#00ffff" },
 		];
-		const color =
-			buildingColors[Math.floor(this.random() * buildingColors.length)];
 
-		const materialConfig = {
-			color: color,
-			roughness: this.data.vrOptimized ? 1.0 : 0.8,
-			metalness: this.data.vrOptimized ? 0.0 : 0.2,
-		};
+		const colorScheme =
+			futuristicColors[
+				Math.floor(this.random() * futuristicColors.length)
+			];
 
-		mainStructure.setAttribute("material", materialConfig);
+		mainStructure.setAttribute("material", {
+			color: colorScheme.color,
+			emissive: colorScheme.emissive,
+			emissiveIntensity: 0.2,
+			roughness: 0.1,
+			metalness: 0.8,
+		});
+
 		mainStructure.setAttribute("position", `0 ${height / 2} 0`);
 		building.appendChild(mainStructure);
 
-		// Adicionar detalhes apenas se não for otimizado para VR
-		if (!this.data.vrOptimized) {
-			// Adicionar janelas (apenas na versão de alto detalhe)
-			this.addWindows(building, width, height, depth);
-
-			// Adicionar telhado ocasionalmente
-			if (this.random() > 0.7) {
-				this.addRoof(building, width, height, depth);
-			}
-
-			// Adicionar antenas/equipamentos no topo
-			if (this.random() > 0.6) {
-				this.addRooftopEquipment(building, width, height, depth);
-			}
-		}
+		// Adicionar apenas 1-2 janelas brilhantes para efeito futurista
+		this.addFuturisticWindows(building, width, height, depth);
 
 		return building;
 	},
 
-	// Adicionar janelas aos prédios
+	// Criar um prédio individual (manter compatibilidade)
+	createBuilding: function () {
+		// Redirecionar para versão futurista otimizada
+		return this.createFuturisticBuilding();
+	},
+
+	// Adicionar janelas futuristas otimizadas
+	addFuturisticWindows: function (building, width, height, depth) {
+		// Apenas 2-3 janelas grandes e brilhantes por prédio
+		const windowCount = 2 + Math.floor(this.random() * 2);
+
+		for (let i = 0; i < windowCount; i++) {
+			const window = document.createElement("a-plane");
+			window.setAttribute("geometry", {
+				width: width * 0.6,
+				height: 2,
+			});
+
+			// Cores neon futuristas
+			const neonColors = [
+				"#00ffff",
+				"#ff00ff",
+				"#ffff00",
+				"#00ff88",
+				"#ff8800",
+			];
+			const windowColor =
+				neonColors[Math.floor(this.random() * neonColors.length)];
+
+			window.setAttribute("material", {
+				color: windowColor,
+				emissive: windowColor,
+				emissiveIntensity: 0.4,
+				transparent: true,
+				opacity: 0.7,
+			});
+
+			// Posicionar na face frontal
+			const yPos = height * 0.3 + i * height * 0.3;
+			window.setAttribute("position", `0 ${yPos} ${depth / 2 + 0.01}`);
+			building.appendChild(window);
+		}
+	},
+
+	// Adicionar janelas aos prédios (manter compatibilidade)
 	addWindows: function (building, width, height, depth) {
 		const windowSize = 1.5;
 		const windowSpacing = 3;
@@ -514,24 +603,24 @@ AFRAME.registerComponent("urban-environment", {
 		return false;
 	},
 
-	// Gerar obstáculos urbanos
+	// Gerar obstáculos futuristas minimalistas
 	generateObstacles: function () {
-		console.log("🚧 Gerando obstáculos...");
+		console.log("🚧 Gerando obstáculos futuristas...");
 
 		const obstacleContainer = document.createElement("a-entity");
 		obstacleContainer.setAttribute("id", "obstacles");
 
-		// Reduzir obstáculos para VR
-		const obstacleCount = this.data.vrOptimized
-			? Math.min(this.data.obstacleCount, 5)
-			: this.data.obstacleCount;
+		// Máximo 2 obstáculos para VR
+		const obstacleCount = Math.min(this.data.obstacleCount, 2);
 
 		for (let i = 0; i < obstacleCount; i++) {
-			const obstacle = this.createObstacle();
+			const obstacle = this.createFuturisticObstacle();
 
-			// Posicionar aleatoriamente
-			const x = (this.random() - 0.5) * this.data.citySize * 1.5;
-			const z = (this.random() - 0.5) * this.data.citySize * 1.5;
+			// Posicionar estrategicamente
+			const angle = (i / obstacleCount) * Math.PI * 2;
+			const distance = this.data.citySize * 0.4;
+			const x = Math.cos(angle) * distance;
+			const z = Math.sin(angle) * distance;
 
 			obstacle.setAttribute("position", `${x} 0 ${z}`);
 			obstacleContainer.appendChild(obstacle);
@@ -540,43 +629,53 @@ AFRAME.registerComponent("urban-environment", {
 		this.urbanContainer.appendChild(obstacleContainer);
 	},
 
-	// Criar obstáculo individual
+	// Criar obstáculo futurista ultra-simples
+	createFuturisticObstacle: function () {
+		const obstacle = document.createElement("a-entity");
+		obstacle.setAttribute("class", "futuristic-obstacle");
+
+		// Torre holográfica simples
+		const tower = document.createElement("a-cylinder");
+		tower.setAttribute("geometry", {
+			radius: 0.5,
+			height: 8,
+		});
+		tower.setAttribute("material", {
+			color: "#001122",
+			emissive: "#00ffff",
+			emissiveIntensity: 0.3,
+			transparent: true,
+			opacity: 0.8,
+		});
+		tower.setAttribute("position", "0 4 0");
+
+		// Luz no topo
+		const topLight = document.createElement("a-sphere");
+		topLight.setAttribute("geometry", { radius: 0.2 });
+		topLight.setAttribute("material", {
+			color: "#00ffff",
+			emissive: "#00ffff",
+			emissiveIntensity: 0.8,
+		});
+		topLight.setAttribute("position", "0 8.5 0");
+		topLight.setAttribute("animation", {
+			property: "material.emissiveIntensity",
+			from: 0.8,
+			to: 0.3,
+			dur: 2000,
+			dir: "alternate",
+			loop: true,
+		});
+
+		obstacle.appendChild(tower);
+		obstacle.appendChild(topLight);
+		return obstacle;
+	},
+
+	// Criar obstáculo individual (manter compatibilidade)
 	createObstacle: function () {
-		if (this.data.vrOptimized) {
-			// Versão simplificada para VR - apenas obstáculos básicos
-			const obstacle = document.createElement("a-entity");
-			obstacle.setAttribute("class", "obstacle");
-
-			const obstacleGeometry = document.createElement("a-box");
-			obstacleGeometry.setAttribute("geometry", {
-				width: 1,
-				height: 2,
-				depth: 1,
-			});
-			obstacleGeometry.setAttribute("material", {
-				color: "#666666",
-			});
-			obstacle.appendChild(obstacleGeometry);
-			return obstacle;
-		} else {
-			// Versão detalhada
-			const obstacleTypes = ["tower", "crane", "billboard", "antenna"];
-			const type =
-				obstacleTypes[Math.floor(this.random() * obstacleTypes.length)];
-
-			switch (type) {
-				case "tower":
-					return this.createTower();
-				case "crane":
-					return this.createCrane();
-				case "billboard":
-					return this.createBillboard();
-				case "antenna":
-					return this.createAntenna();
-				default:
-					return this.createTower();
-			}
-		}
+		// Sempre usar versão futurista otimizada
+		return this.createFuturisticObstacle();
 	},
 
 	// Criar torre de comunicação
@@ -795,30 +894,17 @@ AFRAME.registerComponent("urban-environment", {
 		return antenna;
 	},
 
-	// Gerar vegetação urbana
+	// Vegetação desabilitada para máxima performance VR
 	generateVegetation: function () {
-		console.log("🌳 Gerando vegetação...");
+		console.log("🌳 Vegetação desabilitada para otimização VR");
 
+		// Criar container vazio para compatibilidade
 		const vegetationContainer = document.createElement("a-entity");
 		vegetationContainer.setAttribute("id", "vegetation");
-
-		// Reduzir vegetação para VR
-		const treeCount = this.data.vrOptimized
-			? Math.min(this.data.treeCount, 3)
-			: this.data.treeCount;
-
-		for (let i = 0; i < treeCount; i++) {
-			const tree = this.createTree();
-
-			// Posicionar aleatoriamente
-			const x = (this.random() - 0.5) * this.data.citySize * 1.5;
-			const z = (this.random() - 0.5) * this.data.citySize * 1.5;
-
-			tree.setAttribute("position", `${x} 0 ${z}`);
-			vegetationContainer.appendChild(tree);
-		}
-
 		this.urbanContainer.appendChild(vegetationContainer);
+
+		// Não gerar árvores para economizar performance
+		return;
 	},
 
 	// Criar árvore
@@ -873,115 +959,88 @@ AFRAME.registerComponent("urban-environment", {
 		return tree;
 	},
 
-	// Configurar iluminação urbana
+	// Iluminação futurista minimalista
 	generateLighting: function () {
-		console.log("💡 Configurando iluminação urbana...");
+		console.log("💡 Configurando iluminação futurista otimizada...");
 
 		const lightingContainer = document.createElement("a-entity");
 		lightingContainer.setAttribute("id", "urban-lighting");
 
-		// Postes de luz ao longo das ruas
-		for (let x = -this.data.citySize; x <= this.data.citySize; x += 20) {
-			for (
-				let z = -this.data.citySize;
-				z <= this.data.citySize;
-				z += 25
-			) {
-				if (this.isOnStreet(x, z)) {
-					const streetLight = this.createStreetLight();
-					streetLight.setAttribute(
-						"position",
-						`${x + (this.random() - 0.2) * 4} 0 ${
-							z + (this.random() - 0.2) * 4
-						}`
-					);
-					lightingContainer.appendChild(streetLight);
-				}
-			}
-		}
+		// Apenas 3-4 postes de luz estratégicos
+		const lightPositions = [
+			{ x: 15, z: -15 },
+			{ x: -15, z: -15 },
+			{ x: 0, z: -30 },
+		];
+
+		lightPositions.forEach((pos) => {
+			const futuristicLight = this.createFuturisticStreetLight();
+			futuristicLight.setAttribute("position", `${pos.x} 0 ${pos.z}`);
+			lightingContainer.appendChild(futuristicLight);
+		});
 
 		this.urbanContainer.appendChild(lightingContainer);
 	},
 
-	// Criar poste de luz
-	createStreetLight: function () {
+	// Criar poste de luz futurista ultra-simples
+	createFuturisticStreetLight: function () {
 		const streetLight = document.createElement("a-entity");
-		streetLight.classList.add("street-light");
+		streetLight.classList.add("futuristic-street-light");
 
-		// Poste
+		// Poste holográfico
 		const pole = document.createElement("a-cylinder");
 		pole.setAttribute("geometry", {
-			radius: 0.2,
-			height: 8,
+			radius: 0.1,
+			height: 6,
 		});
 		pole.setAttribute("material", {
-			color: "#333333",
-			metalness: 0.8,
-			roughness: 0.2,
+			color: "#001122",
+			emissive: "#00ffff",
+			emissiveIntensity: 0.2,
+			transparent: true,
+			opacity: 0.7,
 		});
-		pole.setAttribute("position", "0 4 0");
+		pole.setAttribute("position", "0 3 0");
 		streetLight.appendChild(pole);
 
-		// Luminária
-		const lamp = document.createElement("a-sphere");
-		lamp.setAttribute("geometry", { radius: 0.8 });
-		lamp.setAttribute("material", {
-			color: "#ffff88",
-			emissive: "#ffff88",
-			emissiveIntensity: 0.3,
-			transparent: true,
-			opacity: 0.8,
+		// Luz neon no topo
+		const neonLight = document.createElement("a-sphere");
+		neonLight.setAttribute("geometry", { radius: 0.3 });
+		neonLight.setAttribute("material", {
+			color: "#00ffff",
+			emissive: "#00ffff",
+			emissiveIntensity: 0.6,
 		});
-		lamp.setAttribute("position", "0 8.5 0");
-		streetLight.appendChild(lamp);
-
-		// Luz pontual
-		const light = document.createElement("a-light");
-		light.setAttribute("type", "point");
-		light.setAttribute("color", "#ffff88");
-		light.setAttribute("intensity", 0.5);
-		light.setAttribute("distance", 15);
-		light.setAttribute("position", "0 8.5 0");
-		streetLight.appendChild(light);
+		neonLight.setAttribute("position", "0 6.5 0");
+		neonLight.setAttribute("animation", {
+			property: "material.emissiveIntensity",
+			from: 0.6,
+			to: 0.2,
+			dur: 3000,
+			dir: "alternate",
+			loop: true,
+		});
+		streetLight.appendChild(neonLight);
 
 		return streetLight;
 	},
 
-	// Configurar skybox urbano
-	generateSkybox: function () {
-		console.log("🌆 Configurando skybox urbano...");
+	// Criar poste de luz (manter compatibilidade)
+	createStreetLight: function () {
+		return this.createFuturisticStreetLight();
+	},
 
-		// Skybox com cor urbana
+	// Skybox futurista otimizado
+	generateSkybox: function () {
+		console.log("🌆 Configurando skybox futurista...");
+
+		// Skybox com gradiente futurista
 		const sky = document.createElement("a-sky");
-		sky.setAttribute("color", "#87CEEB");
+		sky.setAttribute("color", "#0a0a2e");
 		this.el.sceneEl.appendChild(sky);
 
-		// Nuvens distantes
-		for (let i = 0; i < 10; i++) {
-			const cloud = document.createElement("a-sphere");
-			cloud.setAttribute("geometry", {
-				radius: 20 + this.random() * 30,
-			});
-			cloud.setAttribute("material", {
-				color: "#ffffff",
-				transparent: true,
-				opacity: 0.6,
-			});
-
-			const x = (this.random() - 0.5) * 800;
-			const y = 100 + this.random() * 50;
-			const z = (this.random() - 0.5) * 800;
-
-			cloud.setAttribute("position", `${x} ${y} ${z}`);
-			cloud.setAttribute("animation", {
-				property: "position",
-				to: `${x + 50} ${y} ${z}`,
-				dur: 60000 + this.random() * 30000,
-				loop: true,
-			});
-
-			this.el.sceneEl.appendChild(cloud);
-		}
+		// Sem nuvens para máxima performance VR
+		console.log("☁️ Nuvens desabilitadas para otimização VR");
 	},
 });
 
