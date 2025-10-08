@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>Teste - Correção de Oscilações do Drone</title>
+		<style>
+			body {
+				font-family: Arial, sans-serif;
+				margin: 20px;
+				background: #1a1a1a;
+				color: #ffffff;
+			}
+
+			.test-panel {
+				background: rgba(0, 100, 50, 0.8);
+				padding: 20px;
+				border-radius: 10px;
+				margin: 10px 0;
+			}
+
+			.status {
+				font-weight: bold;
+				margin: 5px 0;
+			}
+
+			.good {
+				color: #66ff66;
+			}
+
+			.warning {
+				color: #ffff66;
+			}
+
+			.bad {
+				color: #ff6666;
+			}
+
+			button {
+				background: #006600;
+				color: white;
+				border: none;
+				padding: 10px 20px;
+				margin: 5px;
+				border-radius: 5px;
+				cursor: pointer;
+			}
+
+			button:hover {
+				background: #008800;
+			}
+
+			.oscillation-chart {
+				background: #000;
+				border: 1px solid #666;
+				height: 200px;
+				margin: 10px 0;
+				position: relative;
+				overflow: hidden;
+			}
+
+			.altitude-line {
+				position: absolute;
+				width: 2px;
+				background: #00ff00;
+				transition: all 0.1s ease;
+			}
+
+			.target-line {
+				position: absolute;
+				width: 100%;
+				height: 2px;
+				background: #ff0000;
+				opacity: 0.5;
+			}
+
+			.tolerance-zone {
+				position: absolute;
+				width: 100%;
+				background: rgba(255, 255, 0, 0.1);
+				border: 1px dashed #ffff00;
+			}
+		</style>
+	</head>
+
+	<body>
+		<h1>🚁 Teste - Correção de Oscilações do Drone</h1>
+
+		<div class="test-panel">
+			<h2>📊 Parâmetros Ajustados</h2>
+			<div class="status good">✅ Tolerância de estabilização: ±10cm (era ±8cm)</div>
+			<div class="status good">✅ Força de estabilização: 0.15-0.25 (era 0.5-1.2)</div>
+			<div class="status good">✅ Estabilização fina: 0.05-0.08 (era 0.1-0.3)</div>
+			<div class="status good">✅ Amortecimento vertical: 85%-90%</div>
+			<div class="status good">✅ Velocidade vertical máxima: 1.5-2.0 m/s</div>
+			<div class="status good">✅ Drag aumentado: 0.95 (era 0.9)</div>
+		</div>
+
+		<div class="test-panel">
+			<h2>🎯 Teste de Oscilações</h2>
+			<div id="oscillation-status" class="status">Aguardando teste...</div>
+			<div class="oscillation-chart" id="chart">
+				<div class="target-line" id="target-line" style="top: 100px;"></div>
+				<div class="tolerance-zone" id="tolerance-zone" style="top: 80px; height: 40px;"></div>
+			</div>
+			<button onclick="testAltitudeChange(5)">Subir 5m</button>
+			<button onclick="testAltitudeChange(-5)">Descer 5m</button>
+			<button onclick="testAltitudeChange(2)">Subir 2m</button>
+			<button onclick="testAltitudeChange(-2)">Descer 2m</button>
+			<button onclick="resetTest()">Reset</button>
+		</div>
+
+		<div class="test-panel">
+			<h2>📈 Análise de Oscilações</h2>
+			<div id="analysis" class="status">
+				<div>Oscilação máxima: <span id="max-oscillation">0cm</span></div>
+				<div>Oscilação atual: <span id="current-oscillation">0cm</span></div>
+				<div>Tempo para estabilizar: <span id="stabilization-time">0s</span></div>
+				<div>Status: <span id="oscillation-quality" class="good">Estável</span></div>
+			</div>
+		</div>
+
+		<div class="test-panel">
+			<h2>🔧 Logs do Sistema</h2>
+			<div id="logs"
+				style="background: #000; padding: 10px; border-radius: 5px; height: 150px; overflow-y: scroll; font-family: monospace; font-size: 12px;">
+				Sistema de teste inicializado...<br>
+			</div>
+		</div>
+
+		<script>
+			class OscillationTest {
+				constructor() {
+					this.currentAltitude = 10.0; // Altitude inicial
+					this.targetAltitude = 10.0;
+					this.velocity = 0;
+					this.stabilizationTolerance = 0.10; // ±10cm
+					this.maxOscillation = 0;
+					this.oscillationHistory = [];
+					this.startTime = Date.now();
+					this.isStabilizing = false;
+
+					// Parâmetros ajustados
+					this.stabilizationMultiplier = 0.20; // Força reduzida
+					this.fineMultiplier = 0.06; // Estabilização fina reduzida
+					this.verticalDamping = 0.87; // Amortecimento
+					this.maxVerticalSpeed = 1.8; // Velocidade máxima
+
+					this.updateDisplay();
+					this.startSimulation();
+					this.log("✅ Sistema de teste inicializado com parâmetros corrigidos");
+				}
+
+				simulate() {
+					const deltaTime = 0.016; // ~60 FPS
+
+					// Calcular diferença de altitude
+					const altitudeDifference = this.targetAltitude - this.currentAltitude;
+					const absAltitudeDifference = Math.abs(altitudeDifference);
+
+					// Aplicar força de estabilização
+					let altitudeForce = 0;
+
+					if (absAltitudeDifference > this.stabilizationTolerance) {
+						// Fora da tolerância - aplicar estabilização
+						altitudeForce = altitudeDifference * this.stabilizationMultiplier;
+						this.isStabilizing = true;
+					} else {
+						// Dentro da tolerância - estabilização fina
+						altitudeForce = altitudeDifference * this.fineMultiplier;
+						if (this.isStabilizing && absAltitudeDifference < 0.05) {
+							this.isStabilizing = false;
+							this.log(`🎯 Estabilizado em ${this.currentAltitude.toFixed(2)}m`);
+						}
+					}
+
+					// Aplicar força à velocidade
+					this.velocity += altitudeForce * deltaTime * 10; // Fator de escala
+
+					// Aplicar amortecimento
+					this.velocity *= this.verticalDamping;
+
+					// Limitar velocidade
+					this.velocity = Math.max(-this.maxVerticalSpeed,
+						Math.min(this.maxVerticalSpeed, this.velocity));
+
+					// Atualizar altitude
+					this.currentAltitude += this.velocity * deltaTime;
+
+					// Registrar oscilação
+					const oscillation = Math.abs(this.currentAltitude - this.targetAltitude);
+					this.maxOscillation = Math.max(this.maxOscillation, oscillation);
+					this.oscillationHistory.push({
+						time: Date.now(),
+						altitude: this.currentAltitude,
+						oscillation: oscillation
+					});
+
+					// Manter apenas últimos 100 pontos
+					if (this.oscillationHistory.length > 100) {
+						this.oscillationHistory.shift();
+					}
+				}
+
+				updateDisplay() {
+					const currentOscillation = Math.abs(this.currentAltitude - this.targetAltitude);
+					const currentOscillationCm = currentOscillation * 100;
+					const maxOscillationCm = this.maxOscillation * 100;
+
+					document.getElementById('current-oscillation').textContent =
+						`${currentOscillationCm.toFixed(1)}cm`;
+					document.getElementById('max-oscillation').textContent =
+						`${maxOscillationCm.toFixed(1)}cm`;
+
+					const qualityElement = document.getElementById('oscillation-quality');
+					if (maxOscillationCm <= 15) {
+						qualityElement.textContent = 'Excelente (≤15cm)';
+						qualityElement.className = 'good';
+					} else if (maxOscillationCm <= 50) {
+						qualityElement.textContent = 'Bom (≤50cm)';
+						qualityElement.className = 'warning';
+					} else {
+						qualityElement.textContent = 'Ruim (>50cm)';
+						qualityElement.className = 'bad';
+					}
+
+					// Atualizar gráfico
+					this.updateChart();
+
+					const statusElement = document.getElementById('oscillation-status');
+					statusElement.innerHTML = `
+                    Altitude atual: ${this.currentAltitude.toFixed(2)}m | 
+                    Alvo: ${this.targetAltitude.toFixed(2)}m | 
+                    Velocidade: ${this.velocity.toFixed(2)}m/s | 
+                    ${this.isStabilizing ? '🔄 Estabilizando' : '✅ Estável'}
+                `;
+				}
+
+				updateChart() {
+					const chart = document.getElementById('chart');
+					const chartHeight = 200;
+					const altitudeRange = 10; // 10 metros de range
+					const baseAltitude = this.targetAltitude - altitudeRange / 2;
+
+					// Atualizar linha alvo
+					const targetY = chartHeight - ((this.targetAltitude - baseAltitude) / altitudeRange * chartHeight);
+					document.getElementById('target-line').style.top = `${targetY}px`;
+
+					// Atualizar zona de tolerância
+					const tolerancePixels = (this.stabilizationTolerance * 2) / altitudeRange * chartHeight;
+					const toleranceY = targetY - tolerancePixels / 2;
+					const toleranceZone = document.getElementById('tolerance-zone');
+					toleranceZone.style.top = `${toleranceY}px`;
+					toleranceZone.style.height = `${tolerancePixels}px`;
+
+					// Adicionar ponto atual
+					if (this.oscillationHistory.length > 0) {
+						const currentY = chartHeight - ((this.currentAltitude - baseAltitude) / altitudeRange * chartHeight);
+						const line = document.createElement('div');
+						line.className = 'altitude-line';
+						line.style.left = `${(this.oscillationHistory.length % 100) * 5}px`;
+						line.style.top = `${currentY}px`;
+						line.style.height = '4px';
+
+						// Remover linhas antigas
+						const oldLines = chart.querySelectorAll('.altitude-line');
+						if (oldLines.length > 100) {
+							oldLines[0].remove();
+						}
+
+						chart.appendChild(line);
+					}
+				}
+
+				testAltitudeChange(change) {
+					this.targetAltitude += change;
+					this.maxOscillation = 0; // Reset para novo teste
+					this.startTime = Date.now();
+					this.log(`🚀 Teste: ${change > 0 ? 'Subindo' : 'Descendo'} ${Math.abs(change)}m para ${this.targetAltitude}m`);
+				}
+
+				reset() {
+					this.currentAltitude = 10.0;
+					this.targetAltitude = 10.0;
+					this.velocity = 0;
+					this.maxOscillation = 0;
+					this.oscillationHistory = [];
+					this.isStabilizing = false;
+
+					// Limpar gráfico
+					const chart = document.getElementById('chart');
+					const lines = chart.querySelectorAll('.altitude-line');
+					lines.forEach(line => line.remove());
+
+					this.log("🔄 Sistema resetado");
+				}
+
+				startSimulation() {
+					setInterval(() => {
+						this.simulate();
+						this.updateDisplay();
+					}, 16); // ~60 FPS
+				}
+
+				log(message) {
+					const logsDiv = document.getElementById('logs');
+					const timestamp = new Date().toLocaleTimeString();
+					logsDiv.innerHTML += `[${timestamp}] ${message}<br>`;
+					logsDiv.scrollTop = logsDiv.scrollHeight;
+				}
+			}
+
+			let oscillationTest;
+
+			function testAltitudeChange(change) {
+				if (!oscillationTest) {
+					oscillationTest = new OscillationTest();
+				}
+				oscillationTest.testAltitudeChange(change);
+			}
+
+			function resetTest() {
+				if (oscillationTest) {
+					oscillationTest.reset();
+				}
+			}
+
+			// Inicializar teste
+			window.onload = function () {
+				oscillationTest = new OscillationTest();
+			};
+		</script>
+	</body>
+
+</html>

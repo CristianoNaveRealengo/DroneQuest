@@ -19,17 +19,18 @@
 
         <!-- Estilos CSS -->
         <link rel="stylesheet" type="text/css" href="css/style.css?v=1.0.2">
+    </head>
 
     <body>
         <!-- Carregamento dos scripts do jogo - APENAS UMA VEZ -->
         <script src="js/utils.js?v=1.0.2"></script>
         <script src="js/game-manager.js?v=1.0.2"></script>
-        <script src="js/drone-controller.js?v=1.0.3"></script>
+        <script src="js/drone-controller.js?v=1.0.5"></script>
         <script src="js/checkpoint-system.js?v=1.0.2"></script>
-        <script src="js/urban-environment.js?v=1.0.2"></script>
+        <script src="js/urban-environment.js?v=1.0.3"></script>
         <script src="js/performance-monitor.js?v=1.0.2"></script>
         <script src="js/collision-system.js?v=1.0.2"></script>
-        <script src="js/audio-system.js?v=1.0.2"></script>
+        <script src="js/audio-system.js?v=1.0.4"></script>
         <script src="js/navigation-arrow.js?v=1.0.2"></script>
 
         <!-- ÚNICA A-SCENE - Combinando atributos das duas anteriores -->
@@ -42,9 +43,6 @@
             audio-system="masterVolume: 0.7; musicVolume: 0.4; sfxVolume: 0.8; ambientVolume: 0.3; enableAudio: true"
             collision-system="enabled: true; bounceForce: 0.5; showEffects: true; soundEnabled: true">
 
-         
-
-           
             <!-- Assets -->
             <a-assets>
                 <!-- Modelos 3D -->
@@ -114,7 +112,7 @@
                     animation="property: rotation; to: 0 3600 0; loop: true; dur: 300"></a-entity>
 
                 <!-- Câmera do Drone -->
-                <a-camera id="drone-camera" position="0 0.8 -3" rotation="-15 0 0" wasd-controls="enabled: false"
+                <a-camera id="drone-camera" position="0 -0.30 -0.5" rotation="-15 0 0" wasd-controls="enabled: false"
                     look-controls="enabled: true; pointerLockEnabled: false">
 
                     <!-- HUD do jogador -->
@@ -139,14 +137,14 @@
             <a-entity mixin="checkpoint" position="0 10 -75" checkpoint="id: 5"></a-entity>
 
             <!-- Modelos 3D do Ambiente -->
-            <a-gltf-model src="#predio-model" position="0 0 -20" scale="1 1 1" rotation="0 0 0" 
+            <a-gltf-model src="#predio-model" position="0 0 -20" scale="1 1 1" rotation="0 0 0"
                 shadow="cast: true; receive: true"></a-gltf-model>
-            <a-gltf-model src="#quadra-model" position="0 0 0" scale="1 1 1" rotation="0 0 0" 
+            <a-gltf-model src="#quadra-model" position="0 0 -50" scale="1 1 1" rotation="0 0 0"
                 shadow="cast: true; receive: true"></a-gltf-model>
-             
+
 
             <!-- Chão base (será complementado pelo ambiente urbano) -->
-            <a-plane position="0 0 0" rotation="-90 0 0" width="400" height="400" color="#2d5a27"
+            <a-plane position="0 -0.1 0" rotation="-90 0 0" width="400" height="400" color="#2d5a27"
                 shadow="receive: true"></a-plane>
 
             <!-- Controles VR Meta Quest 3 -->

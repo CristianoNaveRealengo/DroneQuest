@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>Teste - Ambiente Urbano e Quadras</title>
+		<script src="libs/aframe.min.js"></script>
+		<script src="js/urban-environment.js?v=1.0.3"></script>
+		<style>
+			body {
+				margin: 0;
+				font-family: Arial, sans-serif;
+				background: #000;
+				color: #fff;
+			}
+
+			#debug-info {
+				position: fixed;
+				top: 10px;
+				left: 10px;
+				background: rgba(0, 0, 0, 0.8);
+				padding: 15px;
+				border-radius: 5px;
+				font-size: 12px;
+				z-index: 1000;
+				max-width: 300px;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div id="debug-info">
+			<h3>🏙️ Teste: Ambiente Urbano</h3>
+			<div id="status">Carregando...</div>
+			<div style="margin-top: 10px; font-size: 10px; opacity: 0.7;">
+				<strong>Controles:</strong><br>
+				WASD - Mover<br>
+				Mouse - Olhar ao redor<br>
+				Procure pelas ruas e quadras cinzas
+			</div>
+		</div>
+
+		<a-scene embedded style="height: 100vh; width: 100vw;" background="color: #87CEEB"
+			urban-environment="citySize: 100; buildingCount: 10; streetWidth: 8">
+
+			<!-- Câmera com controles -->
+			<a-camera position="0 5 10" look-controls wasd-controls="acceleration: 20">
+			</a-camera>
+
+			<!-- Chão base mais baixo -->
+			<a-plane position="0 -0.2 0" rotation="-90 0 0" width="400" height="400" color="#2d5a27"
+				shadow="receive: true">
+			</a-plane>
+
+			<!-- Iluminação -->
+			<a-light type="ambient" color="#404040"></a-light>
+			<a-light type="directional" position="10 20 10" color="#ffffff" intensity="0.8"></a-light>
+
+			<!-- Marcador de referência -->
+			<a-box position="0 1 0" width="2" height="2" depth="2" color="#ff0000"></a-box>
+			<a-text value="CENTRO" position="0 3 0" align="center" color="#ffffff"></a-text>
+		</a-scene>
+
+		<script>
+			// Monitor de status
+			document.querySelector('a-scene').addEventListener('loaded', () => {
+				const statusEl = document.getElementById('status');
+				statusEl.innerHTML = '✅ Cena carregada<br>🔍 Verificando ambiente urbano...';
+
+				setTimeout(() => {
+					const urbanContainer = document.querySelector('#urban-container');
+					const streets = document.querySelector('#streets');
+
+					if (urbanContainer) {
+						statusEl.innerHTML += '<br>✅ Container urbano encontrado';
+					} else {
+						statusEl.innerHTML += '<br>❌ Container urbano NÃO encontrado';
+					}
+
+					if (streets) {
+						const streetElements = streets.children.length;
+						statusEl.innerHTML += `<br>✅ Ruas encontradas: ${streetElements} elementos`;
+					} else {
+						statusEl.innerHTML += '<br>❌ Ruas NÃO encontradas';
+					}
+
+					// Verificar console
+					statusEl.innerHTML += '<br><small>Verifique o console para logs detalhados</small>';
+				}, 2000);
+			});
+
+			// Log de debug
+			console.log('🧪 Teste do ambiente urbano iniciado');
+		</script>
+	</body>
+
+</html>

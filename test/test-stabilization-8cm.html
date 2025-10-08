@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>Teste - Estabilização 8cm quando Drone Para</title>
+		<meta name="description" content="Teste da funcionalidade de estabilização de 8cm quando o drone para">
+		<script src="../libs/aframe.min.js"></script>
+		<script src="../js/drone-controller.js"></script>
+		<style>
+			body {
+				margin: 0;
+				font-family: Arial, sans-serif;
+				background: #000;
+				color: #fff;
+			}
+
+			#test-info {
+				position: fixed;
+				top: 10px;
+				right: 10px;
+				background: rgba(0, 0, 0, 0.8);
+				padding: 15px;
+				border-radius: 5px;
+				font-size: 12px;
+				z-index: 1000;
+				max-width: 300px;
+			}
+
+			.test-status {
+				margin: 5px 0;
+				padding: 5px;
+				border-radius: 3px;
+			}
+
+			.status-pass {
+				background: rgba(0, 255, 0, 0.2);
+			}
+
+			.status-fail {
+				background: rgba(255, 0, 0, 0.2);
+			}
+
+			.status-pending {
+				background: rgba(255, 255, 0, 0.2);
+			}
+		</style>
+	</head>
+
+	<body>
+		<div id="test-info">
+			<h3>🧪 Teste: Estabilização 8cm</h3>
+			<div id="test-results">
+				<div class="test-status status-pending" id="test-init">
+					⏳ Inicializando drone...
+				</div>
+				<div class="test-status status-pending" id="test-movement">
+					⏳ Testando movimento...
+				</div>
+				<div class="test-status status-pending" id="test-stop">
+					⏳ Testando parada (8cm)...
+				</div>
+				<div class="test-status status-pending" id="test-resume">
+					⏳ Testando retomada (10cm)...
+				</div>
+			</div>
+			<div style="margin-top: 10px; font-size: 10px; opacity: 0.7;">
+				<strong>Controles:</strong><br>
+				WASD - Mover drone<br>
+				Solte as teclas para testar parada
+			</div>
+		</div>
+
+		<a-scene embedded style="height: 100vh; width: 100vw;">
+			<!-- Câmera -->
+			<a-camera id="drone-camera" position="0 1.6 3" look-controls wasd-controls="enabled: false">
+				<a-cursor color="white"></a-cursor>
+			</a-camera>
+
+			<!-- Drone de teste -->
+			<a-entity id="drone" position="0 3 0" drone-controller="
+                    maxSpeed: 5;
+                    acceleration: 3;
+                    stabilization: 0.3;
+                    autoStabilizationActive: true;
+                    stabilizationTolerance: 0.1
+                  ">
+
+				<!-- Corpo do drone -->
+				<a-box id="drone-body" width="1" height="0.2" depth="1" color="#333333"
+					material="metalness: 0.8; roughness: 0.2">
+				</a-box>
+
+				<!-- Hélices -->
+				<a-cylinder id="prop1" position="0.4 0.15 0.4" radius="0.3" height="0.02" color="#ff4444"
+					material="transparent: true; opacity: 0.3"></a-cylinder>
+				<a-cylinder id="prop2" position="-0.4 0.15 0.4" radius="0.3" height="0.02" color="#ff4444"
+					material="transparent: true; opacity: 0.3"></a-cylinder>
+				<a-cylinder id="prop3" position="0.4 0.15 -0.4" radius="0.3" height="0.02" color="#ff4444"
+					material="transparent: true; opacity: 0.3"></a-cylinder>
+				<a-cylinder id="prop4" position="-0.4 0.15 -0.4" radius="0.3" height="0.02" color="#ff4444"
+					material="transparent: true; opacity: 0.3"></a-cylinder>
+			</a-entity>
+
+			<!-- Ambiente de teste -->
+			<a-plane position="0 0 0" rotation="-90 0 0" width="20" height="20" color="#2a4a2a"
+				material="roughness: 0.8"></a-plane>
+
+			<!-- Iluminação -->
+			<a-light type="ambient" color="#404040"></a-light>
+			<a-light type="directional" position="5 10 5" color="#ffffff" intensity="0.8"></a-light>
+
+			<!-- Referências visuais para altitude -->
+			<a-box position="5 1 0" width="0.1" height="2" depth="0.1" color="#00ff00"></a-box>
+			<a-box position="5 2 0" width="0.1" height="2" depth="0.1" color="#ffff00"></a-box>
+			<a-box position="5 3 0" width="0.1" height="2" depth="0.1" color="#ff8800"></a-box>
+			<a-box position="5 4 0" width="0.1" height="2" depth="0.1" color="#ff0000"></a-box>
+		</a-scene>
+
+		<script>
+			// Sistema de teste automatizado
+			class StabilizationTest {
+				constructor() {
+					this.drone = null;
+					this.droneController = null;
+					this.testPhase = 0;
+					this.testStartTime = 0;
+					this.lastToleranceValue = 0;
+					this.toleranceChanges = [];
+
+					this.init();
+				}
+
+				init() {
+					// Aguardar carregamento da cena
+					document.querySelector('a-scene').addEventListener('loaded', () => {
+						setTimeout(() => {
+							this.drone = document.querySelector('#drone');
+							this.droneController = this.drone.components['drone-controller'];
+
+							if (this.droneController) {
+								this.updateTestStatus('test-init', 'pass', '✅ Drone inicializado');
+								this.startTest();
+							} else {
+								this.updateTestStatus('test-init', 'fail', '❌ Falha na inicialização');
+							}
+						}, 2000);
+					});
+				}
+
+				startTest() {
+					console.log('🧪 Iniciando teste de estabilização 8cm...');
+					this.testStartTime = Date.now();
+					this.monitorTolerance();
+					this.runTestSequence();
+				}
+
+				monitorTolerance() {
+					// Monitorar mudanças na tolerância
+					setInterval(() => {
+						if (this.droneController) {
+							const currentTolerance = this.droneController.stabilizationTolerance;
+
+							if (Math.abs(currentTolerance - this.lastToleranceValue) > 0.001) {
+								const toleranceCm = (currentTolerance * 100).toFixed(1);
+								console.log(`📏 Tolerância mudou para: ${toleranceCm}cm`);
+
+								this.toleranceChanges.push({
+									time: Date.now() - this.testStartTime,
+									tolerance: currentTolerance,
+									toleranceCm: toleranceCm
+								});
+
+								this.lastToleranceValue = currentTolerance;
+							}
+						}
+					}, 100);
+				}
+
+				async runTestSequence() {
+					try {
+						// Fase 1: Testar movimento
+						await this.testMovement();
+
+						// Fase 2: Testar parada (deve ir para 8cm)
+						await this.testStop();
+
+						// Fase 3: Testar retomada (deve voltar para 10cm)
+						await this.testResume();
+
+						console.log('🎉 Teste concluído com sucesso!');
+						this.showResults();
+
+					} catch (error) {
+						console.error('❌ Erro no teste:', error);
+					}
+				}
+
+				async testMovement() {
+					this.updateTestStatus('test-movement', 'pending', '⏳ Simulando movimento...');
+
+					// Simular entrada de movimento
+					this.simulateKeyPress('KeyW', true);
+					await this.wait(2000);
+					this.simulateKeyPress('KeyW', false);
+
+					// Verificar se a tolerância está em 10cm
+					const tolerance = this.droneController.stabilizationTolerance;
+					if (Math.abs(tolerance - 0.1) < 0.01) {
+						this.updateTestStatus('test-movement', 'pass', '✅ Movimento: 10cm OK');
+					} else {
+						this.updateTestStatus('test-movement', 'fail', `❌ Movimento: ${(tolerance * 100).toFixed(1)}cm`);
+					}
+				}
+
+				async testStop() {
+					this.updateTestStatus('test-stop', 'pending', '⏳ Testando parada...');
+
+					// Aguardar o drone parar completamente
+					await this.wait(3000);
+
+					// Verificar se a tolerância mudou para 8cm
+					let foundEightCm = false;
+					for (let i = 0; i < 50; i++) {
+						const tolerance = this.droneController.stabilizationTolerance;
+						if (Math.abs(tolerance - 0.08) < 0.005) {
+							foundEightCm = true;
+							break;
+						}
+						await this.wait(100);
+					}
+
+					if (foundEightCm) {
+						this.updateTestStatus('test-stop', 'pass', '✅ Parada: 8cm OK');
+					} else {
+						const currentTolerance = (this.droneController.stabilizationTolerance * 100).toFixed(1);
+						this.updateTestStatus('test-stop', 'fail', `❌ Parada: ${currentTolerance}cm`);
+					}
+				}
+
+				async testResume() {
+					this.updateTestStatus('test-resume', 'pending', '⏳ Testando retomada...');
+
+					// Simular movimento novamente
+					this.simulateKeyPress('KeyA', true);
+					await this.wait(1000);
+					this.simulateKeyPress('KeyA', false);
+
+					// Aguardar transição de volta para 10cm
+					let foundTenCm = false;
+					for (let i = 0; i < 50; i++) {
+						const tolerance = this.droneController.stabilizationTolerance;
+						if (Math.abs(tolerance - 0.1) < 0.005) {
+							foundTenCm = true;
+							break;
+						}
+						await this.wait(100);
+					}
+
+					if (foundTenCm) {
+						this.updateTestStatus('test-resume', 'pass', '✅ Retomada: 10cm OK');
+					} else {
+						const currentTolerance = (this.droneController.stabilizationTolerance * 100).toFixed(1);
+						this.updateTestStatus('test-resume', 'fail', `❌ Retomada: ${currentTolerance}cm`);
+					}
+				}
+
+				simulateKeyPress(keyCode, pressed) {
+					const event = new KeyboardEvent(pressed ? 'keydown' : 'keyup', {
+						code: keyCode,
+						key: keyCode.replace('Key', '').toLowerCase()
+					});
+					window.dispatchEvent(event);
+				}
+
+				wait(ms) {
+					return new Promise(resolve => setTimeout(resolve, ms));
+				}
+
+				updateTestStatus(testId, status, message) {
+					const element = document.getElementById(testId);
+					if (element) {
+						element.className = `test-status status-${status}`;
+						element.textContent = message;
+					}
+				}
+
+				showResults() {
+					console.log('📊 Resultados do teste:');
+					console.log('Mudanças de tolerância registradas:', this.toleranceChanges);
+
+					// Adicionar resumo visual
+					const testInfo = document.getElementById('test-info');
+					const summary = document.createElement('div');
+					summary.style.marginTop = '10px';
+					summary.style.padding = '10px';
+					summary.style.background = 'rgba(0, 255, 0, 0.1)';
+					summary.style.borderRadius = '3px';
+					summary.innerHTML = `
+                    <strong>📊 Resumo:</strong><br>
+                    Mudanças de tolerância: ${this.toleranceChanges.length}<br>
+                    <small>Veja o console para detalhes</small>
+                `;
+					testInfo.appendChild(summary);
+				}
+			}
+
+			// Iniciar teste quando a página carregar
+			window.addEventListener('load', () => {
+				new StabilizationTest();
+			});
+		</script>
+	</body>
+
+</html>

@@ -14,8 +14,8 @@ if (!AFRAME.components["drone-controller"]) {
 
 			// Configurações de física (ajustadas para realismo)
 			mass: { type: "number", default: 0.5 }, // Massa mais leve
-			drag: { type: "number", default: 0.9 }, // Resistência ajustada para velocidade maior
-			angularDrag: { type: "number", default: 0.88 }, // Mais resistência angular
+			drag: { type: "number", default: 0.95 }, // Resistência aumentada para reduzir oscilações
+			angularDrag: { type: "number", default: 0.92 }, // Mais resistência angular para estabilidade
 
 			// Configurações de estabilização (melhor estabilidade)
 			stabilization: { type: "number", default: 0.25 }, // Maior estabilização
@@ -104,9 +104,18 @@ if (!AFRAME.components["drone-controller"]) {
 
 			// Sistema de estabilização automática restritiva (ativada por padrão)
 			this.autoStabilizationActive = true; // Ativada por padrão
-			this.stabilizationTolerance = 0.1; // ±10cm de tolerância para modo cinematográfico
+			this.stabilizationTolerance = 0.1; // ±10cm de tolerância para oscilações naturais
 			this.lastStabilizationCheck = 0; // Controle de tempo para logs
+			this.lastToleranceChangeLog = 0; // Controle de tempo para logs de mudança de tolerância
 			this.wasManuallyControllingAltitude = false; // Controle de transição manual->automático
+
+			// Sistema de controle de altitude com empuxo aumentado
+			this.altitudeThreshold = 20.0; // 20 metros - limite para empuxo aumentado
+			this.lowAltitudeMinThrust = 0.4; // 40% empuxo mínimo abaixo de 20m
+			this.lowAltitudeMaxThrust = 1.23; // 123% empuxo máximo abaixo de 20m (acima de 100%)
+			this.normalThrust = 0.6; // 60% empuxo normal acima de 20m
+			this.isInLowAltitudeMode = false; // Estado atual do modo baixa altitude
+			this.lastAltitudeCheck = 0; // Controle de tempo para verificação de altitude
 
 			// Iniciar o drone automaticamente após 1 segundo
 			setTimeout(() => {
@@ -155,11 +164,18 @@ if (!AFRAME.components["drone-controller"]) {
 			this.flightSimulation = {
 				enabled: true,
 				naturalHover: true, // Ativar hover natural com oscilações
-				oscillationAmplitude: 0.05, // Amplitude das oscilações reduzida (±5cm)
-				oscillationSpeed: 0.001, // Velocidade das oscilações mais lenta
+				oscillationAmplitude: 0.08, // ±8cm de oscilação natural
+				oscillationSpeed: 0.0012, // Velocidade mais natural das oscilações
 				baseAltitude: 3.0, // Altitude base para manter
 				lastOscillationUpdate: 0,
-				stabilizationStrength: 0.3, // Força da estabilização reduzida
+				stabilizationStrength: 0.15, // Força mais suave para movimento natural
+				// Novos parâmetros para voo mais realista
+				windEffect: true, // Simular efeito do vento
+				windStrength: 0.03, // Força do vento (±3cm)
+				windSpeed: 0.0005, // Velocidade do vento
+				microAdjustments: true, // Micro ajustes constantes
+				microAmplitude: 0.02, // ±2cm de micro movimentos
+				microSpeed: 0.003, // Velocidade dos micro movimentos
 			};
 
 			// Controles de teclado (fallback)
@@ -189,7 +205,20 @@ if (!AFRAME.components["drone-controller"]) {
 					this.autoStabilizationActive ? "ATIVA" : "INATIVA"
 				} por padrão (±${(this.stabilizationTolerance * 100).toFixed(
 					0
-				)}cm)`
+				)}cm - oscilações naturais)`
+			);
+			console.log(
+				`🔺 Sistema de altitude: Empuxo aumentado abaixo de ${this.altitudeThreshold}m`
+			);
+			console.log(
+				`⚡ Empuxo baixa altitude: ${
+					this.lowAltitudeMinThrust * 100
+				}% - ${this.lowAltitudeMaxThrust * 100}%`
+			);
+			console.log(
+				`⚡ Empuxo normal: ${this.normalThrust * 100}% (acima de ${
+					this.altitudeThreshold
+				}m)`
 			);
 		},
 
@@ -388,10 +417,10 @@ if (!AFRAME.components["drone-controller"]) {
             <div>M - Mutar/Desmutar áudio</div>
             <div>+/- - Aumentar/Diminuir volume</div>
             <div>1/2/3 - Qualidade baixa/média/alta</div>
-            <div>H - Redefinir altitude base (estabilização sempre ativa ±20cm)</div>
+            <div>H - Redefinir altitude base (estabilização ±8cm SEMPRE ativa)</div>
             <div style="color: #ff8800; font-weight: bold; margin-top: 5px; margin-bottom: 3px;">🎬 Modos de Voo:</div>
             <div>C - Alternar CINEMATOGRÁFICO ⇄ FPV/SPORT</div>
-            <div>• 🎬 Cinematográfico: 40% velocidade, ±10cm estabilização</div>
+            <div>• 🎬 Cinematográfico: 40% velocidade, ±8cm estabilização SEMPRE</div>
             <div>• 🚁 FPV/Sport: 100km/h máx, drone FPV, ultra responsivo</div>
             <div>Grip Esquerdo (VR) - Alternar modos de voo</div>
             <div style="color: #00ff88; font-weight: bold; margin-top: 5px; margin-bottom: 3px;">🛬 Sistema de Pouso:</div>
@@ -486,10 +515,10 @@ if (!AFRAME.components["drone-controller"]) {
 				// Ativar modo cinematográfico
 				this.cinematicMode.enabled = true;
 				this.fpvMode.enabled = false;
-				this.stabilizationTolerance = 0.1; // ±10cm
+				this.stabilizationTolerance = 0.08; // SEMPRE ±8cm, conforme solicitado
 				this.autoStabilizationActive = true;
 				console.log(
-					"🎬 Modo CINEMATOGRÁFICO ativado - Movimentos suaves!"
+					"🎬 Modo CINEMATOGRÁFICO ativado - Estabilidade ±8cm!"
 				);
 			}
 
@@ -672,9 +701,9 @@ if (!AFRAME.components["drone-controller"]) {
 				this.velocity.set(0, 0, 0);
 				this.angularVelocity.set(0, 0, 0);
 
-				// Definir empuxo inicial para manter posição (70%)
-				this.thrustPower = 0.7; // Empuxo em 70% para melhor sustentação
-				this.targetThrust = 0.7;
+				// Definir empuxo inicial para manter posição (60% - meio termo entre 50-70%)
+				this.thrustPower = 0.6; // Empuxo em 60% como ponto médio entre 50-70%
+				this.targetThrust = 0.6;
 
 				// Ativar modo hover para estabilidade
 				this.isHovering = true;
@@ -742,7 +771,7 @@ if (!AFRAME.components["drone-controller"]) {
 
 			// Alavanca Esquerda: Altitude (Y) e Giro no próprio eixo/Yaw (X) - INVERTIDO
 			this.targetAltitudeChange =
-				-y * maxSpeed * 0.6 * altitudeMultiplier;
+				-y * maxSpeed * 1.0 * altitudeMultiplier; // Velocidade normal de altitude
 			this.targetYawRotation =
 				-x * this.data.rotationSpeed * rotationMultiplier;
 
@@ -1006,14 +1035,14 @@ if (!AFRAME.components["drone-controller"]) {
 						if (this.VR_SIMULATOR) {
 							this.VR_SIMULATOR.leftStick.y = -0.8;
 							this.targetAltitudeChange =
-								-0.8 * this.data.maxSpeed * 0.6;
+								-0.8 * this.data.maxSpeed * 1.0; // Velocidade normal
 						}
 						break;
 					case "KeyX": // Subir (altitude positiva) - INVERTIDO
 						if (this.VR_SIMULATOR) {
 							this.VR_SIMULATOR.leftStick.y = 0.8;
 							this.targetAltitudeChange =
-								0.8 * this.data.maxSpeed * 0.6;
+								0.8 * this.data.maxSpeed * 1.0; // Velocidade normal
 						}
 						break;
 					case "KeyQ": // Giro esquerda (yaw negativo)
@@ -1111,69 +1140,186 @@ if (!AFRAME.components["drone-controller"]) {
 				return;
 			}
 
-			// Sistema de hover natural com oscilações suaves
+			// Sistema de hover natural com oscilações realistas de drone
 			if (this.flightSimulation.naturalHover) {
 				const currentTime = time;
 				const position = this.el.getAttribute("position");
 
-				// Calcular oscilação natural baseada no tempo
+				// === OSCILAÇÃO PRINCIPAL (movimento natural do drone) ===
 				const oscillationPhase =
 					currentTime * this.flightSimulation.oscillationSpeed;
 				const primaryOscillation =
 					Math.sin(oscillationPhase) *
 					this.flightSimulation.oscillationAmplitude;
 
-				// Adicionar uma segunda oscilação mais sutil para mais realismo
+				// === OSCILAÇÃO SECUNDÁRIA (correções do sistema de estabilização) ===
+				const secondaryPhase = oscillationPhase * 1.3 + 0.5;
 				const secondaryOscillation =
-					Math.sin(oscillationPhase * 1.7 + 0.2) *
+					Math.sin(secondaryPhase) *
 					(this.flightSimulation.oscillationAmplitude * 0.3);
 
-				// Combinar oscilações
-				const totalOscillation =
-					primaryOscillation + secondaryOscillation;
+				// === EFEITO DO VENTO (variações irregulares) ===
+				let windEffect = 0;
+				if (this.flightSimulation.windEffect) {
+					const windPhase =
+						currentTime * this.flightSimulation.windSpeed;
+					windEffect =
+						Math.sin(windPhase) *
+							this.flightSimulation.windStrength +
+						Math.sin(windPhase * 2.1 + 1.2) *
+							(this.flightSimulation.windStrength * 0.5);
+				}
 
-				// Calcular diferença da altitude alvo (incluindo oscilação)
+				// === MICRO AJUSTES (pequenos movimentos constantes) ===
+				let microAdjustments = 0;
+				if (this.flightSimulation.microAdjustments) {
+					const microPhase =
+						currentTime * this.flightSimulation.microSpeed;
+					microAdjustments =
+						Math.sin(microPhase) *
+							this.flightSimulation.microAmplitude +
+						Math.sin(microPhase * 3.7 + 0.8) *
+							(this.flightSimulation.microAmplitude * 0.6);
+				}
+
+				// === AJUSTAR INTENSIDADE BASEADA NA ALTITUDE ===
+				// Drones em baixa altitude têm oscilações mais pronunciadas (efeito solo)
+				let altitudeMultiplier = 1.0;
+				if (this.isInLowAltitudeMode) {
+					// Abaixo de 20m: oscilações mais intensas (efeito solo)
+					altitudeMultiplier = 1.3;
+				} else {
+					// Acima de 20m: oscilações mais suaves
+					altitudeMultiplier = 0.8;
+				}
+
+				// === COMBINAR TODOS OS EFEITOS ===
+				const totalOscillation =
+					(primaryOscillation +
+						secondaryOscillation +
+						windEffect +
+						microAdjustments) *
+					altitudeMultiplier;
+
+				// Calcular altitude alvo com oscilações naturais
 				const targetAltitudeWithOscillation =
 					this.flightSimulation.baseAltitude + totalOscillation;
 				const altitudeDifference =
 					targetAltitudeWithOscillation - position.y;
 
-				// Aplicar força de estabilização suave
+				// Aplicar força de estabilização muito suave para movimento natural
 				const stabilizationForce =
 					altitudeDifference *
 					this.flightSimulation.stabilizationStrength;
 
-				// Limitar a força para evitar movimentos bruscos (muito mais restritivo)
-				const maxForce = 0.08; // Reduzido de 0.15 para 0.08
+				// Limitar força para manter oscilações naturais
+				const maxForce = 0.06; // Força ligeiramente maior para movimento mais natural
 				const limitedForce = Math.max(
 					-maxForce,
 					Math.min(maxForce, stabilizationForce)
 				);
 
-				// Aplicar a força de estabilização
+				// Aplicar a força de estabilização natural
 				this.targetAltitudeChange += limitedForce;
 
-				// Log ocasional para debug (a cada 3 segundos)
+				// Log ocasional para debug (a cada 4 segundos)
 				if (
 					currentTime -
 						(this.flightSimulation.lastOscillationUpdate || 0) >
-					3000
+					4000
 				) {
+					const oscillationCm = Math.abs(totalOscillation * 100);
 					console.log(
-						`🌊 Hover natural: altitude=${position.y.toFixed(
-							2
-						)}m, alvo=${targetAltitudeWithOscillation.toFixed(
-							2
-						)}m, força=${limitedForce.toFixed(3)}`
+						`🌊 Voo natural: altitude=${position.y.toFixed(2)}m, ` +
+							`alvo=${targetAltitudeWithOscillation.toFixed(
+								2
+							)}m, ` +
+							`oscilação=${oscillationCm.toFixed(1)}cm, ` +
+							`força=${limitedForce.toFixed(3)}`
 					);
 					this.flightSimulation.lastOscillationUpdate = currentTime;
 				}
 			}
 		},
 
+		checkAltitudeAndAdjustThrust: function () {
+			const position = this.el.getAttribute("position");
+			const currentAltitude = position.y;
+			const currentTime = Date.now();
+
+			// Verificar se está abaixo do limite de 20 metros
+			const wasInLowAltitudeMode = this.isInLowAltitudeMode;
+			this.isInLowAltitudeMode = currentAltitude < this.altitudeThreshold;
+
+			// Log quando muda de modo (com throttling de 2 segundos)
+			if (
+				wasInLowAltitudeMode !== this.isInLowAltitudeMode &&
+				currentTime - this.lastAltitudeCheck > 2000
+			) {
+				if (this.isInLowAltitudeMode) {
+					console.log(
+						`🔺 ALTITUDE BAIXA DETECTADA: ${currentAltitude.toFixed(
+							2
+						)}m < ${this.altitudeThreshold}m`
+					);
+					console.log(
+						`⚡ Empuxo aumentado: ${
+							this.lowAltitudeMinThrust * 100
+						}% - ${this.lowAltitudeMaxThrust * 100}%`
+					);
+					console.log(`📏 Estabilização ±8cm ATIVA`);
+				} else {
+					console.log(
+						`🔻 ALTITUDE NORMAL: ${currentAltitude.toFixed(
+							2
+						)}m >= ${this.altitudeThreshold}m`
+					);
+					console.log(
+						`⚡ Empuxo normal: ${this.normalThrust * 100}%`
+					);
+				}
+				this.lastAltitudeCheck = currentTime;
+			}
+
+			// Ajustar empuxo baseado na altitude
+			if (this.isInLowAltitudeMode) {
+				// Abaixo de 20m: empuxo entre 40% e 123%
+				// Calcular empuxo baseado na proximidade do chão (mais baixo = mais empuxo)
+				const altitudeRatio = Math.max(
+					0,
+					Math.min(1, currentAltitude / this.altitudeThreshold)
+				);
+				const thrustRange =
+					this.lowAltitudeMaxThrust - this.lowAltitudeMinThrust;
+
+				// Empuxo inversamente proporcional à altitude (mais baixo = mais empuxo)
+				this.targetThrust =
+					this.lowAltitudeMaxThrust - altitudeRatio * thrustRange;
+
+				// Garantir que está dentro dos limites
+				this.targetThrust = Math.max(
+					this.lowAltitudeMinThrust,
+					Math.min(this.lowAltitudeMaxThrust, this.targetThrust)
+				);
+			} else {
+				// Acima de 20m: empuxo normal
+				this.targetThrust = this.normalThrust;
+			}
+
+			// Suavizar transição do empuxo
+			const thrustDifference = this.targetThrust - this.thrustPower;
+			this.thrustPower += thrustDifference * 0.1; // Transição suave de 10% por frame
+		},
+
 		tick: function (time, timeDelta) {
 			// Simular voo realista com descidas e subidas automáticas
 			this.simulateRealisticFlight(time);
+
+			// Verificar altitude e ajustar empuxo conforme necessário
+			this.checkAltitudeAndAdjustThrust();
+
+			// Verificar se o drone está parado e ajustar estabilidade para 8cm
+			this.isDroneStopped();
 
 			// Processar sistema de pouso
 			this.processLanding(timeDelta);
@@ -1236,8 +1382,8 @@ if (!AFRAME.components["drone-controller"]) {
 			const speed = this.data.maxSpeed * this.data.sensitivity;
 
 			// WASD: Altitude e giro no eixo
-			if (this.keys["KeyW"]) this.targetAltitudeChange = speed * 0.6; // W = SUBIR
-			if (this.keys["KeyS"]) this.targetAltitudeChange = -speed * 0.6; // S = DESCER
+			if (this.keys["KeyW"]) this.targetAltitudeChange = speed * 1.0; // W = SUBIR (velocidade normal)
+			if (this.keys["KeyS"]) this.targetAltitudeChange = -speed * 1.0; // S = DESCER (velocidade normal)
 			if (this.keys["KeyA"])
 				this.targetYawRotation = this.data.rotationSpeed; // A = GIRAR ESQUERDA
 			if (this.keys["KeyD"])
@@ -1313,7 +1459,7 @@ if (!AFRAME.components["drone-controller"]) {
 			if (this.autoStabilizationActive) {
 				// Verificar se há entrada manual de altitude (prioridade máxima)
 				const hasManualAltitudeInput =
-					Math.abs(this.targetAltitudeChange) > 0.1;
+					Math.abs(this.targetAltitudeChange) > 0.05; // Mais sensível para detectar entrada manual
 
 				// Detectar transição de controle manual para automático
 				if (
@@ -1329,7 +1475,7 @@ if (!AFRAME.components["drone-controller"]) {
 							2
 						)}m (±${(this.stabilizationTolerance * 100).toFixed(
 							0
-						)}cm)`
+						)}cm - oscilações naturais permitidas)`
 					);
 				}
 
@@ -1346,8 +1492,16 @@ if (!AFRAME.components["drone-controller"]) {
 
 					// Aplicar estabilização restritiva apenas se estiver fora da tolerância
 					if (absAltitudeDifference > this.stabilizationTolerance) {
-						// Força de estabilização mais forte para manter dentro da tolerância
-						const stabilizationForce = altitudeDifference * 2.0; // Força mais intensa
+						// Força de estabilização muito mais suave para evitar oscilações grandes
+						let stabilizationMultiplier = 0.15; // Força muito reduzida
+
+						// Se está abaixo de 20m, usar estabilização ligeiramente mais forte
+						if (this.isInLowAltitudeMode) {
+							stabilizationMultiplier = 0.25; // Apenas 25% mais forte
+						}
+
+						const stabilizationForce =
+							altitudeDifference * stabilizationMultiplier;
 						altitudeForce += stabilizationForce;
 
 						// Log para debug
@@ -1355,20 +1509,33 @@ if (!AFRAME.components["drone-controller"]) {
 							Date.now() - (this.lastStabilizationCheck || 0) >
 							2000
 						) {
+							const modeText = this.isInLowAltitudeMode
+								? "BAIXA ALTITUDE"
+								: "NORMAL";
 							console.log(
-								`🎯 Estabilização automática: atual=${position.y.toFixed(
+								`🎯 Estabilização ${modeText}: atual=${position.y.toFixed(
 									2
 								)}m, alvo=${targetAltitude.toFixed(
 									2
 								)}m, diferença=${altitudeDifference.toFixed(
 									2
-								)}m, força=${stabilizationForce.toFixed(2)}`
+								)}m, força=${stabilizationForce.toFixed(
+									2
+								)} (mult: ${stabilizationMultiplier})`
 							);
 							this.lastStabilizationCheck = Date.now();
 						}
 					} else {
-						// Dentro da tolerância - aplicar estabilização suave para evitar oscilações
-						const fineStabilizationForce = altitudeDifference * 0.5;
+						// Dentro da tolerância - aplicar estabilização muito suave para oscilações de ~10cm
+						let fineMultiplier = 0.05; // Força muito reduzida
+
+						// Se está abaixo de 20m, usar estabilização fina ligeiramente mais forte
+						if (this.isInLowAltitudeMode) {
+							fineMultiplier = 0.08; // Apenas um pouco mais forte
+						}
+
+						const fineStabilizationForce =
+							altitudeDifference * fineMultiplier;
 						altitudeForce += fineStabilizationForce;
 					}
 				}
@@ -1410,6 +1577,25 @@ if (!AFRAME.components["drone-controller"]) {
 			this.velocity.add(
 				upVector.multiplyScalar(altitudeForce * acceleration)
 			);
+
+			// Aplicar amortecimento apenas quando não há entrada manual (para reduzir oscilações)
+			const hasManualInput = Math.abs(this.targetAltitudeChange) > 0.05;
+
+			if (!hasManualInput) {
+				// Sem entrada manual - aplicar amortecimento para reduzir oscilações
+				const verticalDamping = this.isInLowAltitudeMode ? 0.85 : 0.9;
+				this.velocity.y *= verticalDamping;
+
+				// Limitar velocidade apenas para estabilização (não durante controle manual)
+				const maxStabilizationSpeed = this.isInLowAltitudeMode
+					? 1.5
+					: 2.0;
+				this.velocity.y = Math.max(
+					-maxStabilizationSpeed,
+					Math.min(maxStabilizationSpeed, this.velocity.y)
+				);
+			}
+			// Durante controle manual, manter velocidade normal sem limitações extras
 
 			// Limitar velocidade máxima
 			if (this.velocity.length() > this.data.maxSpeed) {
@@ -1642,7 +1828,31 @@ if (!AFRAME.components["drone-controller"]) {
 					(this.targetThrust - this.thrustPower) *
 					thrustResponseSpeed *
 					deltaTime;
-				this.thrustPower = Math.max(0, Math.min(1.5, this.thrustPower)); // Limitar entre 0 e 150%
+
+				// Limitar empuxo baseado na altitude
+				if (this.isFlying && this.isActive) {
+					if (this.isInLowAltitudeMode) {
+						// Abaixo de 20m: empuxo entre 40% e 123%
+						this.thrustPower = Math.max(
+							this.lowAltitudeMinThrust,
+							Math.min(
+								this.lowAltitudeMaxThrust,
+								this.thrustPower
+							)
+						);
+					} else {
+						// Acima de 20m: empuxo normal entre 50% e 70%
+						this.thrustPower = Math.max(
+							0.5,
+							Math.min(0.7, this.thrustPower)
+						);
+					}
+				} else {
+					this.thrustPower = Math.max(
+						0,
+						Math.min(1.5, this.thrustPower)
+					); // Limite normal quando não voando
+				}
 
 				// Aplicar empuxo vertical
 				const thrustForce = this.thrustPower * this.data.hoverThrust;
@@ -1726,7 +1936,46 @@ if (!AFRAME.components["drone-controller"]) {
 				Math.abs(this.targetAltitudeChange) > 0.1;
 			const isMovingSlowly = this.velocity.length() < 0.5; // Velocidade menor que 0.5 m/s
 
-			return !hasManualInput && !hasManualAltitudeInput && isMovingSlowly;
+			const isStopped =
+				!hasManualInput && !hasManualAltitudeInput && isMovingSlowly;
+
+			// SEMPRE manter tolerância de 8cm, em qualquer altitude e situação
+			if (this.autoStabilizationActive) {
+				const targetTolerance = 0.08; // SEMPRE 8cm, conforme solicitado
+				if (
+					Math.abs(this.stabilizationTolerance - targetTolerance) >
+					0.001
+				) {
+					// Transição gradual para 8cm
+					const transitionSpeed = 0.002; // 2mm por frame
+					if (this.stabilizationTolerance > targetTolerance) {
+						this.stabilizationTolerance = Math.max(
+							targetTolerance,
+							this.stabilizationTolerance - transitionSpeed
+						);
+					} else {
+						this.stabilizationTolerance = Math.min(
+							targetTolerance,
+							this.stabilizationTolerance + transitionSpeed
+						);
+					}
+
+					// Log apenas quando a mudança é significativa
+					if (
+						Date.now() - (this.lastToleranceChangeLog || 0) >
+						1000
+					) {
+						console.log(
+							`🎯 Auto estabilidade: mantendo ±${(
+								this.stabilizationTolerance * 100
+							).toFixed(1)}cm em qualquer altitude`
+						);
+						this.lastToleranceChangeLog = Date.now();
+					}
+				}
+			}
+
+			return isStopped;
 		},
 
 		// === SISTEMA DE ESTABILIZAÇÃO QUANDO NÃO TOCA O SOLO ===
@@ -1801,15 +2050,16 @@ if (!AFRAME.components["drone-controller"]) {
 					);
 				}
 
-				// Aplicar força de estabilização suave para subir 0.1m
+				// Aplicar força de estabilização muito suave para oscilações de 8cm
 				const stabilizationForce =
 					this.data.stabilizationLift *
-					this.data.stabilizationSmoothing;
+					this.data.stabilizationSmoothing *
+					0.2; // Reduzido para oscilações de 8cm
 
 				// Adicionar pequena oscilação natural para simular ajustes constantes
 				const timeOffset =
 					(currentTime - this.stabilizationStartTime) * 0.001;
-				const naturalOscillation = Math.sin(timeOffset * 2) * 0.02; // Oscilação de ±2cm
+				const naturalOscillation = Math.sin(timeOffset * 2) * 0.08; // Oscilação de ±8cm conforme solicitado
 
 				const totalForce = stabilizationForce + naturalOscillation;
 
@@ -2013,6 +2263,14 @@ if (!AFRAME.components["drone-controller"]) {
 
 				if (this.isFlying) {
 					statusText += ` | Empuxo: ${thrustPercent}%`;
+
+					// Mostrar modo de altitude
+					if (this.isInLowAltitudeMode) {
+						statusText += ` | 🔺BAIXA ALT`;
+					} else {
+						statusText += ` | 🔻NORMAL`;
+					}
+
 					if (this.isHovering) {
 						statusText += ` | HOVER`;
 					}

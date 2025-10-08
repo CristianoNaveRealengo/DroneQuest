@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>Teste - Velocidade Normal de Subida</title>
+		<style>
+			body {
+				font-family: Arial, sans-serif;
+				margin: 20px;
+				background: #1a1a1a;
+				color: #ffffff;
+			}
+
+			.test-panel {
+				background: rgba(0, 50, 150, 0.8);
+				padding: 20px;
+				border-radius: 10px;
+				margin: 10px 0;
+			}
+
+			.status {
+				font-weight: bold;
+				margin: 5px 0;
+			}
+
+			.good {
+				color: #66ff66;
+			}
+
+			.warning {
+				color: #ffff66;
+			}
+
+			.bad {
+				color: #ff6666;
+			}
+
+			button {
+				background: #0066cc;
+				color: white;
+				border: none;
+				padding: 10px 20px;
+				margin: 5px;
+				border-radius: 5px;
+				cursor: pointer;
+			}
+
+			button:hover {
+				background: #0088ff;
+			}
+
+			.speed-chart {
+				background: #000;
+				border: 1px solid #666;
+				height: 200px;
+				margin: 10px 0;
+				position: relative;
+				overflow: hidden;
+			}
+
+			.speed-line {
+				position: absolute;
+				width: 2px;
+				background: #00ff00;
+			}
+
+			.altitude-line {
+				position: absolute;
+				width: 2px;
+				background: #ff6600;
+			}
+		</style>
+	</head>
+
+	<body>
+		<h1>🚁 Teste - Velocidade Normal de Subida</h1>
+
+		<div class="test-panel">
+			<h2>📊 Ajustes Implementados</h2>
+			<div class="status good">✅ Multiplicador de altitude: 0.6 → 1.0 (velocidade normal)</div>
+			<div class="status good">✅ Amortecimento apenas sem entrada manual</div>
+			<div class="status good">✅ Limitação de velocidade apenas para estabilização</div>
+			<div class="status good">✅ Controle manual mantém velocidade total</div>
+		</div>
+
+		<div class="test-panel">
+			<h2>🎯 Teste de Velocidade</h2>
+			<div id="speed-status" class="status">Aguardando teste...</div>
+			<div class="speed-chart" id="chart"></div>
+			<button onclick="testClimb()">Subir Contínuo</button>
+			<button onclick="testDescend()">Descer Contínuo</button>
+			<button onclick="testQuickClimb()">Subida Rápida</button>
+			<button onclick="stopTest()">Parar</button>
+			<button onclick="resetTest()">Reset</button>
+		</div>
+
+		<div class="test-panel">
+			<h2>📈 Análise de Performance</h2>
+			<div id="analysis" class="status">
+				<div>Velocidade atual: <span id="current-speed">0 m/s</span></div>
+				<div>Velocidade máxima atingida: <span id="max-speed">0 m/s</span></div>
+				<div>Altitude atual: <span id="current-altitude">10.0m</span></div>
+				<div>Tempo de resposta: <span id="response-time">0ms</span></div>
+				<div>Status: <span id="performance-status" class="good">Normal</span></div>
+			</div>
+		</div>
+
+		<div class="test-panel">
+			<h2>🎮 Controles de Teste</h2>
+			<div>
+				<strong>Teclado:</strong><br>
+				W - Subir (velocidade 1.0x)<br>
+				S - Descer (velocidade 1.0x)<br>
+				<br>
+				<strong>VR Simulado:</strong><br>
+				Z - Subir (velocidade 1.0x)<br>
+				X - Descer (velocidade 1.0x)
+			</div>
+		</div>
+
+		<div class="test-panel">
+			<h2>🔧 Logs do Sistema</h2>
+			<div id="logs"
+				style="background: #000; padding: 10px; border-radius: 5px; height: 150px; overflow-y: scroll; font-family: monospace; font-size: 12px;">
+				Sistema de teste inicializado...<br>
+			</div>
+		</div>
+
+		<script>
+			class ClimbSpeedTest {
+				constructor() {
+					this.currentAltitude = 10.0;
+					this.velocity = 0;
+					this.maxSpeed = 8.3; // m/s
+					this.acceleration = 4.0; // m/s²
+					this.targetAltitudeChange = 0;
+					this.maxSpeedReached = 0;
+					this.isManualInput = false;
+					this.startTime = 0;
+					this.speedHistory = [];
+					this.altitudeHistory = [];
+
+					this.updateDisplay();
+					this.startSimulation();
+					this.setupKeyboard();
+					this.log("✅ Sistema de teste de velocidade inicializado");
+					this.log("📊 Velocidade máxima: " + this.maxSpeed + " m/s");
+					this.log("⚡ Aceleração: " + this.acceleration + " m/s²");
+				}
+
+				simulate() {
+					const deltaTime = 0.016; // ~60 FPS
+
+					// Simular física do drone
+					let altitudeForce = this.targetAltitudeChange;
+
+					// Aplicar aceleração
+					this.velocity += altitudeForce * this.acceleration * deltaTime;
+
+					// Aplicar amortecimento apenas quando não há entrada manual
+					if (!this.isManualInput && Math.abs(this.targetAltitudeChange) < 0.05) {
+						this.velocity *= 0.87; // Amortecimento para estabilização
+
+						// Limitar velocidade apenas para estabilização
+						const maxStabilizationSpeed = 1.8;
+						this.velocity = Math.max(-maxStabilizationSpeed,
+							Math.min(maxStabilizationSpeed, this.velocity));
+					} else {
+						// Durante controle manual, sem limitações extras
+						// Apenas limitar pela velocidade máxima geral
+						this.velocity = Math.max(-this.maxSpeed,
+							Math.min(this.maxSpeed, this.velocity));
+					}
+
+					// Atualizar altitude
+					this.currentAltitude += this.velocity * deltaTime;
+
+					// Registrar velocidade máxima
+					this.maxSpeedReached = Math.max(this.maxSpeedReached, Math.abs(this.velocity));
+
+					// Registrar histórico
+					this.speedHistory.push({
+						time: Date.now(),
+						speed: Math.abs(this.velocity)
+					});
+					this.altitudeHistory.push({
+						time: Date.now(),
+						altitude: this.currentAltitude
+					});
+
+					// Manter apenas últimos 100 pontos
+					if (this.speedHistory.length > 100) {
+						this.speedHistory.shift();
+						this.altitudeHistory.shift();
+					}
+				}
+
+				updateDisplay() {
+					const currentSpeed = Math.abs(this.velocity);
+
+					document.getElementById('current-speed').textContent =
+						`${currentSpeed.toFixed(2)} m/s`;
+					document.getElementById('max-speed').textContent =
+						`${this.maxSpeedReached.toFixed(2)} m/s`;
+					document.getElementById('current-altitude').textContent =
+						`${this.currentAltitude.toFixed(1)}m`;
+
+					const performanceElement = document.getElementById('performance-status');
+					const speedPercentage = (this.maxSpeedReached / this.maxSpeed) * 100;
+
+					if (speedPercentage >= 80) {
+						performanceElement.textContent = 'Excelente (≥80% vel. máx)';
+						performanceElement.className = 'good';
+					} else if (speedPercentage >= 60) {
+						performanceElement.textContent = 'Bom (≥60% vel. máx)';
+						performanceElement.className = 'warning';
+					} else {
+						performanceElement.textContent = 'Limitado (<60% vel. máx)';
+						performanceElement.className = 'bad';
+					}
+
+					// Atualizar gráfico
+					this.updateChart();
+
+					const statusElement = document.getElementById('speed-status');
+					const direction = this.velocity > 0 ? '⬆️ Subindo' : this.velocity < 0 ? '⬇️ Descendo' : '➡️ Estável';
+					statusElement.innerHTML = `
+                    ${direction} | 
+                    Velocidade: ${currentSpeed.toFixed(2)} m/s | 
+                    Altitude: ${this.currentAltitude.toFixed(1)}m | 
+                    ${this.isManualInput ? '🎮 Controle Manual' : '🤖 Estabilização'}
+                `;
+				}
+
+				updateChart() {
+					const chart = document.getElementById('chart');
+					const chartHeight = 200;
+
+					// Adicionar linha de velocidade
+					if (this.speedHistory.length > 0) {
+						const speedY = chartHeight - (Math.abs(this.velocity) / this.maxSpeed * chartHeight);
+						const speedLine = document.createElement('div');
+						speedLine.className = 'speed-line';
+						speedLine.style.left = `${(this.speedHistory.length % 100) * 5}px`;
+						speedLine.style.top = `${speedY}px`;
+						speedLine.style.height = '4px';
+						speedLine.title = `Velocidade: ${Math.abs(this.velocity).toFixed(2)} m/s`;
+
+						// Adicionar linha de altitude (normalizada)
+						const altitudeY = chartHeight - ((this.currentAltitude % 20) / 20 * chartHeight);
+						const altitudeLine = document.createElement('div');
+						altitudeLine.className = 'altitude-line';
+						altitudeLine.style.left = `${(this.altitudeHistory.length % 100) * 5}px`;
+						altitudeLine.style.top = `${altitudeY}px`;
+						altitudeLine.style.height = '4px';
+						altitudeLine.title = `Altitude: ${this.currentAltitude.toFixed(1)}m`;
+
+						// Remover linhas antigas
+						const oldSpeedLines = chart.querySelectorAll('.speed-line');
+						const oldAltitudeLines = chart.querySelectorAll('.altitude-line');
+						if (oldSpeedLines.length > 100) {
+							oldSpeedLines[0].remove();
+						}
+						if (oldAltitudeLines.length > 100) {
+							oldAltitudeLines[0].remove();
+						}
+
+						chart.appendChild(speedLine);
+						chart.appendChild(altitudeLine);
+					}
+				}
+
+				testClimb() {
+					this.targetAltitudeChange = this.maxSpeed;
+					this.isManualInput = true;
+					this.startTime = Date.now();
+					this.log("🚀 Teste: Subida contínua iniciada");
+				}
+
+				testDescend() {
+					this.targetAltitudeChange = -this.maxSpeed;
+					this.isManualInput = true;
+					this.startTime = Date.now();
+					this.log("🚀 Teste: Descida contínua iniciada");
+				}
+
+				testQuickClimb() {
+					this.targetAltitudeChange = this.maxSpeed * 1.5;
+					this.isManualInput = true;
+					this.startTime = Date.now();
+					this.log("🚀 Teste: Subida rápida iniciada");
+				}
+
+				stopTest() {
+					this.targetAltitudeChange = 0;
+					this.isManualInput = false;
+					const responseTime = Date.now() - this.startTime;
+					document.getElementById('response-time').textContent = `${responseTime}ms`;
+					this.log(`⏹️ Teste parado - Tempo de resposta: ${responseTime}ms`);
+				}
+
+				reset() {
+					this.currentAltitude = 10.0;
+					this.velocity = 0;
+					this.targetAltitudeChange = 0;
+					this.maxSpeedReached = 0;
+					this.isManualInput = false;
+					this.speedHistory = [];
+					this.altitudeHistory = [];
+
+					// Limpar gráfico
+					const chart = document.getElementById('chart');
+					const lines = chart.querySelectorAll('.speed-line, .altitude-line');
+					lines.forEach(line => line.remove());
+
+					this.log("🔄 Sistema resetado");
+				}
+
+				setupKeyboard() {
+					document.addEventListener('keydown', (e) => {
+						switch (e.code) {
+							case 'KeyW':
+								this.targetAltitudeChange = this.maxSpeed;
+								this.isManualInput = true;
+								this.log("⌨️ W pressionado - Subindo");
+								break;
+							case 'KeyS':
+								this.targetAltitudeChange = -this.maxSpeed;
+								this.isManualInput = true;
+								this.log("⌨️ S pressionado - Descendo");
+								break;
+							case 'KeyZ':
+								this.targetAltitudeChange = this.maxSpeed;
+								this.isManualInput = true;
+								this.log("⌨️ Z pressionado - Subindo (VR sim)");
+								break;
+							case 'KeyX':
+								this.targetAltitudeChange = -this.maxSpeed;
+								this.isManualInput = true;
+								this.log("⌨️ X pressionado - Descendo (VR sim)");
+								break;
+						}
+					});
+
+					document.addEventListener('keyup', (e) => {
+						switch (e.code) {
+							case 'KeyW':
+							case 'KeyS':
+							case 'KeyZ':
+							case 'KeyX':
+								this.targetAltitudeChange = 0;
+								this.isManualInput = false;
+								this.log("⌨️ Tecla solta - Estabilizando");
+								break;
+						}
+					});
+				}
+
+				startSimulation() {
+					setInterval(() => {
+						this.simulate();
+						this.updateDisplay();
+					}, 16); // ~60 FPS
+				}
+
+				log(message) {
+					const logsDiv = document.getElementById('logs');
+					const timestamp = new Date().toLocaleTimeString();
+					logsDiv.innerHTML += `[${timestamp}] ${message}<br>`;
+					logsDiv.scrollTop = logsDiv.scrollHeight;
+				}
+			}
+
+			let climbTest;
+
+			function testClimb() {
+				if (!climbTest) {
+					climbTest = new ClimbSpeedTest();
+				}
+				climbTest.testClimb();
+			}
+
+			function testDescend() {
+				if (!climbTest) {
+					climbTest = new ClimbSpeedTest();
+				}
+				climbTest.testDescend();
+			}
+
+			function testQuickClimb() {
+				if (!climbTest) {
+					climbTest = new ClimbSpeedTest();
+				}
+				climbTest.testQuickClimb();
+			}
+
+			function stopTest() {
+				if (climbTest) {
+					climbTest.stopTest();
+				}
+			}
+
+			function resetTest() {
+				if (climbTest) {
+					climbTest.reset();
+				}
+			}
+
+			// Inicializar teste
+			window.onload = function () {
+				climbTest = new ClimbSpeedTest();
+			};
+		</script>
+	</body>
+
+</html>

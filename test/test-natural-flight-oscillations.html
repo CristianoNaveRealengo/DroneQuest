@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>Teste - Oscilações Naturais de Voo</title>
+		<style>
+			body {
+				font-family: Arial, sans-serif;
+				margin: 20px;
+				background: #1a1a1a;
+				color: #ffffff;
+			}
+
+			.test-panel {
+				background: rgba(0, 100, 0, 0.8);
+				padding: 20px;
+				border-radius: 10px;
+				margin: 10px 0;
+			}
+
+			.status {
+				font-weight: bold;
+				margin: 5px 0;
+			}
+
+			.good {
+				color: #66ff66;
+			}
+
+			.warning {
+				color: #ffff66;
+			}
+
+			.natural {
+				color: #66ffff;
+			}
+
+			button {
+				background: #006600;
+				color: white;
+				border: none;
+				padding: 10px 20px;
+				margin: 5px;
+				border-radius: 5px;
+				cursor: pointer;
+			}
+
+			button:hover {
+				background: #008800;
+			}
+
+			.flight-chart {
+				background: #000;
+				border: 1px solid #666;
+				height: 300px;
+				margin: 10px 0;
+				position: relative;
+				overflow: hidden;
+			}
+
+			.oscillation-line {
+				position: absolute;
+				width: 2px;
+				background: #00ff00;
+			}
+
+			.wind-line {
+				position: absolute;
+				width: 2px;
+				background: #ffff00;
+			}
+
+			.micro-line {
+				position: absolute;
+				width: 2px;
+				background: #ff6600;
+			}
+
+			.total-line {
+				position: absolute;
+				width: 3px;
+				background: #ff0066;
+			}
+
+			.legend {
+				display: flex;
+				gap: 20px;
+				margin: 10px 0;
+				font-size: 12px;
+			}
+
+			.legend-item {
+				display: flex;
+				align-items: center;
+				gap: 5px;
+			}
+
+			.legend-color {
+				width: 15px;
+				height: 3px;
+			}
+		</style>
+	</head>
+
+	<body>
+		<h1>🚁 Teste - Oscilações Naturais de Voo</h1>
+
+		<div class="test-panel">
+			<h2>📊 Parâmetros de Voo Natural</h2>
+			<div class="status good">✅ Oscilação principal: ±8cm (movimento natural)</div>
+			<div class="status good">✅ Oscilação secundária: ±2.4cm (correções)</div>
+			<div class="status good">✅ Efeito do vento: ±3cm (variações irregulares)</div>
+			<div class="status good">✅ Micro ajustes: ±2cm (movimentos constantes)</div>
+			<div class="status natural">🌊 Multiplicador altitude baixa: 130% (efeito solo)</div>
+			<div class="status natural">🌊 Multiplicador altitude normal: 80% (mais suave)</div>
+		</div>
+
+		<div class="test-panel">
+			<h2>🎯 Simulação de Voo Natural</h2>
+			<div id="flight-status" class="status">Aguardando simulação...</div>
+
+			<div class="legend">
+				<div class="legend-item">
+					<div class="legend-color" style="background: #00ff00;"></div>
+					<span>Oscilação Principal</span>
+				</div>
+				<div class="legend-item">
+					<div class="legend-color" style="background: #ffff00;"></div>
+					<span>Efeito Vento</span>
+				</div>
+				<div class="legend-item">
+					<div class="legend-color" style="background: #ff6600;"></div>
+					<span>Micro Ajustes</span>
+				</div>
+				<div class="legend-item">
+					<div class="legend-color" style="background: #ff0066;"></div>
+					<span>Total Combinado</span>
+				</div>
+			</div>
+
+			<div class="flight-chart" id="chart"></div>
+
+			<button onclick="toggleAltitudeMode()">Alternar Altitude (Baixa/Normal)</button>
+			<button onclick="toggleWindEffect()">Toggle Efeito Vento</button>
+			<button onclick="toggleMicroAdjustments()">Toggle Micro Ajustes</button>
+			<button onclick="resetSimulation()">Reset</button>
+		</div>
+
+		<div class="test-panel">
+			<h2>📈 Análise das Oscilações</h2>
+			<div id="analysis" class="status">
+				<div>Oscilação total atual: <span id="total-oscillation">0cm</span></div>
+				<div>Oscilação máxima: <span id="max-oscillation">0cm</span></div>
+				<div>Modo altitude: <span id="altitude-mode">Normal</span></div>
+				<div>Multiplicador ativo: <span id="altitude-multiplier">0.8x</span></div>
+				<div>Realismo: <span id="realism-level" class="good">Alto</span></div>
+			</div>
+		</div>
+
+		<div class="test-panel">
+			<h2>🔧 Logs do Sistema</h2>
+			<div id="logs"
+				style="background: #000; padding: 10px; border-radius: 5px; height: 150px; overflow-y: scroll; font-family: monospace; font-size: 12px;">
+				Sistema de oscilações naturais inicializado...<br>
+			</div>
+		</div>
+
+		<script>
+			class NaturalFlightTest {
+				constructor() {
+					this.time = 0;
+					this.baseAltitude = 10.0;
+					this.isInLowAltitudeMode = false;
+					this.maxOscillation = 0;
+
+					// Parâmetros de oscilação natural
+					this.flightSimulation = {
+						oscillationAmplitude: 0.08, // ±8cm
+						oscillationSpeed: 0.0012,
+						windEffect: true,
+						windStrength: 0.03, // ±3cm
+						windSpeed: 0.0005,
+						microAdjustments: true,
+						microAmplitude: 0.02, // ±2cm
+						microSpeed: 0.003,
+					};
+
+					this.oscillationHistory = [];
+					this.updateDisplay();
+					this.startSimulation();
+					this.log("✅ Simulação de voo natural inicializada");
+					this.log("🌊 Parâmetros: Oscilação ±8cm, Vento ±3cm, Micro ±2cm");
+				}
+
+				simulate() {
+					this.time += 16; // ~60 FPS
+
+					// === OSCILAÇÃO PRINCIPAL ===
+					const oscillationPhase = this.time * this.flightSimulation.oscillationSpeed;
+					const primaryOscillation = Math.sin(oscillationPhase) * this.flightSimulation.oscillationAmplitude;
+
+					// === OSCILAÇÃO SECUNDÁRIA ===
+					const secondaryPhase = oscillationPhase * 1.3 + 0.5;
+					const secondaryOscillation = Math.sin(secondaryPhase) * (this.flightSimulation.oscillationAmplitude * 0.3);
+
+					// === EFEITO DO VENTO ===
+					let windEffect = 0;
+					if (this.flightSimulation.windEffect) {
+						const windPhase = this.time * this.flightSimulation.windSpeed;
+						windEffect = Math.sin(windPhase) * this.flightSimulation.windStrength +
+							Math.sin(windPhase * 2.1 + 1.2) * (this.flightSimulation.windStrength * 0.5);
+					}
+
+					// === MICRO AJUSTES ===
+					let microAdjustments = 0;
+					if (this.flightSimulation.microAdjustments) {
+						const microPhase = this.time * this.flightSimulation.microSpeed;
+						microAdjustments = Math.sin(microPhase) * this.flightSimulation.microAmplitude +
+							Math.sin(microPhase * 3.7 + 0.8) * (this.flightSimulation.microAmplitude * 0.6);
+					}
+
+					// === MULTIPLICADOR DE ALTITUDE ===
+					let altitudeMultiplier = this.isInLowAltitudeMode ? 1.3 : 0.8;
+
+					// === COMBINAR EFEITOS ===
+					const totalOscillation = (primaryOscillation + secondaryOscillation + windEffect + microAdjustments) * altitudeMultiplier;
+
+					// Registrar histórico
+					this.oscillationHistory.push({
+						time: this.time,
+						primary: primaryOscillation,
+						wind: windEffect,
+						micro: microAdjustments,
+						total: totalOscillation
+					});
+
+					// Manter apenas últimos 200 pontos
+					if (this.oscillationHistory.length > 200) {
+						this.oscillationHistory.shift();
+					}
+
+					// Registrar oscilação máxima
+					this.maxOscillation = Math.max(this.maxOscillation, Math.abs(totalOscillation));
+
+					return {
+						primary: primaryOscillation,
+						wind: windEffect,
+						micro: microAdjustments,
+						total: totalOscillation,
+						multiplier: altitudeMultiplier
+					};
+				}
+
+				updateDisplay() {
+					const result = this.simulate();
+
+					const totalOscillationCm = Math.abs(result.total * 100);
+					const maxOscillationCm = this.maxOscillation * 100;
+
+					document.getElementById('total-oscillation').textContent =
+						`${totalOscillationCm.toFixed(1)}cm`;
+					document.getElementById('max-oscillation').textContent =
+						`${maxOscillationCm.toFixed(1)}cm`;
+					document.getElementById('altitude-mode').textContent =
+						this.isInLowAltitudeMode ? 'Baixa (<20m)' : 'Normal (≥20m)';
+					document.getElementById('altitude-multiplier').textContent =
+						`${result.multiplier.toFixed(1)}x`;
+
+					const realismElement = document.getElementById('realism-level');
+					if (maxOscillationCm >= 8 && maxOscillationCm <= 15) {
+						realismElement.textContent = 'Alto (8-15cm)';
+						realismElement.className = 'good';
+					} else if (maxOscillationCm >= 5 && maxOscillationCm <= 20) {
+						realismElement.textContent = 'Médio (5-20cm)';
+						realismElement.className = 'warning';
+					} else {
+						realismElement.textContent = 'Baixo (fora do range)';
+						realismElement.className = 'bad';
+					}
+
+					// Atualizar gráfico
+					this.updateChart();
+
+					const statusElement = document.getElementById('flight-status');
+					statusElement.innerHTML = `
+                    🌊 Voo Natural Ativo | 
+                    Oscilação: ${totalOscillationCm.toFixed(1)}cm | 
+                    Modo: ${this.isInLowAltitudeMode ? '🔺 Baixa Altitude' : '🔻 Normal'} | 
+                    Multiplicador: ${result.multiplier.toFixed(1)}x
+                `;
+				}
+
+				updateChart() {
+					const chart = document.getElementById('chart');
+					const chartHeight = 300;
+					const chartCenter = chartHeight / 2;
+					const scale = 1000; // Escala para visualização
+
+					if (this.oscillationHistory.length > 0) {
+						const latest = this.oscillationHistory[this.oscillationHistory.length - 1];
+						const x = (this.oscillationHistory.length % 200) * 3;
+
+						// Linha de oscilação principal
+						const primaryY = chartCenter - (latest.primary * scale);
+						const primaryLine = document.createElement('div');
+						primaryLine.className = 'oscillation-line';
+						primaryLine.style.left = `${x}px`;
+						primaryLine.style.top = `${primaryY}px`;
+						primaryLine.style.height = '4px';
+
+						// Linha de efeito do vento
+						const windY = chartCenter - (latest.wind * scale);
+						const windLine = document.createElement('div');
+						windLine.className = 'wind-line';
+						windLine.style.left = `${x}px`;
+						windLine.style.top = `${windY}px`;
+						windLine.style.height = '4px';
+
+						// Linha de micro ajustes
+						const microY = chartCenter - (latest.micro * scale);
+						const microLine = document.createElement('div');
+						microLine.className = 'micro-line';
+						microLine.style.left = `${x}px`;
+						microLine.style.top = `${microY}px`;
+						microLine.style.height = '4px';
+
+						// Linha total
+						const totalY = chartCenter - (latest.total * scale);
+						const totalLine = document.createElement('div');
+						totalLine.className = 'total-line';
+						totalLine.style.left = `${x}px`;
+						totalLine.style.top = `${totalY}px`;
+						totalLine.style.height = '6px';
+
+						// Remover linhas antigas
+						const oldLines = chart.querySelectorAll('.oscillation-line, .wind-line, .micro-line, .total-line');
+						if (oldLines.length > 800) { // 4 tipos * 200 pontos
+							for (let i = 0; i < 4; i++) {
+								if (oldLines[i]) oldLines[i].remove();
+							}
+						}
+
+						chart.appendChild(primaryLine);
+						chart.appendChild(windLine);
+						chart.appendChild(microLine);
+						chart.appendChild(totalLine);
+					}
+				}
+
+				toggleAltitudeMode() {
+					this.isInLowAltitudeMode = !this.isInLowAltitudeMode;
+					this.maxOscillation = 0; // Reset para novo teste
+					const mode = this.isInLowAltitudeMode ? 'BAIXA ALTITUDE' : 'NORMAL';
+					const multiplier = this.isInLowAltitudeMode ? '1.3x' : '0.8x';
+					this.log(`🔄 Modo alterado para: ${mode} (multiplicador: ${multiplier})`);
+				}
+
+				toggleWindEffect() {
+					this.flightSimulation.windEffect = !this.flightSimulation.windEffect;
+					const status = this.flightSimulation.windEffect ? 'ATIVADO' : 'DESATIVADO';
+					this.log(`💨 Efeito do vento: ${status}`);
+				}
+
+				toggleMicroAdjustments() {
+					this.flightSimulation.microAdjustments = !this.flightSimulation.microAdjustments;
+					const status = this.flightSimulation.microAdjustments ? 'ATIVADOS' : 'DESATIVADOS';
+					this.log(`🔧 Micro ajustes: ${status}`);
+				}
+
+				reset() {
+					this.time = 0;
+					this.maxOscillation = 0;
+					this.oscillationHistory = [];
+
+					// Limpar gráfico
+					const chart = document.getElementById('chart');
+					const lines = chart.querySelectorAll('.oscillation-line, .wind-line, .micro-line, .total-line');
+					lines.forEach(line => line.remove());
+
+					this.log("🔄 Simulação resetada");
+				}
+
+				startSimulation() {
+					setInterval(() => {
+						this.updateDisplay();
+					}, 16); // ~60 FPS
+				}
+
+				log(message) {
+					const logsDiv = document.getElementById('logs');
+					const timestamp = new Date().toLocaleTimeString();
+					logsDiv.innerHTML += `[${timestamp}] ${message}<br>`;
+					logsDiv.scrollTop = logsDiv.scrollHeight;
+				}
+			}
+
+			let flightTest;
+
+			function toggleAltitudeMode() {
+				if (!flightTest) {
+					flightTest = new NaturalFlightTest();
+				}
+				flightTest.toggleAltitudeMode();
+			}
+
+			function toggleWindEffect() {
+				if (flightTest) {
+					flightTest.toggleWindEffect();
+				}
+			}
+
+			function toggleMicroAdjustments() {
+				if (flightTest) {
+					flightTest.toggleMicroAdjustments();
+				}
+			}
+
+			function resetSimulation() {
+				if (flightTest) {
+					flightTest.reset();
+				}
+			}
+
+			// Inicializar teste
+			window.onload = function () {
+				flightTest = new NaturalFlightTest();
+			};
+		</script>
+	</body>
+
+</html>

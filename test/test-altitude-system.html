@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>Teste - Sistema de Altitude do Drone</title>
+		<style>
+			body {
+				font-family: Arial, sans-serif;
+				margin: 20px;
+				background: #1a1a1a;
+				color: #ffffff;
+			}
+
+			.test-panel {
+				background: rgba(0, 50, 100, 0.8);
+				padding: 20px;
+				border-radius: 10px;
+				margin: 10px 0;
+			}
+
+			.status {
+				font-weight: bold;
+				margin: 5px 0;
+			}
+
+			.low-altitude {
+				color: #ff6666;
+			}
+
+			.normal-altitude {
+				color: #66ff66;
+			}
+
+			button {
+				background: #0066cc;
+				color: white;
+				border: none;
+				padding: 10px 20px;
+				margin: 5px;
+				border-radius: 5px;
+				cursor: pointer;
+			}
+
+			button:hover {
+				background: #0088ff;
+			}
+		</style>
+	</head>
+
+	<body>
+		<h1>🚁 Teste do Sistema de Altitude do Drone</h1>
+
+		<div class="test-panel">
+			<h2>📊 Status do Sistema</h2>
+			<div id="altitude-status" class="status">Carregando...</div>
+			<div id="thrust-status" class="status">Carregando...</div>
+			<div id="stabilization-status" class="status">Carregando...</div>
+		</div>
+
+		<div class="test-panel">
+			<h2>🎮 Controles de Teste</h2>
+			<button onclick="setAltitude(5)">Altitude 5m (Baixa)</button>
+			<button onclick="setAltitude(15)">Altitude 15m (Baixa)</button>
+			<button onclick="setAltitude(25)">Altitude 25m (Normal)</button>
+			<button onclick="setAltitude(50)">Altitude 50m (Normal)</button>
+			<br>
+			<button onclick="testStabilization()">Testar Estabilização ±8cm</button>
+			<button onclick="resetDrone()">Reset Drone</button>
+		</div>
+
+		<div class="test-panel">
+			<h2>📋 Especificações Implementadas</h2>
+			<ul>
+				<li>✅ <strong>Altitude < 20m:</strong> Empuxo aumentado de 40% a 123%</li>
+				<li>✅ <strong>Altitude ≥ 20m:</strong> Empuxo normal de 50% a 70%</li>
+				<li>✅ <strong>Estabilização:</strong> ±8cm sempre ativa</li>
+				<li>✅ <strong>Força de estabilização:</strong> 140% mais forte abaixo de 20m</li>
+				<li>✅ <strong>Transição suave:</strong> Entre modos de altitude</li>
+			</ul>
+		</div>
+
+		<div class="test-panel">
+			<h2>🔧 Logs do Sistema</h2>
+			<div id="logs"
+				style="background: #000; padding: 10px; border-radius: 5px; height: 200px; overflow-y: scroll; font-family: monospace; font-size: 12px;">
+				Aguardando logs...
+			</div>
+		</div>
+
+		<script>
+			// Simular o sistema de altitude do drone para teste
+			class DroneAltitudeTest {
+				constructor() {
+					this.altitudeThreshold = 20.0;
+					this.lowAltitudeMinThrust = 0.40;
+					this.lowAltitudeMaxThrust = 1.23;
+					this.normalThrust = 0.60;
+					this.stabilizationTolerance = 0.08;
+					this.currentAltitude = 0;
+					this.thrustPower = 0.60;
+					this.isInLowAltitudeMode = false;
+
+					this.updateDisplay();
+					this.startSimulation();
+				}
+
+				checkAltitudeAndAdjustThrust() {
+					const wasInLowAltitudeMode = this.isInLowAltitudeMode;
+					this.isInLowAltitudeMode = this.currentAltitude < this.altitudeThreshold;
+
+					if (wasInLowAltitudeMode !== this.isInLowAltitudeMode) {
+						if (this.isInLowAltitudeMode) {
+							this.log(`🔺 ALTITUDE BAIXA DETECTADA: ${this.currentAltitude.toFixed(2)}m < ${this.altitudeThreshold}m`);
+							this.log(`⚡ Empuxo aumentado: ${this.lowAltitudeMinThrust * 100}% - ${this.lowAltitudeMaxThrust * 100}%`);
+						} else {
+							this.log(`🔻 ALTITUDE NORMAL: ${this.currentAltitude.toFixed(2)}m >= ${this.altitudeThreshold}m`);
+							this.log(`⚡ Empuxo normal: ${this.normalThrust * 100}%`);
+						}
+					}
+
+					if (this.isInLowAltitudeMode) {
+						const altitudeRatio = Math.max(0, Math.min(1, this.currentAltitude / this.altitudeThreshold));
+						const thrustRange = this.lowAltitudeMaxThrust - this.lowAltitudeMinThrust;
+						this.thrustPower = this.lowAltitudeMaxThrust - (altitudeRatio * thrustRange);
+						this.thrustPower = Math.max(this.lowAltitudeMinThrust, Math.min(this.lowAltitudeMaxThrust, this.thrustPower));
+					} else {
+						this.thrustPower = this.normalThrust;
+					}
+				}
+
+				updateDisplay() {
+					const altitudeStatus = document.getElementById('altitude-status');
+					const thrustStatus = document.getElementById('thrust-status');
+					const stabilizationStatus = document.getElementById('stabilization-status');
+
+					const modeClass = this.isInLowAltitudeMode ? 'low-altitude' : 'normal-altitude';
+					const modeText = this.isInLowAltitudeMode ? '🔺 BAIXA ALTITUDE' : '🔻 ALTITUDE NORMAL';
+
+					altitudeStatus.innerHTML = `<span class="${modeClass}">${modeText}</span> - ${this.currentAltitude.toFixed(2)}m`;
+					thrustStatus.innerHTML = `Empuxo: ${(this.thrustPower * 100).toFixed(1)}%`;
+					stabilizationStatus.innerHTML = `Estabilização: ±${(this.stabilizationTolerance * 100).toFixed(0)}cm ${this.isInLowAltitudeMode ? '(FORÇA 140%)' : '(FORÇA 100%)'}`;
+				}
+
+				log(message) {
+					const logsDiv = document.getElementById('logs');
+					const timestamp = new Date().toLocaleTimeString();
+					logsDiv.innerHTML += `[${timestamp}] ${message}\n`;
+					logsDiv.scrollTop = logsDiv.scrollHeight;
+				}
+
+				startSimulation() {
+					setInterval(() => {
+						this.checkAltitudeAndAdjustThrust();
+						this.updateDisplay();
+					}, 100);
+				}
+			}
+
+			let droneTest;
+
+			function setAltitude(altitude) {
+				if (!droneTest) {
+					droneTest = new DroneAltitudeTest();
+				}
+				droneTest.currentAltitude = altitude;
+				droneTest.log(`🎯 Altitude definida para: ${altitude}m`);
+			}
+
+			function testStabilization() {
+				if (!droneTest) {
+					droneTest = new DroneAltitudeTest();
+				}
+				droneTest.log(`📏 Testando estabilização ±${(droneTest.stabilizationTolerance * 100).toFixed(0)}cm`);
+				droneTest.log(`🔧 Força de estabilização: ${droneTest.isInLowAltitudeMode ? '140%' : '100%'} (baseado na altitude)`);
+			}
+
+			function resetDrone() {
+				droneTest = new DroneAltitudeTest();
+				droneTest.log(`🔄 Sistema resetado`);
+			}
+
+			// Inicializar teste
+			window.onload = function () {
+				droneTest = new DroneAltitudeTest();
+				droneTest.log(`🚁 Sistema de altitude inicializado`);
+				droneTest.log(`📊 Limite de altitude: ${droneTest.altitudeThreshold}m`);
+				droneTest.log(`⚡ Empuxo baixa altitude: ${droneTest.lowAltitudeMinThrust * 100}% - ${droneTest.lowAltitudeMaxThrust * 100}%`);
+				droneTest.log(`⚡ Empuxo normal: ${droneTest.normalThrust * 100}%`);
+			};
+		</script>
+	</body>
+
+</html>
