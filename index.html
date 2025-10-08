@@ -3,8 +3,8 @@
 
     <head>
         <meta charset="utf-8">
-        <title>VR Drone Racing - Cidade Futurista</title>
-        <meta name="description" content="Corrida de Drone em Cidade Futurista VR - Otimizado para Oculus">
+        <title>VR Drone Racing - Cenário Limpo</title>
+        <meta name="description" content="Corrida de Drone VR - Cenário Limpo Otimizado para Oculus">
         <!-- Evitar cache -->
         <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
         <meta http-equiv="Pragma" content="no-cache">
@@ -33,15 +33,16 @@
         <script src="js/audio-system.js?v=1.0.4"></script>
         <script src="js/navigation-arrow.js?v=1.0.2"></script>
 
-        <!-- ÚNICA A-SCENE - Combinando atributos das duas anteriores -->
-        <a-scene vr-mode-ui="enabled: true"
-            webxr="requiredFeatures: local-floor; optionalFeatures: bounded-floor,hand-tracking"
+        <!-- ÚNICA A-SCENE - ULTRA OTIMIZADA PARA VR -->
+        <a-scene vr-mode-ui="enabled: true" webxr="requiredFeatures: local-floor; optionalFeatures: bounded-floor"
             background="color: #87CEEB" fog="type: linear; color: #87CEEB; near: 50; far: 200"
+            renderer="antialias: false; colorManagement: false; sortObjects: false; physicallyCorrectLights: false; gammaFactor: 2.2; highRefreshRate: true; foveationLevel: 1"
             game-manager="totalCheckpoints: 3; timeLimit: 180"
-            urban-environment="citySize: 60; buildingCount: 8; obstacleCount: 3; treeCount: 0; vrOptimized: true"
-            performance-monitor="targetFPS: 72; minFPS: 60; autoOptimize: true; showStats: false"
-            audio-system="masterVolume: 0.5; musicVolume: 0.2; sfxVolume: 0.6; ambientVolume: 0.1; enableAudio: true"
-            collision-system="enabled: true; bounceForce: 0.5; showEffects: true; soundEnabled: true">
+            urban-environment="citySize: 30; buildingCount: 0; obstacleCount: 0; treeCount: 0; vrOptimized: true; ultraLowPoly: true"
+            performance-monitor="targetFPS: 90; minFPS: 72; autoOptimize: true; showStats: false; aggressiveOptimization: true"
+            audio-system="masterVolume: 0.4; musicVolume: 0.1; sfxVolume: 0.5; ambientVolume: 0.05; enableAudio: true"
+            collision-system="enabled: true; bounceForce: 0.5; showEffects: false; soundEnabled: false"
+            vr-performance-optimizer>
 
             <!-- Assets -->
             <a-assets>
@@ -49,66 +50,56 @@
                 <a-asset-item id="abbyroupaclara" src="assets/AbbyRoupaClara.glb"></a-asset-item>
 
                 <!-- Mixins para reutilização -->
-                <a-mixin id="checkpoint" geometry="primitive: torus; radius: 4; radiusTubular: 0.5"
-                    material="color: #00ff00; transparent: true; opacity: 0.8; metalness: 0.3; roughness: 0.4"
-                    animation="property: rotation; to: 0 360 0; loop: true; dur: 6000">
+                <a-mixin id="checkpoint" geometry="primitive: torus; radius: 3; radiusTubular: 0.3"
+                    material="color: #00ff00; transparent: true; opacity: 0.6; metalness: 0; roughness: 1; emissive: #00ff00; emissiveIntensity: 0.4"
+                    animation="property: rotation; to: 0 360 0; loop: true; dur: 8000">
                 </a-mixin>
 
-                <a-mixin id="building" material="color: #666; roughness: 0.8; metalness: 0.2"
-                    physics-body="type: static; shape: box">
-                </a-mixin>
 
-                <a-mixin id="propeller" geometry="primitive: cylinder; radius: 0.4; height: 0.02"
-                    material="color: #ff4444; transparent: true; opacity: 0.3">
-                </a-mixin>
+
+
             </a-assets>
 
             <!-- Ambiente e Iluminação -->
 
-            <!-- Iluminação -->
-            <a-light type="ambient" color="#404040" intensity="0.5"></a-light>
-            <a-light type="directional" position="20 40 20" color="#ffffff" intensity="1.2"
-                shadow="cast: true; mapSize: 2048; cameraFar: 100; cameraNear: 0.1">
+            <!-- Iluminação Neutra Otimizada -->
+            <a-light type="ambient" color="#ffffff" intensity="0.6"></a-light>
+            <a-light type="directional" position="20 40 20" color="#ffffff" intensity="1.0" shadow="cast: false">
             </a-light>
-
-            <!-- Luzes Futuristas Otimizadas -->
-            <a-light type="point" position="20 10 -20" color="#00ffff" intensity="1.5" distance="25"></a-light>
-            <a-light type="point" position="-20 12 -35" color="#ff00ff" intensity="1.2" distance="20"></a-light>
 
             <!-- Drone Principal -->
             <a-entity id="drone" position="0 0 0" drone-controller navigation-arrow
                 physics-body="type: dynamic; mass: 2; linearDamping: 0.1; angularDamping: 0.1">
 
-                <!-- Corpo do Drone Otimizado -->
-                <a-entity id="drone-body" geometry="primitive: box; width: 1.0; height: 0.3; depth: 1.0"
-                    material="color: #00aa00; metalness: 0.5; roughness: 0.5; emissive: #002200">
+                <!-- Corpo do Drone Ultra-Simplificado -->
+                <a-entity id="drone-body" geometry="primitive: box; width: 0.8; height: 0.2; depth: 0.8"
+                    material="color: #00aa00; metalness: 0; roughness: 1; emissive: #001100; emissiveIntensity: 0.3">
 
-                    <!-- LEDs Simplificados -->
-                    <a-entity geometry="primitive: sphere; radius: 0.03" material="color: #ff0000; emissive: #ff0000"
-                        position="0.4 0.1 0.4"></a-entity>
-                    <a-entity geometry="primitive: sphere; radius: 0.03" material="color: #00ff00; emissive: #00ff00"
-                        position="-0.4 0.1 -0.4"></a-entity>
+                    <!-- Apenas 1 LED Central -->
+                    <a-entity geometry="primitive: sphere; radius: 0.02"
+                        material="color: #00ff00; emissive: #00ff00; emissiveIntensity: 0.8"
+                        position="0 0.12 0"></a-entity>
                 </a-entity>
 
-                <!-- Braços do Drone Simplificados -->
-                <a-entity geometry="primitive: cylinder; radius: 0.05; height: 1.4"
-                    material="color: #333; metalness: 0.3" position="0.6 0 0.6" rotation="0 45 0"></a-entity>
-                <a-entity geometry="primitive: cylinder; radius: 0.05; height: 1.4"
-                    material="color: #333; metalness: 0.3" position="-0.6 0 0.6" rotation="0 -45 0"></a-entity>
-                <a-entity geometry="primitive: cylinder; radius: 0.05; height: 1.4"
-                    material="color: #333; metalness: 0.3" position="0.6 0 -0.6" rotation="0 -45 0"></a-entity>
-                <a-entity geometry="primitive: cylinder; radius: 0.05; height: 1.4"
-                    material="color: #333; metalness: 0.3" position="-0.6 0 -0.6" rotation="0 45 0"></a-entity>
+                <!-- Braços Minimalistas -->
+                <a-entity geometry="primitive: box; width: 1.2; height: 0.03; depth: 0.03"
+                    material="color: #333; metalness: 0; roughness: 1" position="0 0 0"></a-entity>
+                <a-entity geometry="primitive: box; width: 0.03; height: 0.03; depth: 1.2"
+                    material="color: #333; metalness: 0; roughness: 1" position="0 0 0"></a-entity>
 
-                <!-- Hélices Otimizadas -->
-                <a-entity id="prop1" mixin="propeller" position="0.8 0.2 0.8"
-                    animation="property: rotation; to: 0 3600 0; loop: true; dur: 400"></a-entity>
-                <a-entity id="prop2" mixin="propeller" position="-0.8 0.2 0.8"
-                    animation="property: rotation; to: 0 -3600 0; loop: true; dur: 400"></a-entity>
-                <a-entity id="prop3" mixin="propeller" position="0.8 0.2 -0.8"
-                    animation="property: rotation; to: 0 -3600 0; loop: true; dur: 400"></a-entity>
-                <a-entity id="prop4" mixin="propeller" position="-0.8 0.2 -0.8"
-                    animation="property: rotation; to: 0 3600 0; loop: true; dur: 400"></a-entity>
+                <!-- Hélices Ultra-Simples -->
+                <a-entity id="prop1" geometry="primitive: cylinder; radius: 0.25; height: 0.01"
+                    material="color: #ff4444; transparent: true; opacity: 0.2" position="0.6 0.15 0.6"
+                    animation="property: rotation; to: 0 1800 0; loop: true; dur: 600"></a-entity>
+                <a-entity id="prop2" geometry="primitive: cylinder; radius: 0.25; height: 0.01"
+                    material="color: #ff4444; transparent: true; opacity: 0.2" position="-0.6 0.15 0.6"
+                    animation="property: rotation; to: 0 -1800 0; loop: true; dur: 600"></a-entity>
+                <a-entity id="prop3" geometry="primitive: cylinder; radius: 0.25; height: 0.01"
+                    material="color: #ff4444; transparent: true; opacity: 0.2" position="0.6 0.15 -0.6"
+                    animation="property: rotation; to: 0 -1800 0; loop: true; dur: 600"></a-entity>
+                <a-entity id="prop4" geometry="primitive: cylinder; radius: 0.25; height: 0.01"
+                    material="color: #ff4444; transparent: true; opacity: 0.2" position="-0.6 0.15 -0.6"
+                    animation="property: rotation; to: 0 1800 0; loop: true; dur: 600"></a-entity>
 
                 <!-- Câmera do Drone -->
                 <a-camera id="drone-camera" position="0 -0.30 -0.5" rotation="-15 0 0" wasd-controls="enabled: false"
@@ -118,7 +109,7 @@
                     <a-entity id="hud" position="0 0 -2">
                         <a-text id="timer" position="-1.5 1 0" value="Tempo: 00:00" color="#00ff00"
                             scale="0.8 0.8 0.8"></a-text>
-                        <a-text id="checkpoint-counter" position="1.5 1 0" value="Checkpoint: 0/5" color="#00ff00"
+                        <a-text id="checkpoint-counter" position="1.5 1 0" value="Checkpoint: 0/3" color="#00ff00"
                             scale="0.8 0.8 0.8"></a-text>
                         <a-text id="speed-indicator" position="0 -1.2 0" value="Velocidade: 0 km/h" color="#ffff00"
                             scale="0.6 0.6 0.6"></a-text>
@@ -135,22 +126,20 @@
 
             <!-- 3D do Ambiente -->
 
-            <a-gltf-model src="#abbyroupaclara" position="-1.80562 0 -4.30211" scale="" rotation="" shadow=""
-                gltf-model="assets/AbbyRoupaClara.glb"></a-gltf-model>
+            <a-gltf-model src="#abbyroupaclara" position="-1.80562 0 -4.30211"
+                shadow="cast: true; receive: false"></a-gltf-model>
 
-            <!-- Chão base (será complementado pelo ambiente urbano) -->
-            <a-plane position="0 -0.1 0" rotation="-90 0 0" width="400" height="400" color="#2d5a27"
-                shadow="receive: true"></a-plane>
+            <!-- Chão Neutro -->
+            <a-plane position="0 -0.1 0" rotation="-90 0 0" width="300" height="300"
+                material="color: #90EE90; metalness: 0; roughness: 1" shadow="receive: false"></a-plane>
 
-            <!-- Controles VR Meta Quest 3 -->
-            <a-entity id="leftHand" hand-controls="hand: left; handModelStyle: lowPoly; color: #ffcccc"
-                oculus-touch-controls="hand: left; model: true" quest-controls="hand: left" vive-controls="hand: left"
-                windows-motion-controls="hand: left" position="-0.5 1 -0.5">
+            <!-- Controles VR Otimizados -->
+            <a-entity id="leftHand" oculus-touch-controls="hand: left; model: false" quest-controls="hand: left"
+                position="-0.5 1 -0.5">
             </a-entity>
 
-            <a-entity id="rightHand" hand-controls="hand: right; handModelStyle: lowPoly; color: #ccffcc"
-                oculus-touch-controls="hand: right; model: true" quest-controls="hand: right"
-                vive-controls="hand: right" windows-motion-controls="hand: right" position="0.5 1 -0.5">
+            <a-entity id="rightHand" oculus-touch-controls="hand: right; model: false" quest-controls="hand: right"
+                position="0.5 1 -0.5">
             </a-entity>
 
             <!-- Linha de chegada -->
@@ -160,15 +149,135 @@
 
         <!-- Tela de carregamento -->
         <div id="loading">
-            <h2>🚁 Carregando Cidade Futurista VR...</h2>
-            <p>🥽 Otimizado para Oculus Quest</p>
-            <p>🎬 Abby & Drone Adventure</p>
+            <h2>Carregando Cenário Limpo VR...</h2>
+            <p>Otimizado para Oculus Quest</p>
+            <p>Abby & Drone Adventure</p>
             <div class="progress-bar">
                 <div class="progress"></div>
             </div>
         </div>
 
         <script>
+            // Componente de Otimização VR Avançada
+            AFRAME.registerComponent('vr-performance-optimizer', {
+                init: function () {
+                    console.log('🚀 Otimizador VR ativado');
+
+                    // Configurações agressivas de performance
+                    const renderer = this.el.renderer;
+                    if (renderer) {
+                        // Reduzir qualidade de renderização para VR
+                        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+                        renderer.shadowMap.enabled = false;
+                        renderer.shadowMap.autoUpdate = false;
+
+                        // Configurações de performance
+                        renderer.powerPreference = "high-performance";
+                        renderer.antialias = false;
+                        renderer.stencil = false;
+                        renderer.depth = true;
+                        renderer.logarithmicDepthBuffer = false;
+                    }
+
+                    // Otimizações específicas para Quest
+                    this.optimizeForQuest();
+
+                    // Monitorar performance e ajustar dinamicamente
+                    this.startPerformanceMonitoring();
+                },
+
+                optimizeForQuest: function () {
+                    // Detectar se está rodando no Quest
+                    const isQuest = navigator.userAgent.includes('Quest') ||
+                        navigator.userAgent.includes('Oculus');
+
+                    if (isQuest) {
+                        console.log('🥽 Quest detectado - aplicando otimizações específicas');
+
+                        // Reduzir ainda mais a qualidade para Quest
+                        const scene = this.el;
+                        scene.setAttribute('renderer', {
+                            antialias: false,
+                            colorManagement: false,
+                            sortObjects: false,
+                            physicallyCorrectLights: false,
+                            gammaFactor: 2.2,
+                            highRefreshRate: true,
+                            foveationLevel: 2, // Máximo foveation
+                            multiview: true
+                        });
+
+                        // Reduzir fog distance para Quest
+                        scene.setAttribute('fog', {
+                            type: 'linear',
+                            color: '#87CEEB',
+                            near: 30,
+                            far: 120
+                        });
+                    }
+                },
+
+                startPerformanceMonitoring: function () {
+                    let frameCount = 0;
+                    let lastTime = performance.now();
+                    let lowFPSCount = 0;
+
+                    const monitor = () => {
+                        frameCount++;
+                        const currentTime = performance.now();
+
+                        if (currentTime - lastTime >= 1000) {
+                            const fps = Math.round((frameCount * 1000) / (currentTime - lastTime));
+
+                            // Se FPS baixo, aplicar otimizações emergenciais
+                            if (fps < 60) {
+                                lowFPSCount++;
+                                if (lowFPSCount >= 3) {
+                                    this.applyEmergencyOptimizations();
+                                    lowFPSCount = 0;
+                                }
+                            } else {
+                                lowFPSCount = 0;
+                            }
+
+                            frameCount = 0;
+                            lastTime = currentTime;
+                        }
+
+                        requestAnimationFrame(monitor);
+                    };
+
+                    monitor();
+                },
+
+                applyEmergencyOptimizations: function () {
+                    console.log('⚡ Aplicando otimizações emergenciais');
+
+                    // Cenário já está limpo - sem elementos para ocultar
+                    console.log('⚡ Cenário limpo - sem elementos adicionais para otimizar');
+
+                    // Desabilitar animações não essenciais
+                    const props = document.querySelectorAll('[id^="prop"]');
+                    props.forEach(prop => {
+                        const anim = prop.getAttribute('animation');
+                        if (anim) {
+                            prop.setAttribute('animation', {
+                                ...anim,
+                                dur: 1000 // Animação mais lenta
+                            });
+                        }
+                    });
+
+                    // Reduzir fog distance no cenário limpo
+                    this.el.setAttribute('fog', {
+                        type: 'linear',
+                        color: '#87CEEB',
+                        near: 25,
+                        far: 100
+                    });
+                }
+            });
+
             // Componente simples para sincronizar câmera VR
             AFRAME.registerComponent('vr-camera-sync', {
                 init: function () {

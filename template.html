@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Merge Explore - Experiência A-Frame</title>
+
+		<!-- Preload crítico para melhor performance -->
+		<link rel="preload" href="/src/main.js" as="script" type="module">
+		<link rel="preload" href="/src/style.css" as="style">
+
+		<!-- Meta tags para WebXR -->
+		<meta name="mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+		<!-- Tailwind CSS -->
+		<script src="https://cdn.tailwindcss.com"></script>
+
+		<!-- iwer.js carregado de forma assíncrona para evitar conflitos -->
+		<script async src="https://unpkg.com/iwer@2.1.1/build/iwer.min.js"></script>
+	</head>
+
+	<body class="bg-gray-900 text-white overflow-hidden">
+		<!-- Main Container -->
+		<div class="relative h-screen w-full flex flex-col">
+			<!-- Header -->
+			<header
+				class="bg-black bg-opacity-80 backdrop-blur-sm p-4 flex justify-between items-center z-50 border-b border-gray-800">
+				<div class="flex items-center space-x-2">
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-purple-500" fill="none"
+						viewBox="0 0 24 24" stroke="currentColor">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+							d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 002 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+					</svg>
+					<h1
+						class="text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">
+						Fusion Reality</h1>
+				</div>
+				<div class="flex space-x-4">
+					<button id="vr-toggle"
+						class="vr-button bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 rounded-full flex items-center space-x-2">
+						<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+							stroke="currentColor">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+								d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 002 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+						</svg>
+						<span>Entrar em VR</span>
+					</button>
+
+				</div>
+			</header>
+
+			<!-- A-Frame Scene -->
+			<a-scene id="aframe-scene" vr-mode-ui="enabled: true" embedded webxr-setup background="color: #ECECEC"
+				physics="debug: false; gravity: -2">
+
+				<!-- Assets -->
+				<a-assets>
+
+				</a-assets>
+
+				<!-- Environment -->
+				<a-entity environment="preset: forest; dressingAmount: 1; grid: 5x5"></a-entity>
+
+				<!-- Chão invisível para colisão no VR -->
+				<a-plane position="0 0 0" rotation="-90 0 0" width="100" height="100"
+					material="transparent: true; opacity: 0" static-body="shape: box; size: 100 0.1 100">
+				</a-plane>
+
+				<!-- Player Rig com controles otimizados para Meta Quest 3 -->
+				<a-entity id="rig" quest-controls="speed: 0.5; fly: false; rotationSpeed: 1.5" position="0 0.65 0"
+					kinematic-body="shape: box; size: 1 1.8 1">
+
+					<!-- Camera principal -->
+					<a-entity id="camera" camera="" look-controls="pointerLockEnabled: true"
+						wasd-controls="acceleration: 20" position="0 0 0" rotation="0 0 0">
+					</a-entity>
+
+					<!-- Controles de mão esquerda para Quest 3 -->
+					<a-entity id="leftController" oculus-touch-controls="hand: left" hand-tracking-controls="hand: left"
+						quest-teleport="cameraRig: #rig; teleportOrigin: #camera; button: trigger" visible="true">
+					</a-entity>
+
+					<!-- Controles de mão direita para Quest 3 -->
+					<a-entity id="rightController" oculus-touch-controls="hand: right"
+						hand-tracking-controls="hand: right"
+						quest-teleport="cameraRig: #rig; teleportOrigin: #camera; button: trigger" visible="true">
+					</a-entity>
+				</a-entity>
+
+				<!-- Iluminação otimizada -->
+				<a-light type="ambient" color="#404040" intensity="0.4"></a-light>
+				<a-light type="directional" position="1 1 1" color="#ffffff" intensity="0.6"></a-light>
+			</a-scene>
+
+		</div>
+		<script type="module" src="/src/main.js"></script>
+	</body>
+
+</html>
