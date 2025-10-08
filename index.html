@@ -47,7 +47,9 @@
             <a-assets>
                 <!-- Modelos 3D -->
                 <a-asset-item id="predio-model" src="assets/Predio.glb"></a-asset-item>
-                <a-asset-item id="quadra-model" src="assets/Quadra.glb"></a-asset-item>
+                <a-asset-item id="quadra-model" src="assets/Predio em L.glb"></a-asset-item>
+                <a-asset-item id="cyticyberpunk" src="assets/scene.gltf"></a-asset-item>
+                <a-asset-item id="abbyroupaclara" src="assets/AbbyRoupaClara.glb"></a-asset-item>
 
                 <!-- Mixins para reutilização -->
                 <a-mixin id="checkpoint" geometry="primitive: torus; radius: 4; radiusTubular: 0.5"
@@ -71,6 +73,12 @@
             <a-light type="directional" position="20 40 20" color="#ffffff" intensity="1.2"
                 shadow="cast: true; mapSize: 2048; cameraFar: 100; cameraNear: 0.1">
             </a-light>
+
+            <!-- Luzes Cyberpunk -->
+            <a-light type="point" position="30 10 -30" color="#00ffff" intensity="2" distance="20"></a-light>
+            <a-light type="point" position="45 12 -25" color="#ff00ff" intensity="1.8" distance="18"></a-light>
+            <a-light type="point" position="25 8 -45" color="#ffff00" intensity="1.5" distance="15"></a-light>
+            <a-light type="point" position="35 15 -40" color="#ff0080" intensity="2.2" distance="25"></a-light>
 
             <!-- Drone Principal -->
             <a-entity id="drone" position="0 0 0" drone-controller navigation-arrow
@@ -113,7 +121,7 @@
 
                 <!-- Câmera do Drone -->
                 <a-camera id="drone-camera" position="0 -0.30 -0.5" rotation="-15 0 0" wasd-controls="enabled: false"
-                    look-controls="enabled: true; pointerLockEnabled: false">
+                    look-controls="enabled: true; pointerLockEnabled: false" vr-camera-sync>
 
                     <!-- HUD do jogador -->
                     <a-entity id="hud" position="0 0 -2">
@@ -141,7 +149,12 @@
                 shadow="cast: true; receive: true"></a-gltf-model>
             <a-gltf-model src="#quadra-model" position="0 0 -50" scale="1 1 1" rotation="0 0 0"
                 shadow="cast: true; receive: true"></a-gltf-model>
+            <!-- Cidade Cyberpunk - Modelo principal -->
+            <a-gltf-model src="#cyticyberpunk" position="30 0 -30" scale="2 2 2" rotation="0 0 0"
+                shadow="cast: true; receive: true"></a-gltf-model>
 
+            <a-gltf-model src="#abbyroupaclara" position="-1.80562 0 -4.30211" scale="" rotation="" shadow=""
+                gltf-model="assets/AbbyRoupaClara.glb"></a-gltf-model>
 
             <!-- Chão base (será complementado pelo ambiente urbano) -->
             <a-plane position="0 -0.1 0" rotation="-90 0 0" width="400" height="400" color="#2d5a27"
@@ -173,6 +186,66 @@
         </div>
 
         <script>
+            // Componente simples para sincronizar câmera VR
+            AFRAME.registerComponent('vr-camera-sync', {
+                init: function () {
+                    console.log('🥽 Sincronização VR ativada');
+
+                    this.browserState = {
+                        position: this.el.getAttribute('position'),
+                        rotation: this.el.getAttribute('rotation')
+                    };
+
+                    // Posição da câmera para VR (embaixo do drone)
+                    this.vrCameraPosition = { x: 0, y: -2.0, z: -0.5 }; // MUITO embaixo do drone
+                    this.vrCameraRotation = { x: 10, y: 0, z: 0 }; // Olhando para baixo
+
+                    // Capturar estado da câmera antes de entrar no VR
+                    this.el.sceneEl.addEventListener('enter-vr', () => {
+                        console.log('📱 Entrando no VR - Posicionando câmera embaixo do drone...');
+                        this.positionCameraForVR();
+                    });
+
+                    // Método para posicionar câmera no VR
+                    this.positionCameraForVR = () => {
+                        // Aplicar posição específica para VR (embaixo do drone) múltiplas vezes
+                        for (let i = 0; i < 5; i++) {
+                            setTimeout(() => {
+                                this.el.setAttribute('position', this.vrCameraPosition);
+                                this.el.setAttribute('rotation', this.vrCameraRotation);
+                                console.log(`✅ Tentativa ${i + 1}: Câmera VR posicionada embaixo do drone`);
+                            }, 100 * (i + 1));
+                        }
+                    };
+
+                    // Restaurar posição original ao sair do VR
+                    this.el.sceneEl.addEventListener('exit-vr', () => {
+                        console.log('🖥️ Saindo do VR - Restaurando posição original...');
+                        setTimeout(() => {
+                            this.el.setAttribute('position', this.browserState.position);
+                            this.el.setAttribute('rotation', this.browserState.rotation);
+                        }, 100);
+                    });
+
+                    // Monitoramento contínuo
+                    setInterval(() => {
+                        if (this.el.sceneEl.is('vr-mode')) {
+                            // Se estiver em VR, forçar posição embaixo do drone
+                            const currentPos = this.el.getAttribute('position');
+                            if (currentPos.y > -1.5) { // Se não estiver embaixo suficiente
+                                this.el.setAttribute('position', this.vrCameraPosition);
+                                this.el.setAttribute('rotation', this.vrCameraRotation);
+                                console.log('🔄 Forçando câmera para baixo do drone');
+                            }
+                        } else {
+                            // Se não estiver em VR, atualizar estado do navegador
+                            this.browserState.position = this.el.getAttribute('position');
+                            this.browserState.rotation = this.el.getAttribute('rotation');
+                        }
+                    }, 200);
+                }
+            });
+
             // Inicializar o jogo quando a cena estiver carregada
             document.addEventListener('DOMContentLoaded', function () {
                 console.log('🎮 Inicializando o jogo...');
