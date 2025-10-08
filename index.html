@@ -37,18 +37,15 @@
         <a-scene vr-mode-ui="enabled: true"
             webxr="requiredFeatures: local-floor; optionalFeatures: bounded-floor,hand-tracking"
             background="color: #87CEEB" fog="type: linear; color: #87CEEB; near: 50; far: 200"
-            game-manager="totalCheckpoints: 5; timeLimit: 120"
-            urban-environment="citySize: 100; buildingCount: 15; obstacleCount: 8; treeCount: 5; vrOptimized: true"
-            performance-monitor="targetFPS: 60; minFPS: 45; autoOptimize: true; showStats: true"
+            game-manager="totalCheckpoints: 3; timeLimit: 180"
+            urban-environment="citySize: 60; buildingCount: 8; obstacleCount: 3; treeCount: 0; vrOptimized: true"
+            performance-monitor="targetFPS: 72; minFPS: 60; autoOptimize: true; showStats: false"
             audio-system="masterVolume: 0.7; musicVolume: 0.4; sfxVolume: 0.8; ambientVolume: 0.3; enableAudio: true"
             collision-system="enabled: true; bounceForce: 0.5; showEffects: true; soundEnabled: true">
 
             <!-- Assets -->
             <a-assets>
                 <!-- Modelos 3D -->
-                <a-asset-item id="predio-model" src="assets/Predio.glb"></a-asset-item>
-                <a-asset-item id="quadra-model" src="assets/Predio em L.glb"></a-asset-item>
-                <a-asset-item id="cyticyberpunk" src="assets/scene.gltf"></a-asset-item>
                 <a-asset-item id="abbyroupaclara" src="assets/AbbyRoupaClara.glb"></a-asset-item>
 
                 <!-- Mixins para reutilização -->
@@ -74,40 +71,34 @@
                 shadow="cast: true; mapSize: 2048; cameraFar: 100; cameraNear: 0.1">
             </a-light>
 
-            <!-- Luzes Cyberpunk -->
-            <a-light type="point" position="30 10 -30" color="#00ffff" intensity="2" distance="20"></a-light>
-            <a-light type="point" position="45 12 -25" color="#ff00ff" intensity="1.8" distance="18"></a-light>
-            <a-light type="point" position="25 8 -45" color="#ffff00" intensity="1.5" distance="15"></a-light>
-            <a-light type="point" position="35 15 -40" color="#ff0080" intensity="2.2" distance="25"></a-light>
+            <!-- Luzes Futuristas Otimizadas -->
+            <a-light type="point" position="20 10 -20" color="#00ffff" intensity="1.5" distance="25"></a-light>
+            <a-light type="point" position="-20 12 -35" color="#ff00ff" intensity="1.2" distance="20"></a-light>
 
             <!-- Drone Principal -->
             <a-entity id="drone" position="0 0 0" drone-controller navigation-arrow
                 physics-body="type: dynamic; mass: 2; linearDamping: 0.1; angularDamping: 0.1">
 
-                <!-- Corpo do Drone -->
-                <a-entity id="drone-body" geometry="primitive: box; width: 1.2; height: 0.4; depth: 1.2"
-                    material="color: #00aa00; metalness: 0.8; roughness: 0.2; emissive: #002200">
+                <!-- Corpo do Drone Otimizado -->
+                <a-entity id="drone-body" geometry="primitive: box; width: 1.0; height: 0.3; depth: 1.0"
+                    material="color: #00aa00; metalness: 0.5; roughness: 0.5; emissive: #002200">
 
-                    <!-- Luzes LED do drone -->
-                    <a-entity geometry="primitive: sphere; radius: 0.05" material="color: #ff0000; emissive: #ff0000"
-                        position="0.5 0.1 0.5"></a-entity>
-                    <a-entity geometry="primitive: sphere; radius: 0.05" material="color: #00ff00; emissive: #00ff00"
-                        position="-0.5 0.1 0.5"></a-entity>
-                    <a-entity geometry="primitive: sphere; radius: 0.05" material="color: #0000ff; emissive: #0000ff"
-                        position="0.5 0.1 -0.5"></a-entity>
-                    <a-entity geometry="primitive: sphere; radius: 0.05" material="color: #ffff00; emissive: #ffff00"
-                        position="-0.5 0.1 -0.5"></a-entity>
+                    <!-- LEDs Simplificados -->
+                    <a-entity geometry="primitive: sphere; radius: 0.03" material="color: #ff0000; emissive: #ff0000"
+                        position="0.4 0.1 0.4"></a-entity>
+                    <a-entity geometry="primitive: sphere; radius: 0.03" material="color: #00ff00; emissive: #00ff00"
+                        position="-0.4 0.1 -0.4"></a-entity>
                 </a-entity>
 
-                <!-- Braços do Drone -->
-                <a-entity geometry="primitive: cylinder; radius: 0.08; height: 2" material="color: #333; metalness: 0.7"
-                    position="0.8 0 0.8" rotation="0 45 0"></a-entity>
-                <a-entity geometry="primitive: cylinder; radius: 0.08; height: 2" material="color: #333; metalness: 0.7"
-                    position="-0.8 0 0.8" rotation="0 -45 0"></a-entity>
-                <a-entity geometry="primitive: cylinder; radius: 0.08; height: 2" material="color: #333; metalness: 0.7"
-                    position="0.8 0 -0.8" rotation="0 -45 0"></a-entity>
-                <a-entity geometry="primitive: cylinder; radius: 0.08; height: 2" material="color: #333; metalness: 0.7"
-                    position="-0.8 0 -0.8" rotation="0 45 0"></a-entity>
+                <!-- Braços do Drone Simplificados -->
+                <a-entity geometry="primitive: cylinder; radius: 0.05; height: 1.4"
+                    material="color: #333; metalness: 0.3" position="0.6 0 0.6" rotation="0 45 0"></a-entity>
+                <a-entity geometry="primitive: cylinder; radius: 0.05; height: 1.4"
+                    material="color: #333; metalness: 0.3" position="-0.6 0 0.6" rotation="0 -45 0"></a-entity>
+                <a-entity geometry="primitive: cylinder; radius: 0.05; height: 1.4"
+                    material="color: #333; metalness: 0.3" position="0.6 0 -0.6" rotation="0 -45 0"></a-entity>
+                <a-entity geometry="primitive: cylinder; radius: 0.05; height: 1.4"
+                    material="color: #333; metalness: 0.3" position="-0.6 0 -0.6" rotation="0 45 0"></a-entity>
 
                 <!-- Hélices -->
                 <a-entity id="prop1" mixin="propeller" position="1.1 0.3 1.1"
@@ -137,21 +128,12 @@
                 </a-camera>
             </a-entity>
 
-            <!-- Percurso de Checkpoints -->
+            <!-- Percurso de Checkpoints Simplificado -->
             <a-entity mixin="checkpoint" position="15 8 -15" checkpoint="id: 1"></a-entity>
             <a-entity mixin="checkpoint" position="-20 12 -30" checkpoint="id: 2"></a-entity>
-            <a-entity mixin="checkpoint" position="25 6 -45" checkpoint="id: 3"></a-entity>
-            <a-entity mixin="checkpoint" position="-15 18 -60" checkpoint="id: 4"></a-entity>
-            <a-entity mixin="checkpoint" position="0 10 -75" checkpoint="id: 5"></a-entity>
+            <a-entity mixin="checkpoint" position="0 10 -45" checkpoint="id: 3"></a-entity>
 
-            <!-- Modelos 3D do Ambiente -->
-            <a-gltf-model src="#predio-model" position="0 0 -20" scale="1 1 1" rotation="0 0 0"
-                shadow="cast: true; receive: true"></a-gltf-model>
-            <a-gltf-model src="#quadra-model" position="0 0 -50" scale="1 1 1" rotation="0 0 0"
-                shadow="cast: true; receive: true"></a-gltf-model>
-            <!-- Cidade Cyberpunk - Modelo principal -->
-            <a-gltf-model src="#cyticyberpunk" position="30 0 -30" scale="2 2 2" rotation="0 0 0"
-                shadow="cast: true; receive: true"></a-gltf-model>
+            <!-- 3D do Ambiente -->
 
             <a-gltf-model src="#abbyroupaclara" position="-1.80562 0 -4.30211" scale="" rotation="" shadow=""
                 gltf-model="assets/AbbyRoupaClara.glb"></a-gltf-model>
