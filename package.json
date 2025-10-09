@@ -72,5 +72,8 @@
     "targetFPS": 90,
     "maxPolygons": 100000,
     "textureResolution": "1024x1024"
+  },
+  "dependencies": {
+    "aframe": "^1.7.1"
   }
 }
