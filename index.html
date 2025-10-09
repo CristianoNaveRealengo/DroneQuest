@@ -32,6 +32,7 @@
         <script src="js/collision-system.js?v=1.0.2"></script>
         <script src="js/audio-system.js?v=1.0.4"></script>
         <script src="js/navigation-arrow.js?v=1.0.2"></script>
+        <script src="js/futuristic-hud.js?v=1.0.0"></script>
 
         <!-- ÚNICA A-SCENE - ULTRA OTIMIZADA PARA VR -->
         <a-scene vr-mode-ui="enabled: true" webxr="requiredFeatures: local-floor; optionalFeatures: bounded-floor"
@@ -41,7 +42,7 @@
             urban-environment="citySize: 30; buildingCount: 0; obstacleCount: 0; treeCount: 0; vrOptimized: true; ultraLowPoly: true"
             performance-monitor="targetFPS: 90; minFPS: 72; autoOptimize: true; showStats: false; aggressiveOptimization: true"
             audio-system="masterVolume: 0.4; musicVolume: 0.1; sfxVolume: 0.5; ambientVolume: 0.05; enableAudio: true"
-            collision-system="enabled: true; bounceForce: 0.5; showEffects: false; soundEnabled: false"
+            collision-system="enabled: true; bounceForce: 0.5; showEffects: false; soundEnabled: false" hud-controls
             vr-performance-optimizer>
 
             <!-- Assets -->
@@ -90,10 +91,12 @@
 
                 <!-- Câmera do Drone -->
                 <a-camera id="drone-camera" position="0 -0.30 -0.5" rotation="-15 0 0" wasd-controls="enabled: false"
-                    look-controls="enabled: true; pointerLockEnabled: false" vr-camera-sync>
+                    look-controls="enabled: true; pointerLockEnabled: false" vr-camera-sync futuristic-hud>
 
-                    <!-- HUD do jogador -->
-                    <a-entity id="hud" position="0 0 -2">
+                    <!-- HUD Futurístico será criado automaticamente pelo componente -->
+
+                    <!-- HUD Básico de Backup (oculto por padrão) -->
+                    <a-entity id="hud-backup" position="0 0 -2" visible="false">
                         <a-text id="timer" position="-1.5 1 0" value="Tempo: 00:00" color="#00ff00"
                             scale="0.8 0.8 0.8"></a-text>
                         <a-text id="checkpoint-counter" position="1.5 1 0" value="Checkpoint: 0/3" color="#00ff00"
@@ -156,6 +159,20 @@
             <p>Abby & Drone Adventure</p>
             <div class="progress-bar">
                 <div class="progress"></div>
+            </div>
+        </div>
+
+        <!-- Painel de Controles do HUD -->
+        <div id="hud-help"
+            style="position: fixed; top: 10px; right: 10px; background: rgba(0, 0, 0, 0.8); color: #00ffff; padding: 15px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 12px; z-index: 1000; border: 1px solid #00ffff; max-width: 300px;">
+            <div style="font-weight: bold; margin-bottom: 10px; color: #00ff00;">🚀 HUD FUTURÍSTICO</div>
+            <div style="margin-bottom: 8px;"><strong>H</strong> - Alternar HUD Futurístico</div>
+            <div style="margin-bottom: 8px;"><strong>U</strong> - Ajustar Transparência</div>
+            <div style="margin-bottom: 8px;"><strong>I</strong> - Alterar Cor do HUD</div>
+            <div style="margin-bottom: 8px;"><strong>J</strong> - Informações do Sistema</div>
+            <div
+                style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #00ffff; font-size: 10px; opacity: 0.8;">
+                Interface de nave espacial com dados em tempo real do drone
             </div>
         </div>
 
@@ -373,6 +390,23 @@
                         }
 
                         console.log('✅ Jogo inicializado com sucesso!');
+
+                        // Ocultar painel de ajuda do HUD após 8 segundos
+                        setTimeout(() => {
+                            const hudHelp = document.getElementById('hud-help');
+                            if (hudHelp) {
+                                hudHelp.style.opacity = '0.3';
+                                hudHelp.style.transition = 'opacity 1s ease-out';
+                            }
+                        }, 8000);
+
+                        // Ocultar completamente após 15 segundos
+                        setTimeout(() => {
+                            const hudHelp = document.getElementById('hud-help');
+                            if (hudHelp) {
+                                hudHelp.style.display = 'none';
+                            }
+                        }, 15000);
                     }, 2000);
                 });
             });

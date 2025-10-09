@@ -1,217 +1,537 @@
 /* Reset e configurações básicas */
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
 }
 
 body {
-    margin: 0;
-    font-family: 'Arial', sans-serif;
-    background-color: #000;
-    overflow: hidden;
+	margin: 0;
+	font-family: "Arial", sans-serif;
+	background-color: #000;
+	overflow: hidden;
 }
 
 /* Tela de loading */
 #loading {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    color: white;
-    z-index: 1000;
-    font-size: 18px;
-    text-align: center;
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	color: white;
+	z-index: 1000;
+	font-size: 18px;
+	text-align: center;
 }
 
 #loading h2 {
-    font-size: 2.5em;
-    margin-bottom: 20px;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-    animation: pulse 2s infinite;
+	font-size: 2.5em;
+	margin-bottom: 20px;
+	text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+	animation: pulse 2s infinite;
 }
 
 #loading p {
-    font-size: 1.2em;
-    opacity: 0.8;
-    animation: fadeInOut 3s infinite;
+	font-size: 1.2em;
+	opacity: 0.8;
+	animation: fadeInOut 3s infinite;
 }
 
 /* Animações */
 @keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
+	0%,
+	100% {
+		transform: scale(1);
+	}
+	50% {
+		transform: scale(1.05);
+	}
 }
 
 @keyframes fadeInOut {
-    0%, 100% { opacity: 0.5; }
-    50% { opacity: 1; }
+	0%,
+	100% {
+		opacity: 0.5;
+	}
+	50% {
+		opacity: 1;
+	}
 }
 
 /* Configurações da cena A-Frame */
 a-scene {
-    height: 100vh;
-    width: 100vw;
-    display: block;
+	height: 100vh;
+	width: 100vw;
+	display: block;
 }
 
 /* Estilos para elementos VR */
 .vr-ui {
-    background: rgba(0, 0, 0, 0.8);
-    padding: 15px;
-    border-radius: 8px;
-    border: 2px solid #00ff00;
-    box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+	background: rgba(0, 0, 0, 0.8);
+	padding: 15px;
+	border-radius: 8px;
+	border: 2px solid #00ff00;
+	box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
 }
 
 /* Customização do botão VR */
 .a-enter-vr-button {
-    background-color: #00aa00 !important;
-    border: 2px solid #00ff00 !important;
-    color: white !important;
-    font-weight: bold !important;
-    padding: 12px 24px !important;
-    border-radius: 8px !important;
-    transition: all 0.3s ease !important;
+	background-color: #00aa00 !important;
+	border: 2px solid #00ff00 !important;
+	color: white !important;
+	font-weight: bold !important;
+	padding: 12px 24px !important;
+	border-radius: 8px !important;
+	transition: all 0.3s ease !important;
 }
 
 .a-enter-vr-button:hover {
-    background-color: #00ff00 !important;
-    box-shadow: 0 0 15px rgba(0, 255, 0, 0.5) !important;
-    transform: scale(1.05) !important;
+	background-color: #00ff00 !important;
+	box-shadow: 0 0 15px rgba(0, 255, 0, 0.5) !important;
+	transform: scale(1.05) !important;
 }
 
 /* Indicadores de performance */
 .performance-stats {
-    position: fixed;
-    top: 10px;
-    left: 10px;
-    background: rgba(0, 0, 0, 0.7);
-    color: #00ff00;
-    padding: 10px;
-    border-radius: 5px;
-    font-family: monospace;
-    font-size: 12px;
-    z-index: 999;
+	position: fixed;
+	top: 10px;
+	left: 10px;
+	background: rgba(0, 0, 0, 0.7);
+	color: #00ff00;
+	padding: 10px;
+	border-radius: 5px;
+	font-family: monospace;
+	font-size: 12px;
+	z-index: 999;
 }
 
 /* Responsividade para diferentes dispositivos */
 @media (max-width: 768px) {
-    #loading h2 {
-        font-size: 2em;
-    }
-    
-    #loading p {
-        font-size: 1em;
-    }
+	#loading h2 {
+		font-size: 2em;
+	}
+
+	#loading p {
+		font-size: 1em;
+	}
 }
 
 /* Estilos para modo desktop (fallback) */
 @media (min-width: 1024px) {
-    .desktop-controls {
-        position: fixed;
-        bottom: 20px;
-        left: 20px;
-        background: rgba(0, 0, 0, 0.8);
-        color: white;
-        padding: 15px;
-        border-radius: 8px;
-        font-size: 14px;
-        z-index: 999;
-    }
-    
-    .desktop-controls h3 {
-        margin-bottom: 10px;
-        color: #00ff00;
-    }
-    
-    .desktop-controls ul {
-        list-style: none;
-        line-height: 1.5;
-    }
-    
-    .desktop-controls li {
-        margin-bottom: 5px;
-    }
-    
-    .desktop-controls kbd {
-        background: #333;
-        padding: 2px 6px;
-        border-radius: 3px;
-        font-family: monospace;
-    }
+	.desktop-controls {
+		position: fixed;
+		bottom: 20px;
+		left: 20px;
+		background: rgba(0, 0, 0, 0.8);
+		color: white;
+		padding: 15px;
+		border-radius: 8px;
+		font-size: 14px;
+		z-index: 999;
+	}
+
+	.desktop-controls h3 {
+		margin-bottom: 10px;
+		color: #00ff00;
+	}
+
+	.desktop-controls ul {
+		list-style: none;
+		line-height: 1.5;
+	}
+
+	.desktop-controls li {
+		margin-bottom: 5px;
+	}
+
+	.desktop-controls kbd {
+		background: #333;
+		padding: 2px 6px;
+		border-radius: 3px;
+		font-family: monospace;
+	}
 }
 
 /* Animações para elementos do jogo */
 .checkpoint-glow {
-    animation: checkpointPulse 2s infinite;
+	animation: checkpointPulse 2s infinite;
 }
 
 @keyframes checkpointPulse {
-    0%, 100% { 
-        filter: brightness(1) drop-shadow(0 0 10px #00ff00); 
-    }
-    50% { 
-        filter: brightness(1.5) drop-shadow(0 0 20px #00ff00); 
-    }
+	0%,
+	100% {
+		filter: brightness(1) drop-shadow(0 0 10px #00ff00);
+	}
+	50% {
+		filter: brightness(1.5) drop-shadow(0 0 20px #00ff00);
+	}
 }
 
 /* Efeitos de partículas (para futuras implementações) */
 .particle-effect {
-    pointer-events: none;
-    position: absolute;
-    width: 4px;
-    height: 4px;
-    background: #00ff00;
-    border-radius: 50%;
-    animation: particleFade 1s ease-out forwards;
+	pointer-events: none;
+	position: absolute;
+	width: 4px;
+	height: 4px;
+	background: #00ff00;
+	border-radius: 50%;
+	animation: particleFade 1s ease-out forwards;
 }
 
 @keyframes particleFade {
-    0% {
-        opacity: 1;
-        transform: scale(1);
-    }
-    100% {
-        opacity: 0;
-        transform: scale(0) translateY(-50px);
-    }
+	0% {
+		opacity: 1;
+		transform: scale(1);
+	}
+	100% {
+		opacity: 0;
+		transform: scale(0) translateY(-50px);
+	}
 }
 
 /* Configurações para melhor performance em VR */
 a-scene canvas {
-    image-rendering: optimizeSpeed;
-    image-rendering: -moz-crisp-edges;
-    image-rendering: -webkit-optimize-contrast;
-    image-rendering: optimize-contrast;
+	image-rendering: optimizeSpeed;
+	image-rendering: -moz-crisp-edges;
+	image-rendering: -webkit-optimize-contrast;
+	image-rendering: optimize-contrast;
 }
 
 /* Estilos para debug (removível em produção) */
 .debug-info {
-    position: fixed;
-    top: 10px;
-    right: 10px;
-    background: rgba(0, 0, 0, 0.8);
-    color: #ffff00;
-    padding: 10px;
-    border-radius: 5px;
-    font-family: monospace;
-    font-size: 11px;
-    z-index: 998;
-    max-width: 200px;
+	position: fixed;
+	top: 10px;
+	right: 10px;
+	background: rgba(0, 0, 0, 0.8);
+	color: #ffff00;
+	padding: 10px;
+	border-radius: 5px;
+	font-family: monospace;
+	font-size: 11px;
+	z-index: 998;
+	max-width: 200px;
 }
 
 /* Ocultar elementos desnecessários em VR */
 @media (display-mode: vr) {
-    .desktop-controls,
-    .debug-info,
-    .performance-stats {
-        display: none !important;
-    }
+	.desktop-controls,
+	.debug-info,
+	.performance-stats {
+		display: none !important;
+	}
+} /* =====
+ ESTILOS PARA HUD FUTURÍSTICO ===== */
+
+/* Configurações gerais do HUD */
+.futuristic-hud {
+	font-family: "Courier New", monospace;
+	text-rendering: optimizeSpeed;
+}
+
+/* Animações para elementos do HUD */
+@keyframes hudGlow {
+	0%,
+	100% {
+		filter: drop-shadow(0 0 5px currentColor);
+		opacity: 0.8;
+	}
+	50% {
+		filter: drop-shadow(0 0 15px currentColor);
+		opacity: 1;
+	}
+}
+
+@keyframes hudPulse {
+	0%,
+	100% {
+		transform: scale(1);
+	}
+	50% {
+		transform: scale(1.05);
+	}
+}
+
+@keyframes radarSweep {
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
+}
+
+@keyframes batteryWarning {
+	0%,
+	100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.3;
+	}
+}
+
+/* Estilos para diferentes estados do HUD */
+.hud-normal {
+	color: #00ffff;
+}
+
+.hud-warning {
+	color: #ffaa00;
+	animation: hudPulse 1s infinite;
+}
+
+.hud-critical {
+	color: #ff4444;
+	animation: batteryWarning 0.5s infinite;
+}
+
+.hud-success {
+	color: #44ff44;
+}
+
+/* Configurações específicas para VR */
+@media (display-mode: vr) {
+	.futuristic-hud {
+		/* Otimizações para VR */
+		text-rendering: optimizeSpeed;
+		font-smooth: never;
+		-webkit-font-smoothing: none;
+	}
+}
+
+/* Configurações para diferentes resoluções */
+@media (max-width: 1920px) {
+	.futuristic-hud {
+		/* Ajustes para resoluções menores */
+		font-size: 0.9em;
+	}
+}
+
+/* Configurações para Quest 2/3 */
+@media (max-width: 1832px) {
+	.futuristic-hud {
+		/* Otimizações específicas para Quest */
+		font-size: 0.8em;
+		text-rendering: optimizeSpeed;
+	}
+}
+
+/* Efeitos de transparência para o HUD */
+.hud-transparent {
+	background: rgba(0, 0, 0, 0.1);
+	backdrop-filter: blur(1px);
+}
+
+.hud-semi-transparent {
+	background: rgba(0, 0, 0, 0.3);
+	backdrop-filter: blur(2px);
+}
+
+.hud-opaque {
+	background: rgba(0, 0, 0, 0.7);
+	backdrop-filter: blur(3px);
+}
+
+/* Configurações para elementos específicos do HUD */
+.hud-speedometer {
+	font-weight: bold;
+	text-shadow: 0 0 10px currentColor;
+}
+
+.hud-battery {
+	position: relative;
+}
+
+.hud-battery.low {
+	animation: batteryWarning 1s infinite;
+}
+
+.hud-radar {
+	animation: radarSweep 20s linear infinite;
+}
+
+.hud-crosshair {
+	filter: drop-shadow(0 0 5px #00ffff);
+}
+
+/* Configurações de performance */
+.hud-performance-optimized {
+	will-change: transform, opacity;
+	transform: translateZ(0);
+	backface-visibility: hidden;
+}
+
+/* Configurações para diferentes modos de voo */
+.hud-cinematic-mode {
+	border-color: #ff8800;
+	color: #ff8800;
+}
+
+.hud-fpv-mode {
+	border-color: #ff4444;
+	color: #ff4444;
+}
+
+.hud-normal-mode {
+	border-color: #00ffff;
+	color: #00ffff;
+}
+
+/* Animações suaves para transições */
+.hud-transition {
+	transition: all 0.3s ease-in-out;
+}
+
+/* Configurações para texto do HUD */
+.hud-text {
+	font-family: "Courier New", monospace;
+	font-weight: bold;
+	text-align: center;
+	text-shadow: 0 0 5px currentColor;
+}
+
+.hud-text-small {
+	font-size: 0.6em;
+	opacity: 0.8;
+}
+
+.hud-text-large {
+	font-size: 1.4em;
+	font-weight: bold;
+}
+
+/* Configurações para elementos geométricos */
+.hud-geometry {
+	filter: drop-shadow(0 0 3px currentColor);
+}
+
+/* Configurações específicas para cada painel */
+.hud-panel {
+	background: rgba(0, 0, 0, 0.3);
+	border: 1px solid currentColor;
+	border-radius: 3px;
+	backdrop-filter: blur(1px);
+}
+
+.hud-panel-active {
+	background: rgba(0, 255, 255, 0.1);
+	box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+}
+
+/* Configurações para indicadores de status */
+.hud-status-good {
+	color: #44ff44;
+}
+
+.hud-status-warning {
+	color: #ffaa00;
+	animation: hudPulse 2s infinite;
+}
+
+.hud-status-critical {
+	color: #ff4444;
+	animation: batteryWarning 1s infinite;
+}
+
+/* Configurações para elementos rotativos */
+.hud-rotating {
+	animation: radarSweep 20s linear infinite;
+}
+
+.hud-rotating-fast {
+	animation: radarSweep 5s linear infinite;
+}
+
+/* Configurações para elementos pulsantes */
+.hud-pulsing {
+	animation: hudGlow 2s infinite;
+}
+
+.hud-pulsing-fast {
+	animation: hudGlow 1s infinite;
+}
+
+/* Configurações para otimização de performance em VR */
+.hud-vr-optimized {
+	image-rendering: optimizeSpeed;
+	text-rendering: optimizeSpeed;
+	font-smooth: never;
+	-webkit-font-smoothing: none;
+	will-change: transform;
+	transform: translateZ(0);
+}
+
+/* Configurações para diferentes níveis de qualidade */
+.hud-quality-low {
+	text-rendering: optimizeSpeed;
+	font-smooth: never;
+	filter: none;
+	animation: none;
+}
+
+.hud-quality-medium {
+	text-rendering: optimizeSpeed;
+	filter: drop-shadow(0 0 3px currentColor);
+}
+
+.hud-quality-high {
+	text-rendering: optimizeQuality;
+	filter: drop-shadow(0 0 5px currentColor);
+	text-shadow: 0 0 10px currentColor;
+}
+
+/* Configurações responsivas para o HUD */
+@media (max-width: 1280px) {
+	.futuristic-hud {
+		transform: scale(0.9);
+	}
+}
+
+@media (max-width: 1024px) {
+	.futuristic-hud {
+		transform: scale(0.8);
+	}
+}
+
+/* Configurações para modo noturno/diurno */
+.hud-night-mode {
+	filter: brightness(0.8) contrast(1.2);
+}
+
+.hud-day-mode {
+	filter: brightness(1.2) contrast(0.9);
+}
+
+/* Configurações para acessibilidade */
+.hud-high-contrast {
+	filter: contrast(2) brightness(1.5);
+	text-shadow: 0 0 15px currentColor;
+}
+
+.hud-reduced-motion {
+	animation: none !important;
+	transition: none !important;
+}
+
+/* Configurações para elementos de debug (removível em produção) */
+.hud-debug {
+	border: 1px dashed #ff00ff;
+	background: rgba(255, 0, 255, 0.1);
+}
+
+.hud-debug-info {
+	position: absolute;
+	top: -20px;
+	left: 0;
+	font-size: 0.4em;
+	color: #ff00ff;
+	background: rgba(0, 0, 0, 0.8);
+	padding: 2px 4px;
+	border-radius: 2px;
 }

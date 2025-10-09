@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>Teste HUD Futurístico</title>
+		<script src="libs/aframe.min.js"></script>
+		<script src="js/futuristic-hud.js"></script>
+		<style>
+			body {
+				margin: 0;
+				background: #000;
+			}
+		</style>
+	</head>
+
+	<body>
+		<a-scene background="color: #001122" vr-mode-ui="enabled: true">
+			<!-- Câmera com HUD -->
+			<a-camera position="0 1.6 3" futuristic-hud>
+			</a-camera>
+
+			<!-- Drone simulado para teste -->
+			<a-entity id="drone" position="0 2 0">
+				<a-box color="#00aa00" width="0.5" height="0.1" depth="0.5"></a-box>
+			</a-entity>
+
+			<!-- Checkpoint simulado -->
+			<a-entity checkpoint position="5 3 -10">
+				<a-torus color="#00ff00" radius="2" radius-tubular="0.2"></a-torus>
+			</a-entity>
+
+			<!-- Chão -->
+			<a-plane position="0 0 0" rotation="-90 0 0" width="100" height="100" color="#003300"></a-plane>
+
+			<!-- Iluminação -->
+			<a-light type="ambient" color="#404040"></a-light>
+			<a-light type="directional" position="1 1 1" color="#ffffff"></a-light>
+		</a-scene>
+
+		<div
+			style="position: fixed; bottom: 10px; left: 10px; color: white; font-family: monospace; background: rgba(0,0,0,0.8); padding: 10px; border-radius: 5px;">
+			<strong>Controles do HUD:</strong><br>
+			H - Alternar HUD<br>
+			U - Transparência<br>
+			I - Cor do HUD<br>
+			WASD - Mover câmera
+		</div>
+	</body>
+
+</html>
