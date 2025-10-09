@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1024" height="600" viewBox="0 0 1024 600" xmlns="http://www.w3.org/2000/svg">
+  <!-- Fundo transparente -->
+  <rect width="1024" height="600" fill="transparent"/>
+  
+  <!-- Frame principal baseado na nova imagem -->
+  <g stroke="#00ffff" stroke-width="2" fill="none" opacity="0.8">
+    
+    <!-- Frame superior -->
+    <path d="M 100 50 L 200 50 L 220 70 L 804 70 L 824 50 L 924 50" stroke="#00ffff" stroke-width="2"/>
+    
+    <!-- Frame inferior -->
+    <path d="M 100 550 L 200 550 L 220 530 L 804 530 L 824 550 L 924 550" stroke="#00ffff" stroke-width="2"/>
+    
+    <!-- Laterais esquerda -->
+    <path d="M 100 50 L 80 80 L 80 200 L 60 220 L 60 380 L 80 400 L 80 520 L 100 550" stroke="#00ffff" stroke-width="2"/>
+    
+    <!-- Laterais direita -->
+    <path d="M 924 50 L 944 80 L 944 200 L 964 220 L 964 380 L 944 400 L 944 520 L 924 550" stroke="#00ffff" stroke-width="2"/>
+    
+    <!-- Cantos internos superiores -->
+    <path d="M 220 70 L 200 90 L 200 150" stroke="#00ffff" stroke-width="2"/>
+    <path d="M 804 70 L 824 90 L 824 150" stroke="#00ffff" stroke-width="2"/>
+    
+    <!-- Cantos internos inferiores -->
+    <path d="M 220 530 L 200 510 L 200 450" stroke="#00ffff" stroke-width="2"/>
+    <path d="M 804 530 L 824 510 L 824 450" stroke="#00ffff" stroke-width="2"/>
+    
+    <!-- Elementos decorativos laterais -->
+    <path d="M 200 200 L 180 200 L 160 220 L 180 240 L 200 240" stroke="#00ffff" stroke-width="1"/>
+    <path d="M 200 360 L 180 360 L 160 380 L 180 400 L 200 400" stroke="#00ffff" stroke-width="1"/>
+    
+    <path d="M 824 200 L 844 200 L 864 220 L 844 240 L 824 240" stroke="#00ffff" stroke-width="1"/>
+    <path d="M 824 360 L 844 360 L 864 380 L 844 400 L 824 400" stroke="#00ffff" stroke-width="1"/>
+  </g>
+  
+  <!-- Crosshair central minimalista -->
+  <g stroke="#00ffff" stroke-width="2" fill="none" opacity="0.9">
+    <!-- Cruz central -->
+    <line x1="492" y1="300" x2="532" y2="300"/>
+    <line x1="512" y1="280" x2="512" y2="320"/>
+    
+    <!-- Círculo central -->
+    <circle cx="512" cy="300" r="8" stroke="#00ffff" stroke-width="2" fill="none"/>
+    <circle cx="512" cy="300" r="3" fill="#00ffff"/>
+    
+    <!-- Marcadores de mira -->
+    <path d="M 480 288 L 480 292 L 484 292 L 484 288 Z" fill="#00ffff"/>
+    <path d="M 544 288 L 544 292 L 540 292 L 540 288 Z" fill="#00ffff"/>
+    <path d="M 500 268 L 504 268 L 504 272 L 500 272 Z" fill="#00ffff"/>
+    <path d="M 500 332 L 504 332 L 504 328 L 500 328 Z" fill="#00ffff"/>
+  </g>
+  
+  <!-- Painéis de dados melhorados -->
+  
+  <!-- Velocímetro em M/S (superior esquerdo) -->
+  <g>
+    <rect x="120" y="100" width="100" height="60" stroke="#00ffff" stroke-width="1" fill="rgba(0,0,0,0.3)" rx="3"/>
+    <text x="170" y="125" text-anchor="middle" fill="#00ffff" font-family="monospace" font-size="20" font-weight="bold">12.5</text>
+    <text x="170" y="145" text-anchor="middle" fill="#00ffff" font-family="monospace" font-size="10">M/S</text>
+  </g>
+  
+  <!-- Bateria baseada no tempo da missão (superior direito) -->
+  <g>
+    <rect x="804" y="100" width="100" height="60" stroke="#00ffff" stroke-width="1" fill="rgba(0,0,0,0.3)" rx="3"/>
+    <!-- Ícone da bateria -->
+    <rect x="830" y="115" width="25" height="12" stroke="#00ffff" stroke-width="1" fill="none"/>
+    <rect x="855" y="119" width="2" height="4" fill="#00ffff"/>
+    <!-- Nível da bateria (será atualizado dinamicamente) -->
+    <rect x="832" y="117" width="20" height="8" fill="#44ff44" id="battery-level"/>
+    <text x="874" y="135" text-anchor="middle" fill="#00ffff" font-family="monospace" font-size="12" id="battery-text">87%</text>
+    <text x="874" y="150" text-anchor="middle" fill="#00ffff" font-family="monospace" font-size="8">ENERGIA</text>
+  </g>
+  
+  <!-- Altímetro em metros (inferior esquerdo) -->
+  <g>
+    <rect x="120" y="440" width="100" height="60" stroke="#00ffff" stroke-width="1" fill="rgba(0,0,0,0.3)" rx="3"/>
+    <text x="170" y="465" text-anchor="middle" fill="#00ffff" font-family="monospace" font-size="20" font-weight="bold">450</text>
+    <text x="170" y="485" text-anchor="middle" fill="#00ffff" font-family="monospace" font-size="10">METROS</text>
+  </g>
+  
+  <!-- GPS com seta para próximo objetivo (inferior direito) -->
+  <g>
+    <rect x="804" y="440" width="100" height="60" stroke="#00ffff" stroke-width="1" fill="rgba(0,0,0,0.3)" rx="3"/>
+    
+    <!-- Círculo do GPS -->
+    <circle cx="854" cy="460" r="12" stroke="#44ff44" stroke-width="2" fill="none"/>
+    
+    <!-- Seta dinâmica apontando para o objetivo -->
+    <g id="gps-arrow" transform="rotate(45 854 460)">
+      <path d="M 854 450 L 859 460 L 854 465 L 849 460 Z" fill="#44ff44"/>
+      <line x1="854" y1="460" x2="854" y2="470" stroke="#44ff44" stroke-width="2"/>
+    </g>
+    
+    <text x="854" y="485" text-anchor="middle" fill="#44ff44" font-family="monospace" font-size="8">PRÓXIMO</text>
+    <text x="854" y="495" text-anchor="middle" fill="#44ff44" font-family="monospace" font-size="8">OBJETIVO</text>
+  </g>
+  
+  <!-- Distância do objetivo (centro inferior esquerda) -->
+  <g>
+    <text x="300" y="520" text-anchor="middle" fill="#00ffff" font-family="monospace" font-size="8">DISTÂNCIA</text>
+    <text x="300" y="535" text-anchor="middle" fill="#ffaa00" font-family="monospace" font-size="14" font-weight="bold" id="distance-text">120M</text>
+    <text x="300" y="550" text-anchor="middle" fill="#00ffff" font-family="monospace" font-size="8">PARA OBJETIVO</text>
+  </g>
+  
+  <!-- Modo de voo (centro inferior direita) -->
+  <g>
+    <text x="724" y="520" text-anchor="middle" fill="#00ffff" font-family="monospace" font-size="8">MODO DE VOO</text>
+    <text x="724" y="535" text-anchor="middle" fill="#ff8800" font-family="monospace" font-size="12" font-weight="bold">CINEMATOGRÁFICO</text>
+    <text x="724" y="550" text-anchor="middle" fill="#00ffff" font-family="monospace" font-size="8">ESTABILIZADO</text>
+  </g>
+  
+  <!-- Indicadores de direção -->
+  <g fill="#00ffff" font-family="monospace" font-size="10" text-anchor="middle" opacity="0.7">
+    <text x="512" y="35">N</text>
+    <text x="512" y="585">S</text>
+    <text x="980" y="305">L</text>
+    <text x="44" y="305">O</text>
+  </g>
+  
+  <!-- Status superior melhorado -->
+  <g fill="#00ffff" font-family="monospace" font-size="8" text-anchor="middle" opacity="0.8">
+    <text x="350" y="25">TEMP: 25°C</text>
+    <text x="512" y="25" id="mission-time">MISSÃO: 02:34</text>
+    <text x="674" y="25" id="coordinates">X:0 Y:450 Z:0</text>
+  </g>
+  
+  <!-- Indicador de posição central -->
+  <circle cx="512" cy="300" r="6" fill="#ffff00" opacity="0.8">
+    <animate attributeName="opacity" values="0.8;0.3;0.8" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  
+  <!-- Linhas de referência sutis -->
+  <g stroke="#00ffff" stroke-width="1" fill="none" opacity="0.2">
+    <line x1="300" y1="150" x2="724" y2="150"/>
+    <line x1="300" y1="450" x2="724" y2="450"/>
+    <line x1="300" y1="300" x2="350" y2="300"/>
+    <line x1="674" y1="300" x2="724" y2="300"/>
+  </g>
+</svg>

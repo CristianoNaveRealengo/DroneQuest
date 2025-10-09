@@ -53,8 +53,11 @@
                     animation="property: rotation; to: 0 360 0; loop: true; dur: 8000">
                 </a-mixin>
 
-                <!-- HUD Futurístico -->
-                <img id="hud-overlay" src="assets/hud-overlay.svg" crossorigin="anonymous">
+                <!-- HUD Futurístico
+                <img id="hud-overlay" src="assets/hud-overlay.svg" crossorigin="anonymous"> -->
+
+                <!-- HUD Limpo -->
+                <img id="hud-overlay-limpo" src="assets/hud-overlay-limpo.svg" crossorigin="anonymous">
 
             </a-assets>
 
@@ -105,12 +108,13 @@
             <a-entity mixin="checkpoint" position="-20 12 -30" checkpoint="id: 2"></a-entity>
             <a-entity mixin="checkpoint" position="0 10 -45" checkpoint="id: 3"></a-entity>
 
-    
+
             <!-- Modelo da Abby -->
             <a-gltf-model src="assets/npc/AbbyRoupaClara.glb" position="-1.806 -0.07805 -3.5"></a-gltf-model>
 
+            <!-- Iluminação otimizada para o rosto da Abby -->
             <!-- Luz principal frontal para o rosto -->
-            <!-- <a-light type="point" position="-1.806 1.2 -2.8" color="#ffeeaa" intensity="3.2" distance="8"></a-light> -->
+            <a-light type="point" position="-1.806 1.2 -2.8" color="#ffeeaa" intensity="3.2" distance="8"></a-light>
 
             <!-- Luz de preenchimento lateral (ajustada) -->
             <a-light type="point" position="-0.80562 1.5 -4.30211" color="#ffeeaa" intensity="1.8"
@@ -164,12 +168,14 @@
             <div style="margin-bottom: 5px;"><strong>+/-</strong> - Aumentar/Diminuir HUD</div>
             <div style="margin-bottom: 5px;"><strong>0</strong> - Reset tamanho padrão</div>
             <div style="margin-bottom: 5px;"><strong>[ ]</strong> - Aproximar/Afastar HUD</div>
+            <div style="margin-bottom: 5px;"><strong>K</strong> - Alternar HUD Limpo/Completo</div>
             <div style="margin-bottom: 6px;"><strong>J</strong> - Informações do Sistema</div>
             <div
                 style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #00ffff; font-size: 10px; opacity: 0.8;">
                 🛸 Interface de nave espacial redimensionável<br>
                 📏 Tamanho e distância ajustáveis em tempo real<br>
-                📍 Navegação com dados dinâmicos do drone
+                📍 Navegação com dados dinâmicos do drone<br>
+                🎯 HUD Limpo disponível (tecla K)
             </div>
         </div>
 

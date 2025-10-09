@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>HUD Futurístico - Dados Dinâmicos Simples</title>
+		<script src="libs/aframe.min.js"></script>
+		<script src="js/futuristic-hud-melhorado.js"></script>
+		<style>
+			body {
+				margin: 0;
+				background: #000;
+			}
+
+			.info-panel {
+				position: fixed;
+				top: 10px;
+				left: 10px;
+				background: rgba(0, 20, 40, 0.9);
+				border: 2px solid #00ffff;
+				color: #00ffff;
+				padding: 20px;
+				border-radius: 10px;
+				font-family: 'Courier New', monospace;
+				font-size: 12px;
+				max-width: 400px;
+				box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+			}
+
+			.highlight {
+				color: #ffff00;
+				font-weight: bold;
+			}
+
+			.success {
+				color: #44ff44;
+			}
+
+			.warning {
+				color: #ffaa00;
+			}
+		</style>
+	</head>
+
+	<body>
+		<a-scene background="color: #000011" vr-mode-ui="enabled: true">
+			<!-- Assets -->
+			<a-assets>
+				<img id="hud-overlay-melhorado" src="assets/hud-overlay-melhorado.svg" crossorigin="anonymous">
+			</a-assets>
+
+			<!-- Câmera com HUD melhorado -->
+			<a-camera position="0 1.6 3" futuristic-hud-melhorado wasd-controls>
+			</a-camera>
+
+			<!-- Drone com movimento controlável -->
+			<a-entity id="drone" position="0 2 0">
+				<a-box color="#00aa00" width="0.5" height="0.1" depth="0.5">
+					<!-- Movimento automático para gerar dados -->
+					<a-animation attribute="position" to="10 5 -15" dur="20000" direction="alternate"
+						repeat="indefinite" easing="easeInOutSine">
+					</a-animation>
+				</a-box>
+
+				<!-- Efeito visual -->
+				<a-sphere radius="0.1" color="#0088ff" opacity="0.6" position="0 -0.2 0">
+					<a-animation attribute="scale" to="1.5 1.5 1.5" dur="500" direction="alternate" repeat="indefinite">
+					</a-animation>
+				</a-sphere>
+			</a-entity>
+
+			<!-- Checkpoints para testar GPS -->
+			<a-entity checkpoint position="8 4 -12">
+				<a-torus color="#00ff00" radius="2" radius-tubular="0.2">
+					<a-animation attribute="rotation" to="360 0 0" dur="3000" repeat="indefinite"></a-animation>
+				</a-torus>
+				<a-text value="CHECKPOINT A" position="0 2.5 0" align="center" color="#00ff00"
+					scale="1.5 1.5 1.5"></a-text>
+			</a-entity>
+
+			<a-entity checkpoint position="-15 6 -20">
+				<a-torus color="#00ff00" radius="2" radius-tubular="0.2">
+					<a-animation attribute="rotation" to="0 360 0" dur="3000" repeat="indefinite"></a-animation>
+				</a-torus>
+				<a-text value="CHECKPOINT B" position="0 2.5 0" align="center" color="#00ff00"
+					scale="1.5 1.5 1.5"></a-text>
+			</a-entity>
+
+			<a-entity checkpoint position="5 8 -30">
+				<a-torus color="#00ff00" radius="2" radius-tubular="0.2">
+					<a-animation attribute="rotation" to="0 0 360" dur="3000" repeat="indefinite"></a-animation>
+				</a-torus>
+				<a-text value="CHECKPOINT C" position="0 2.5 0" align="center" color="#00ff00"
+					scale="1.5 1.5 1.5"></a-text>
+			</a-entity>
+
+			<!-- Ambiente -->
+			<a-plane position="0 0 0" rotation="-90 0 0" width="200" height="200" color="#001122"
+				opacity="0.8"></a-plane>
+
+			<!-- Iluminação -->
+			<a-light type="ambient" color="#002244" intensity="0.4"></a-light>
+			<a-light type="directional" position="1 1 1" color="#ffffff" intensity="0.5"></a-light>
+		</a-scene>
+
+		<!-- Painel de informações -->
+		<div class="info-panel">
+			<div style="font-weight: bold; margin-bottom: 15px; color: #00ff00; font-size: 16px;">
+				🚀 HUD DINÂMICO SIMPLIFICADO
+			</div>
+
+			<div style="margin-bottom: 12px;">
+				<span class="highlight">DADOS DINÂMICOS FUNCIONANDO:</span>
+			</div>
+
+			<div style="margin-bottom: 8px;">
+				<span class="success">✅ Velocidade em M/S</span> (calculada do movimento)
+			</div>
+			<div style="margin-bottom: 8px;">
+				<span class="success">✅ Altitude em metros</span> (posição Y real)
+			</div>
+			<div style="margin-bottom: 8px;">
+				<span class="success">✅ Bateria por tempo</span> (diminui gradualmente)
+			</div>
+			<div style="margin-bottom: 8px;">
+				<span class="success">✅ Seta GPS dinâmica</span> (aponta para checkpoint)
+			</div>
+			<div style="margin-bottom: 8px;">
+				<span class="success">✅ Distância real</span> (para próximo objetivo)
+			</div>
+			<div style="margin-bottom: 8px;">
+				<span class="success">✅ Coordenadas atualizadas</span> (X, Y, Z)
+			</div>
+
+			<div style="margin: 15px 0 10px 0; border-top: 1px solid #00ffff; padding-top: 10px;">
+				<span class="highlight">CONTROLES:</span>
+			</div>
+
+			<div style="margin-bottom: 5px;"><strong>H</strong> - Liga/Desliga HUD</div>
+			<div style="margin-bottom: 5px;"><strong>U</strong> - Transparência</div>
+			<div style="margin-bottom: 5px;"><strong>I</strong> - Cor do HUD</div>
+			<div style="margin-bottom: 5px;"><strong>+/-</strong> - Tamanho</div>
+			<div style="margin-bottom: 5px;"><strong>WASD</strong> - Mover câmera</div>
+
+			<div style="margin: 15px 0 10px 0; border-top: 1px solid #00ffff; padding-top: 10px;">
+				<span class="highlight">STATUS:</span>
+			</div>
+
+			<div id="status-info" style="font-size: 11px; color: #ffaa00;">
+				Carregando dados...
+			</div>
+
+			<div style="margin-top: 15px; font-size: 10px; opacity: 0.8;">
+				Console (F12) para logs detalhados
+			</div>
+		</div>
+
+		<script>
+			// Sistema simplificado de monitoramento
+			let hudComponent = null;
+			let startTime = Date.now();
+
+			document.addEventListener('DOMContentLoaded', function () {
+				console.log("🚀 TESTE HUD DINÂMICO SIMPLIFICADO INICIADO");
+
+				setTimeout(() => {
+					const camera = document.querySelector('a-camera');
+					hudComponent = camera?.components?.['futuristic-hud-melhorado'];
+
+					if (hudComponent) {
+						console.log("✅ HUD Melhorado carregado!");
+						updateStatusPanel("HUD carregado com sucesso!");
+					} else {
+						console.error("❌ HUD não carregado!");
+						updateStatusPanel("❌ Erro ao carregar HUD");
+					}
+				}, 2000);
+			});
+
+			function updateStatusPanel(message) {
+				const statusEl = document.getElementById('status-info');
+				if (statusEl) {
+					statusEl.innerHTML = message;
+				}
+			}
+
+			// Monitoramento dos dados dinâmicos
+			setInterval(() => {
+				if (hudComponent && hudComponent.hudData) {
+					const data = hudComponent.hudData;
+					const testTime = Math.floor((Date.now() - startTime) / 1000);
+
+					// Atualizar painel de status
+					const statusHtml = `
+                    <div>⏱️ Tempo: ${testTime}s</div>
+                    <div>🏃 Velocidade: ${data.speedMS.toFixed(2)} M/S</div>
+                    <div>📏 Altitude: ${data.altitude}m</div>
+                    <div>🔋 Bateria: ${Math.round(data.batteryPercent)}%</div>
+                    <div>🎯 Distância: ${data.distanceToObjective}M</div>
+                    <div>🧭 GPS: ${data.objectiveDirection.toFixed(1)}°</div>
+                    <div>📍 Pos: X:${data.coordinates.x} Y:${data.coordinates.y} Z:${data.coordinates.z}</div>
+                `;
+					updateStatusPanel(statusHtml);
+
+					// Log no console
+					console.log(`📊 [${testTime}s] Velocidade: ${data.speedMS.toFixed(2)}m/s | Alt: ${data.altitude}m | Bat: ${Math.round(data.batteryPercent)}% | Dist: ${data.distanceToObjective}M`);
+				}
+			}, 2000);
+
+			// Demonstração
+			setTimeout(() => {
+				console.log("🎮 DEMONSTRAÇÃO:");
+				console.log("💡 Observe os dados mudando em tempo real");
+				console.log("💡 A velocidade é calculada do movimento do drone");
+				console.log("💡 A seta GPS aponta para o checkpoint mais próximo");
+				console.log("💡 A bateria diminui com o tempo");
+			}, 5000);
+		</script>
+	</body>
+
+</html>

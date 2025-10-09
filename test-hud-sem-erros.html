@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>HUD Futurístico - SEM ERROS</title>
+		<script src="libs/aframe.min.js"></script>
+		<style>
+			body {
+				margin: 0;
+				background: #000;
+			}
+
+			.info-panel {
+				position: fixed;
+				top: 10px;
+				left: 10px;
+				background: rgba(0, 20, 40, 0.9);
+				border: 2px solid #00ffff;
+				color: #00ffff;
+				padding: 20px;
+				border-radius: 10px;
+				font-family: 'Courier New', monospace;
+				font-size: 12px;
+				max-width: 400px;
+				box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+			}
+
+			.highlight {
+				color: #ffff00;
+				font-weight: bold;
+			}
+
+			.success {
+				color: #44ff44;
+			}
+
+			.warning {
+				color: #ffaa00;
+			}
+		</style>
+	</head>
+
+	<body>
+		<a-scene background="color: #000011" vr-mode-ui="enabled: true">
+			<!-- Assets -->
+			<a-assets>
+				<img id="hud-overlay-melhorado" src="assets/hud-overlay-melhorado.svg" crossorigin="anonymous">
+			</a-assets>
+
+			<!-- Câmera com HUD -->
+			<a-camera position="0 1.6 3" hud-limpo wasd-controls>
+			</a-camera>
+
+			<!-- Drone com movimento -->
+			<a-entity id="drone" position="0 2 0">
+				<a-box color="#00aa00" width="0.5" height="0.1" depth="0.5">
+					<a-animation attribute="position" to="10 5 -15" dur="20000" direction="alternate"
+						repeat="indefinite" easing="easeInOutSine">
+					</a-animation>
+				</a-box>
+			</a-entity>
+
+			<!-- Checkpoints -->
+			<a-entity checkpoint position="8 4 -12">
+				<a-torus color="#00ff00" radius="2" radius-tubular="0.2">
+					<a-animation attribute="rotation" to="360 0 0" dur="3000" repeat="indefinite"></a-animation>
+				</a-torus>
+				<a-text value="CHECKPOINT A" position="0 2.5 0" align="center" color="#00ff00"
+					scale="1.5 1.5 1.5"></a-text>
+			</a-entity>
+
+			<a-entity checkpoint position="-15 6 -20">
+				<a-torus color="#00ff00" radius="2" radius-tubular="0.2">
+					<a-animation attribute="rotation" to="0 360 0" dur="3000" repeat="indefinite"></a-animation>
+				</a-torus>
+				<a-text value="CHECKPOINT B" position="0 2.5 0" align="center" color="#00ff00"
+					scale="1.5 1.5 1.5"></a-text>
+			</a-entity>
+
+			<!-- Ambiente -->
+			<a-plane position="0 0 0" rotation="-90 0 0" width="200" height="200" color="#001122"
+				opacity="0.8"></a-plane>
+			<a-light type="ambient" color="#002244" intensity="0.4"></a-light>
+			<a-light type="directional" position="1 1 1" color="#ffffff" intensity="0.5"></a-light>
+		</a-scene>
+
+		<!-- Painel de informações -->
+		<div class="info-panel">
+			<div style="font-weight: bold; margin-bottom: 15px; color: #00ff00; font-size: 16px;">
+				🚀 HUD SEM ERROS - FUNCIONANDO
+			</div>
+
+			<div style="margin-bottom: 12px;">
+				<span class="highlight">DADOS DINÂMICOS:</span>
+			</div>
+
+			<div style="margin-bottom: 8px;">
+				<span class="success">✅ Velocidade em M/S</span>
+			</div>
+			<div style="margin-bottom: 8px;">
+				<span class="success">✅ Altitude em metros</span>
+			</div>
+			<div style="margin-bottom: 8px;">
+				<span class="success">✅ Bateria por tempo</span>
+			</div>
+			<div style="margin-bottom: 8px;">
+				<span class="success">✅ Seta GPS dinâmica</span>
+			</div>
+			<div style="margin-bottom: 8px;">
+				<span class="success">✅ Distância real</span>
+			</div>
+
+			<div style="margin: 15px 0 10px 0; border-top: 1px solid #00ffff; padding-top: 10px;">
+				<span class="highlight">CONTROLES:</span>
+			</div>
+
+			<div style="margin-bottom: 5px;"><strong>H</strong> - Liga/Desliga HUD</div>
+			<div style="margin-bottom: 5px;"><strong>U</strong> - Transparência</div>
+			<div style="margin-bottom: 5px;"><strong>I</strong> - Cor do HUD</div>
+			<div style="margin-bottom: 5px;"><strong>WASD</strong> - Mover câmera</div>
+
+			<div style="margin: 15px 0 10px 0; border-top: 1px solid #00ffff; padding-top: 10px;">
+				<span class="highlight">STATUS:</span>
+			</div>
+
+			<div id="status-info" style="font-size: 11px; color: #ffaa00;">
+				Carregando...
+			</div>
+		</div>
+
+		<script>
+			// Componente HUD completamente limpo sem referências problemáticas
+			if (!AFRAME.components["hud-limpo"]) {
+				AFRAME.registerComponent("hud-limpo", {
+					schema: {
+						transparency: { type: "number", default: 0.7 },
+						hudColor: { type: "color", default: "#00ffff" },
+						enabled: { type: "boolean", default: true }
+					},
+
+					init: function () {
+						console.log("🚀 Inicializando HUD Limpo...");
+
+						// Estado do HUD
+						this.hudData = {
+							speedMS: 0,
+							altitude: 0,
+							batteryPercent: 100,
+							distanceToObjective: 120,
+							objectiveDirection: 0,
+							coordinates: { x: 0, y: 0, z: 0 },
+							missionTime: 0
+						};
+
+						this.hudElements = {};
+						this.startTime = Date.now();
+						this.lastPosition = null;
+						this.lastTime = Date.now();
+
+						// Configurar controles
+						this.setupKeyboardControls();
+
+						// Criar HUD
+						this.createHUDStructure();
+
+						// Iniciar atualizações
+						this.startUpdates();
+
+						console.log("✅ HUD Limpo inicializado!");
+					},
+
+					setupKeyboardControls: function () {
+						const self = this;
+						document.addEventListener("keydown", (evt) => {
+							switch (evt.key.toLowerCase()) {
+								case 'h':
+									self.toggleHUD();
+									break;
+								case 'u':
+									self.cycleTransparency();
+									break;
+								case 'i':
+									self.cycleHUDColor();
+									break;
+							}
+						});
+					},
+
+					createHUDStructure: function () {
+						// Container principal
+						this.hudContainer = document.createElement("a-entity");
+						this.hudContainer.setAttribute("id", "hud-limpo-container");
+						this.hudContainer.setAttribute("position", "0 0 -2.5");
+
+						// Plano com imagem do HUD
+						const hudPlane = document.createElement("a-plane");
+						hudPlane.setAttribute("width", "4");
+						hudPlane.setAttribute("height", "3");
+						hudPlane.setAttribute("position", "0 0 0");
+						hudPlane.setAttribute("material", {
+							src: "assets/hud-overlay-melhorado.svg",
+							transparent: true,
+							opacity: this.data.transparency,
+							alphaTest: 0.1
+						});
+
+						this.hudContainer.appendChild(hudPlane);
+						this.hudElements.hudPlane = hudPlane;
+
+						// Elementos de texto SEM FONTE ESPECIFICADA
+						this.createTextElements();
+
+						// Adicionar à câmera
+						this.el.appendChild(this.hudContainer);
+					},
+
+					createTextElements: function () {
+						// Velocímetro
+						const speedText = document.createElement("a-text");
+						speedText.setAttribute("value", "0.0");
+						speedText.setAttribute("position", "-1.4 0.6 0.01");
+						speedText.setAttribute("align", "center");
+						speedText.setAttribute("color", this.data.hudColor);
+						speedText.setAttribute("scale", "0.8 0.8 0.8");
+						// NÃO ESPECIFICAR FONTE - usar padrão do A-Frame
+						this.hudContainer.appendChild(speedText);
+						this.hudElements.speedText = speedText;
+
+						// Bateria
+						const batteryText = document.createElement("a-text");
+						batteryText.setAttribute("value", "100%");
+						batteryText.setAttribute("position", "1.4 0.6 0.01");
+						batteryText.setAttribute("align", "center");
+						batteryText.setAttribute("color", "#44ff44");
+						batteryText.setAttribute("scale", "0.6 0.6 0.6");
+						this.hudContainer.appendChild(batteryText);
+						this.hudElements.batteryText = batteryText;
+
+						// Altitude
+						const altitudeText = document.createElement("a-text");
+						altitudeText.setAttribute("value", "0");
+						altitudeText.setAttribute("position", "-1.4 -0.6 0.01");
+						altitudeText.setAttribute("align", "center");
+						altitudeText.setAttribute("color", this.data.hudColor);
+						altitudeText.setAttribute("scale", "0.8 0.8 0.8");
+						this.hudContainer.appendChild(altitudeText);
+						this.hudElements.altitudeText = altitudeText;
+
+						// Distância
+						const distanceText = document.createElement("a-text");
+						distanceText.setAttribute("value", "120M");
+						distanceText.setAttribute("position", "-0.6 -0.8 0.01");
+						distanceText.setAttribute("align", "center");
+						distanceText.setAttribute("color", "#ffaa00");
+						distanceText.setAttribute("scale", "0.6 0.6 0.6");
+						this.hudContainer.appendChild(distanceText);
+						this.hudElements.distanceText = distanceText;
+
+						// Coordenadas
+						const coordsText = document.createElement("a-text");
+						coordsText.setAttribute("value", "X:0 Y:0 Z:0");
+						coordsText.setAttribute("position", "0.8 1.3 0.01");
+						coordsText.setAttribute("align", "center");
+						coordsText.setAttribute("color", this.data.hudColor);
+						coordsText.setAttribute("scale", "0.25 0.25 0.25");
+						this.hudContainer.appendChild(coordsText);
+						this.hudElements.coordsText = coordsText;
+
+						// Seta GPS
+						const arrow = document.createElement("a-cone");
+						arrow.setAttribute("radius-bottom", "0.03");
+						arrow.setAttribute("radius-top", "0");
+						arrow.setAttribute("height", "0.08");
+						arrow.setAttribute("rotation", "0 0 -90");
+						arrow.setAttribute("position", "1.4 -0.6 0.02");
+						arrow.setAttribute("material", {
+							color: "#44ff44",
+							transparent: true,
+							opacity: 0.8
+						});
+						this.hudContainer.appendChild(arrow);
+						this.hudElements.gpsArrow = arrow;
+					},
+
+					startUpdates: function () {
+						this.updateHUD();
+					},
+
+					updateHUD: function () {
+						if (!this.data.enabled) return;
+
+						this.updateDroneData();
+						this.updateVisualElements();
+
+						requestAnimationFrame(() => {
+							this.updateHUD();
+						});
+					},
+
+					updateDroneData: function () {
+						const drone = document.querySelector("#drone");
+						if (!drone) return;
+
+						const position = drone.getAttribute("position");
+
+						// Coordenadas
+						this.hudData.coordinates = {
+							x: Math.round(position.x),
+							y: Math.round(position.y),
+							z: Math.round(position.z)
+						};
+
+						// Velocidade calculada
+						if (!this.lastPosition) {
+							this.lastPosition = { ...position };
+							this.lastTime = Date.now();
+							this.hudData.speedMS = 0;
+						} else {
+							const currentTime = Date.now();
+							const deltaTime = (currentTime - this.lastTime) / 1000;
+
+							if (deltaTime > 0.1) {
+								const deltaX = position.x - this.lastPosition.x;
+								const deltaY = position.y - this.lastPosition.y;
+								const deltaZ = position.z - this.lastPosition.z;
+
+								const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ);
+								this.hudData.speedMS = distance / deltaTime;
+
+								this.lastPosition = { ...position };
+								this.lastTime = currentTime;
+							}
+						}
+
+						// Altitude
+						this.hudData.altitude = Math.round(position.y);
+
+						// Tempo da missão
+						this.hudData.missionTime = (Date.now() - this.startTime) / 1000;
+
+						// Bateria baseada no tempo
+						const maxTime = 300; // 5 minutos
+						this.hudData.batteryPercent = Math.max(5, 100 - (this.hudData.missionTime / maxTime) * 100);
+
+						// Calcular distância para checkpoint
+						this.calculateDistanceToObjective();
+					},
+
+					calculateDistanceToObjective: function () {
+						const drone = document.querySelector("#drone");
+						const checkpoints = document.querySelectorAll("[checkpoint]");
+
+						if (!drone || checkpoints.length === 0) return;
+
+						const dronePos = drone.getAttribute("position");
+						let nearestDistance = 999;
+						let nearestCheckpoint = null;
+
+						checkpoints.forEach(checkpoint => {
+							const checkpointPos = checkpoint.getAttribute("position");
+							const distance = Math.sqrt(
+								Math.pow(dronePos.x - checkpointPos.x, 2) +
+								Math.pow(dronePos.y - checkpointPos.y, 2) +
+								Math.pow(dronePos.z - checkpointPos.z, 2)
+							);
+							if (distance < nearestDistance) {
+								nearestDistance = distance;
+								nearestCheckpoint = checkpoint;
+							}
+						});
+
+						this.hudData.distanceToObjective = Math.round(nearestDistance);
+
+						// Direção GPS
+						if (nearestCheckpoint) {
+							const checkpointPos = nearestCheckpoint.getAttribute("position");
+							const deltaX = checkpointPos.x - dronePos.x;
+							const deltaZ = checkpointPos.z - dronePos.z;
+							this.hudData.objectiveDirection = Math.atan2(deltaX, deltaZ) * (180 / Math.PI);
+						}
+					},
+
+					updateVisualElements: function () {
+						// Atualizar velocímetro
+						if (this.hudElements.speedText) {
+							this.hudElements.speedText.setAttribute("value", this.hudData.speedMS.toFixed(1));
+						}
+
+						// Atualizar bateria
+						if (this.hudElements.batteryText) {
+							const batteryPercent = Math.round(this.hudData.batteryPercent);
+							this.hudElements.batteryText.setAttribute("value", `${batteryPercent}%`);
+
+							let batteryColor = "#44ff44";
+							if (batteryPercent < 20) {
+								batteryColor = "#ff4444";
+							} else if (batteryPercent < 50) {
+								batteryColor = "#ffaa00";
+							}
+							this.hudElements.batteryText.setAttribute("color", batteryColor);
+						}
+
+						// Atualizar altitude
+						if (this.hudElements.altitudeText) {
+							this.hudElements.altitudeText.setAttribute("value", this.hudData.altitude.toString());
+						}
+
+						// Atualizar distância
+						if (this.hudElements.distanceText) {
+							this.hudElements.distanceText.setAttribute("value", `${this.hudData.distanceToObjective}M`);
+						}
+
+						// Atualizar coordenadas
+						if (this.hudElements.coordsText) {
+							this.hudElements.coordsText.setAttribute("value",
+								`X:${this.hudData.coordinates.x} Y:${this.hudData.coordinates.y} Z:${this.hudData.coordinates.z}`
+							);
+						}
+
+						// Atualizar seta GPS
+						if (this.hudElements.gpsArrow) {
+							this.hudElements.gpsArrow.setAttribute("rotation", `0 0 ${-this.hudData.objectiveDirection}`);
+						}
+					},
+
+					toggleHUD: function () {
+						this.data.enabled = !this.data.enabled;
+						if (this.hudContainer) {
+							this.hudContainer.setAttribute("visible", this.data.enabled);
+						}
+						console.log(`🚀 HUD: ${this.data.enabled ? 'ATIVADO' : 'DESATIVADO'}`);
+					},
+
+					cycleTransparency: function () {
+						const levels = [0.3, 0.5, 0.7, 0.9];
+						const currentIndex = levels.indexOf(this.data.transparency);
+						const nextIndex = (currentIndex + 1) % levels.length;
+						this.data.transparency = levels[nextIndex];
+
+						if (this.hudElements.hudPlane) {
+							this.hudElements.hudPlane.setAttribute("material.opacity", this.data.transparency);
+						}
+						console.log(`🔍 Transparência: ${Math.round(this.data.transparency * 100)}%`);
+					},
+
+					cycleHUDColor: function () {
+						const colors = ["#00ffff", "#00ff00", "#ffff00", "#ff8800"];
+						const currentIndex = colors.indexOf(this.data.hudColor);
+						const nextIndex = (currentIndex + 1) % colors.length;
+						this.data.hudColor = colors[nextIndex];
+
+						// Atualizar cor dos elementos
+						const textElements = [
+							this.hudElements.speedText,
+							this.hudElements.altitudeText,
+							this.hudElements.coordsText
+						];
+
+						textElements.forEach(element => {
+							if (element) {
+								element.setAttribute("color", this.data.hudColor);
+							}
+						});
+
+						console.log(`🎨 Cor do HUD alterada`);
+					}
+				});
+			}
+
+			// Sistema de monitoramento
+			let hudComponent = null;
+			let startTime = Date.now();
+
+			document.addEventListener('DOMContentLoaded', function () {
+				console.log("🚀 TESTE HUD SEM ERROS INICIADO");
+
+				setTimeout(() => {
+					const camera = document.querySelector('a-camera');
+					hudComponent = camera?.components?.['hud-limpo'];
+
+					if (hudComponent) {
+						console.log("✅ HUD Limpo carregado!");
+						updateStatusPanel("✅ HUD carregado sem erros!");
+					} else {
+						console.error("❌ HUD não carregado!");
+						updateStatusPanel("❌ Erro ao carregar HUD");
+					}
+				}, 2000);
+			});
+
+			function updateStatusPanel(message) {
+				const statusEl = document.getElementById('status-info');
+				if (statusEl) {
+					statusEl.innerHTML = message;
+				}
+			}
+
+			// Monitoramento dos dados
+			setInterval(() => {
+				if (hudComponent && hudComponent.hudData) {
+					const data = hudComponent.hudData;
+					const testTime = Math.floor((Date.now() - startTime) / 1000);
+
+					const statusHtml = `
+                    <div>⏱️ Tempo: ${testTime}s</div>
+                    <div>🏃 Velocidade: ${data.speedMS.toFixed(2)} M/S</div>
+                    <div>📏 Altitude: ${data.altitude}m</div>
+                    <div>🔋 Bateria: ${Math.round(data.batteryPercent)}%</div>
+                    <div>🎯 Distância: ${data.distanceToObjective}M</div>
+                    <div>🧭 GPS: ${data.objectiveDirection.toFixed(1)}°</div>
+                    <div>📍 X:${data.coordinates.x} Y:${data.coordinates.y} Z:${data.coordinates.z}</div>
+                `;
+					updateStatusPanel(statusHtml);
+
+					console.log(`📊 [${testTime}s] Vel: ${data.speedMS.toFixed(2)}m/s | Alt: ${data.altitude}m | Bat: ${Math.round(data.batteryPercent)}%`);
+				}
+			}, 2000);
+
+			console.log("🎮 HUD SEM ERROS - Pronto para uso!");
+		</script>
+	</body>
+
+</html>

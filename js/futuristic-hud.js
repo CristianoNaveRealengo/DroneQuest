@@ -15,6 +15,7 @@ if (!AFRAME.components["futuristic-hud"]) {
 			hudHeight: { type: "number", default: 3.0 },
 			hudScale: { type: "number", default: 1.0 },
 			hudDistance: { type: "number", default: 2.5 },
+			useCleanHUD: { type: "boolean", default: false },
 		},
 
 		init: function () {
@@ -53,6 +54,7 @@ if (!AFRAME.components["futuristic-hud"]) {
 			console.log("  H - Alternar HUD Futurístico");
 			console.log("  U - Ajustar transparência");
 			console.log("  I - Alternar cor do HUD");
+			console.log("  K - Alternar HUD Limpo/Completo");
 		},
 
 		setupKeyboardControls: function () {
@@ -105,6 +107,10 @@ if (!AFRAME.components["futuristic-hud"]) {
 					case "]":
 						console.log("📏 Comando ] - HUD mais distante");
 						self.moveHUDFarther();
+						break;
+					case "k":
+						console.log("🎯 Comando K - Alternar HUD Limpo");
+						self.toggleCleanHUD();
 						break;
 				}
 			});
@@ -199,6 +205,28 @@ if (!AFRAME.components["futuristic-hud"]) {
 					"#ffaa00"
 				);
 			}
+		},
+
+		toggleCleanHUD: function () {
+			console.log("🎯 Executando toggleCleanHUD...");
+			this.data.useCleanHUD = !this.data.useCleanHUD;
+
+			// Atualizar o material do HUD
+			if (this.hudElements.hudPlane) {
+				const newSrc = this.data.useCleanHUD
+					? "assets/hud-overlay-limpo.svg"
+					: "assets/hud-overlay.svg";
+				this.hudElements.hudPlane.setAttribute("material", {
+					src: newSrc,
+					transparent: true,
+					opacity: this.data.transparency,
+					alphaTest: 0.1,
+				});
+			}
+
+			const hudType = this.data.useCleanHUD ? "LIMPO" : "COMPLETO";
+			this.showNotification(`🎯 HUD ${hudType} ATIVADO`, "#00ff00");
+			console.log(`🎯 HUD ${hudType} ativado`);
 		},
 
 		// === CONTROLES DE DIMENSÃO DO HUD ===
@@ -394,7 +422,9 @@ if (!AFRAME.components["futuristic-hud"]) {
 			);
 			hudPlane.setAttribute("position", "0 0 0");
 			hudPlane.setAttribute("material", {
-				src: "assets/hud-overlay.svg",
+				src: this.data.useCleanHUD
+					? "assets/hud-overlay-limpo.svg"
+					: "assets/hud-overlay.svg",
 				transparent: true,
 				opacity: this.data.transparency,
 				alphaTest: 0.1,

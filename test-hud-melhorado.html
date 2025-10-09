@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>HUD Futurístico Melhorado - Teste Completo</title>
+		<script src="libs/aframe.min.js"></script>
+
+		<!-- Scripts necessários do jogo principal para dados dinâmicos -->
+		<script src="js/utils.js"></script>
+		<script src="js/game-manager.js"></script>
+		<script src="js/drone-controller.js"></script>
+		<script src="js/checkpoint-system.js"></script>
+		<script src="js/futuristic-hud-melhorado.js"></script>
+		<style>
+			body {
+				margin: 0;
+				background: #000;
+			}
+
+			.test-panel {
+				position: fixed;
+				top: 10px;
+				left: 10px;
+				background: rgba(0, 20, 40, 0.9);
+				border: 2px solid #00ffff;
+				color: #00ffff;
+				padding: 20px;
+				border-radius: 10px;
+				font-family: 'Courier New', monospace;
+				font-size: 12px;
+				max-width: 400px;
+				box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+			}
+
+			.highlight {
+				color: #ffff00;
+				font-weight: bold;
+			}
+
+			.success {
+				color: #44ff44;
+			}
+
+			.warning {
+				color: #ffaa00;
+			}
+		</style>
+	</head>
+
+	<body>
+		<a-scene background="color: #000011" vr-mode-ui="enabled: true"
+			game-manager="totalCheckpoints: 3; timeLimit: 300">
+			<!-- Assets -->
+			<a-assets>
+				<img id="hud-overlay-melhorado" src="assets/hud-overlay-melhorado.svg" crossorigin="anonymous">
+			</a-assets>
+
+			<!-- Câmera com HUD melhorado -->
+			<a-camera position="0 1.6 3" futuristic-hud-melhorado wasd-controls>
+			</a-camera>
+
+			<!-- Drone simulado com movimento complexo -->
+			<!-- Drone com controlador real para dados dinâmicos -->
+			<a-entity id="drone" position="0 2 0" drone-controller>
+				<!-- Corpo do Drone -->
+				<a-entity id="drone-body" geometry="primitive: box; width: 0.8; height: 0.2; depth: 0.8"
+					material="color: #00aa00; metalness: 0; roughness: 1; emissive: #001100; emissiveIntensity: 0.3">
+
+					<!-- LED Central -->
+					<a-entity geometry="primitive: sphere; radius: 0.02"
+						material="color: #00ff00; emissive: #00ff00; emissiveIntensity: 0.8"
+						position="0 0.12 0"></a-entity>
+				</a-entity>
+
+				<!-- Hélices -->
+				<a-entity id="prop1" geometry="primitive: cylinder; radius: 0.25; height: 0.01"
+					material="color: #ff4444; transparent: true; opacity: 0.2" position="0.6 0.15 0.6"
+					animation="property: rotation; to: 0 1800 0; loop: true; dur: 600"></a-entity>
+				<a-entity id="prop2" geometry="primitive: cylinder; radius: 0.25; height: 0.01"
+					material="color: #ff4444; transparent: true; opacity: 0.2" position="-0.6 0.15 0.6"
+					animation="property: rotation; to: 0 -1800 0; loop: true; dur: 600"></a-entity>
+				<a-entity id="prop3" geometry="primitive: cylinder; radius: 0.25; height: 0.01"
+					material="color: #ff4444; transparent: true; opacity: 0.2" position="0.6 0.15 -0.6"
+					animation="property: rotation; to: 0 -1800 0; loop: true; dur: 600"></a-entity>
+				<a-entity id="prop4" geometry="primitive: cylinder; radius: 0.25; height: 0.01"
+					material="color: #ff4444; transparent: true; opacity: 0.2" position="-0.6 0.15 -0.6"
+					animation="property: rotation; to: 0 1800 0; loop: true; dur: 600"></a-entity>
+			</a-entity>
+
+			<!-- Checkpoints em posições estratégicas -->
+			<a-entity checkpoint position="10 5 -15">
+				<a-torus color="#00ff00" radius="2.5" radius-tubular="0.3">
+					<a-animation attribute="rotation" to="360 0 0" dur="3000" repeat="indefinite"></a-animation>
+				</a-torus>
+				<a-text value="CHECKPOINT A" position="0 3 0" align="center" color="#00ff00" scale="2 2 2"></a-text>
+			</a-entity>
+
+			<a-entity checkpoint position="-18 8 -25">
+				<a-torus color="#00ff00" radius="2.5" radius-tubular="0.3">
+					<a-animation attribute="rotation" to="0 360 0" dur="3000" repeat="indefinite"></a-animation>
+				</a-torus>
+				<a-text value="CHECKPOINT B" position="0 3 0" align="center" color="#00ff00" scale="2 2 2"></a-text>
+			</a-entity>
+
+			<a-entity checkpoint position="5 12 -35">
+				<a-torus color="#00ff00" radius="2.5" radius-tubular="0.3">
+					<a-animation attribute="rotation" to="0 0 360" dur="3000" repeat="indefinite"></a-animation>
+				</a-torus>
+				<a-text value="CHECKPOINT C" position="0 3 0" align="center" color="#00ff00" scale="2 2 2"></a-text>
+			</a-entity>
+
+			<!-- Ambiente espacial -->
+			<a-plane position="0 0 0" rotation="-90 0 0" width="300" height="300" color="#001122"
+				opacity="0.8"></a-plane>
+
+			<!-- Estruturas futurísticas -->
+			<a-box position="20 2 -10" width="2" height="4" depth="2" color="#003366"></a-box>
+			<a-box position="-25 3 -20" width="3" height="6" depth="3" color="#003366"></a-box>
+			<a-box position="0 1 -40" width="4" height="2" depth="4" color="#003366"></a-box>
+
+			<!-- Iluminação atmosférica -->
+			<a-light type="ambient" color="#002244" intensity="0.4"></a-light>
+			<a-light type="directional" position="1 1 1" color="#ffffff" intensity="0.5"></a-light>
+			<a-light type="point" position="10 10 -15" color="#00ffff" intensity="0.8" distance="30"></a-light>
+
+			<!-- Campo de estrelas -->
+			<a-entity position="0 50 0">
+				<a-sphere radius="0.2" color="#ffffff" position="30 0 -40" opacity="0.9"></a-sphere>
+				<a-sphere radius="0.15" color="#ffffff" position="-35 15 -50" opacity="0.7"></a-sphere>
+				<a-sphere radius="0.25" color="#ffffff" position="40 -10 -60" opacity="0.8"></a-sphere>
+				<a-sphere radius="0.1" color="#ffffff" position="-20 25 -45" opacity="0.6"></a-sphere>
+				<a-sphere radius="0.3" color="#ffffff" position="0 30 -80" opacity="0.9"></a-sphere>
+				<a-sphere radius="0.12" color="#ffffff" position="25 -5 -35" opacity="0.5"></a-sphere>
+			</a-entity>
+		</a-scene>
+
+		<!-- Painel de teste -->
+		<div class="test-panel">
+			<div style="font-weight: bold; margin-bottom: 15px; color: #00ff00; font-size: 16px;">
+				🚀 HUD FUTURÍSTICO MELHORADO - TESTE
+			</div>
+
+			<div style="margin-bottom: 12px;">
+				<span class="highlight">NOVOS RECURSOS IMPLEMENTADOS:</span>
+			</div>
+
+			<div style="margin-bottom: 8px;">
+				<span class="success">✅ Velocidade em M/S</span> (em vez de KM/H)
+			</div>
+			<div style="margin-bottom: 8px;">
+				<span class="success">✅ Bateria baseada no tempo da missão</span>
+			</div>
+			<div style="margin-bottom: 8px;">
+				<span class="success">✅ Altímetro em "METROS"</span> (traduzido)
+			</div>
+			<div style="margin-bottom: 8px;">
+				<span class="success">✅ Distância para objetivo destacada</span>
+			</div>
+			<div style="margin-bottom: 8px;">
+				<span class="success">✅ Seta GPS 3D dinâmica</span> (aponta para próximo checkpoint)
+			</div>
+			<div style="margin-bottom: 8px;">
+				<span class="success">✅ Tempo da missão em tempo real</span>
+			</div>
+
+			<div style="margin: 15px 0 10px 0; border-top: 1px solid #00ffff; padding-top: 10px;">
+				<span class="highlight">CONTROLES DE TESTE:</span>
+			</div>
+
+			<div style="margin-bottom: 5px;"><strong>H</strong> - Liga/Desliga HUD</div>
+			<div style="margin-bottom: 5px;"><strong>U</strong> - Transparência</div>
+			<div style="margin-bottom: 5px;"><strong>I</strong> - Cor do HUD</div>
+			<div style="margin-bottom: 5px;"><strong>+/-</strong> - Tamanho do HUD</div>
+			<div style="margin-bottom: 5px;"><strong>0</strong> - Reset tamanho</div>
+			<div style="margin-bottom: 5px;"><strong>WASD</strong> - Mover câmera</div>
+
+			<div style="margin: 15px 0 10px 0; border-top: 1px solid #00ffff; padding-top: 10px;">
+				<span class="highlight">OBSERVE:</span>
+			</div>
+
+			<div style="margin-bottom: 5px;">• <span class="warning">Velocidade em M/S</span> (mais precisa)</div>
+			<div style="margin-bottom: 5px;">• <span class="warning">Bateria diminui</span> com o tempo</div>
+			<div style="margin-bottom: 5px;">• <span class="warning">Seta GPS</span> aponta para checkpoint mais próximo
+			</div>
+			<div style="margin-bottom: 5px;">• <span class="warning">Distância</span> atualiza em tempo real</div>
+			<div style="margin-bottom: 5px;">• <span class="warning">Seta pulsa</span> quando próximo do objetivo</div>
+
+			<div
+				style="margin-top: 15px; font-size: 10px; opacity: 0.8; border-top: 1px solid #00ffff; padding-top: 8px;">
+				Console (F12) para logs detalhados<br>
+				Drone se move automaticamente para demonstração
+			</div>
+		</div>
+
+		<script>
+			// Sistema de monitoramento do teste com dados dinâmicos
+			let hudComponent = null;
+			let droneComponent = null;
+			let gameComponent = null;
+			let testStartTime = Date.now();
+
+			document.addEventListener('DOMContentLoaded', function () {
+				console.log("🚀 TESTE DO HUD MELHORADO COM DADOS DINÂMICOS INICIADO");
+				console.log("📊 Recursos testados:");
+				console.log("  • Velocidade REAL em M/S do drone-controller");
+				console.log("  • Bateria baseada no tempo REAL da prova");
+				console.log("  • Altitude REAL do drone");
+				console.log("  • Seta GPS apontando para checkpoint REAL");
+				console.log("  • Distância REAL para objetivo");
+
+				setTimeout(() => {
+					// Inicializar componentes
+					const camera = document.querySelector('a-camera');
+					const drone = document.querySelector('#drone');
+					const scene = document.querySelector('a-scene');
+
+					hudComponent = camera?.components?.['futuristic-hud-melhorado'];
+					droneComponent = drone?.components?.['drone-controller'];
+					gameComponent = scene?.components?.['game-manager'];
+
+					if (hudComponent) {
+						console.log("✅ HUD Melhorado carregado com sucesso!");
+					} else {
+						console.error("❌ HUD Melhorado não foi carregado!");
+					}
+
+					if (droneComponent) {
+						console.log("✅ Drone Controller carregado com sucesso!");
+						// Ativar o drone
+						droneComponent.activateDrone();
+						console.log("🚁 Drone ativado para gerar dados dinâmicos!");
+					} else {
+						console.error("❌ Drone Controller não foi carregado!");
+					}
+
+					if (gameComponent) {
+						console.log("✅ Game Manager carregado com sucesso!");
+						// Iniciar o jogo
+						gameComponent.startGame();
+						console.log("🎮 Jogo iniciado para cronômetro da bateria!");
+					} else {
+						console.error("❌ Game Manager não foi carregado!");
+					}
+				}, 3000);
+			});
+
+			// Monitoramento em tempo real dos dados DINÂMICOS
+			setInterval(() => {
+				if (hudComponent && hudComponent.hudData) {
+					const data = hudComponent.hudData;
+					const testTime = Math.floor((Date.now() - testStartTime) / 1000);
+
+					console.log(`📊 [${testTime}s] DADOS DINÂMICOS DO HUD:`);
+					console.log(`   🏃 Velocidade: ${data.speedMS.toFixed(2)} M/S (${data.speedKMH.toFixed(1)} KM/H)`);
+					console.log(`   🔋 Bateria: ${Math.round(data.batteryPercent)}% (baseada no tempo REAL da prova)`);
+					console.log(`   📏 Altitude: ${data.altitude} metros (posição Y REAL do drone)`);
+					console.log(`   🎯 Distância objetivo: ${data.distanceToObjective}M (calculada em tempo real)`);
+					console.log(`   🧭 Direção GPS: ${data.objectiveDirection.toFixed(1)}° (seta aponta para checkpoint)`);
+					console.log(`   ⏱️ Tempo missão: ${Math.floor(data.missionTime)}s (cronômetro do jogo)`);
+					console.log(`   📍 Posição: X:${data.coordinates.x} Y:${data.coordinates.y} Z:${data.coordinates.z}`);
+					console.log(`   🎮 Modo: ${data.mode} (do drone-controller)`);
+					console.log("---");
+
+					// Verificar se os dados estão mudando
+					if (!window.lastData) {
+						window.lastData = { ...data };
+					} else {
+						const changed = [];
+						if (Math.abs(data.speedMS - window.lastData.speedMS) > 0.1) changed.push("Velocidade");
+						if (Math.abs(data.altitude - window.lastData.altitude) > 0.5) changed.push("Altitude");
+						if (Math.abs(data.distanceToObjective - window.lastData.distanceToObjective) > 1) changed.push("Distância");
+						if (Math.abs(data.objectiveDirection - window.lastData.objectiveDirection) > 5) changed.push("Direção GPS");
+
+						if (changed.length > 0) {
+							console.log(`🔄 DADOS MUDARAM: ${changed.join(", ")}`);
+						}
+
+						window.lastData = { ...data };
+					}
+				}
+
+				// Status dos componentes
+				if (droneComponent) {
+					console.log(`🚁 Drone Status: ${droneComponent.isActive ? 'ATIVO' : 'INATIVO'} | Voando: ${droneComponent.isFlying ? 'SIM' : 'NÃO'}`);
+				}
+
+				if (gameComponent && gameComponent.gameState) {
+					console.log(`🎮 Jogo Status: ${gameComponent.gameState.isPlaying ? 'RODANDO' : 'PARADO'} | Tempo: ${Math.floor(gameComponent.gameState.elapsedTime / 1000)}s`);
+				}
+			}, 3000);
+
+			// Demonstração automática de recursos
+			setTimeout(() => {
+				console.log("🎮 DEMONSTRAÇÃO AUTOMÁTICA:");
+				console.log("💡 Observe a seta GPS apontando para o checkpoint mais próximo");
+				console.log("💡 A bateria diminui gradualmente baseada no tempo da missão");
+				console.log("💡 A velocidade é mostrada em M/S para maior precisão");
+				console.log("💡 A distância para o objetivo é destacada em laranja");
+			}, 8000);
+
+			// Alertas de bateria baixa
+			setInterval(() => {
+				if (hudComponent && hudComponent.hudData.batteryPercent < 30) {
+					console.warn("⚠️ BATERIA BAIXA! " + Math.round(hudComponent.hudData.batteryPercent) + "%");
+				}
+			}, 10000);
+		</script>
+	</body>
+
+</html>
