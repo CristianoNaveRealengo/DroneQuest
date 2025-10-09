@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>HUD Futurístico - Novo Design Minimalista</title>
+		<script src="libs/aframe.min.js"></script>
+		<script src="js/futuristic-hud.js"></script>
+		<style>
+			body {
+				margin: 0;
+				background: #000;
+			}
+
+			.info-panel {
+				position: fixed;
+				top: 10px;
+				right: 10px;
+				background: rgba(0, 255, 255, 0.1);
+				border: 1px solid #00ffff;
+				color: #00ffff;
+				padding: 15px;
+				border-radius: 8px;
+				font-family: monospace;
+				font-size: 12px;
+				max-width: 300px;
+			}
+		</style>
+	</head>
+
+	<body>
+		<a-scene background="color: #000011" vr-mode-ui="enabled: true">
+			<!-- Assets -->
+			<a-assets>
+				<img id="hud-overlay" src="assets/hud-overlay.svg" crossorigin="anonymous">
+			</a-assets>
+
+			<!-- Câmera com HUD -->
+			<a-camera position="0 1.6 3" futuristic-hud wasd-controls>
+			</a-camera>
+
+			<!-- Drone simulado com movimento -->
+			<a-entity id="drone" position="0 2 0">
+				<a-box color="#00aa00" width="0.5" height="0.1" depth="0.5">
+					<!-- Movimento em padrão circular -->
+					<a-animation attribute="position" to="10 5 -10" dur="20000" direction="alternate"
+						repeat="indefinite" easing="linear">
+					</a-animation>
+					<a-animation attribute="rotation" to="0 360 0" dur="8000" repeat="indefinite" easing="linear">
+					</a-animation>
+				</a-box>
+			</a-entity>
+
+			<!-- Checkpoints para testar navegação -->
+			<a-entity checkpoint position="8 4 -8">
+				<a-torus color="#00ff00" radius="2" radius-tubular="0.2">
+					<a-animation attribute="rotation" to="360 0 0" dur="4000" repeat="indefinite"></a-animation>
+				</a-torus>
+			</a-entity>
+
+			<a-entity checkpoint position="-12 6 -15">
+				<a-torus color="#00ff00" radius="2" radius-tubular="0.2">
+					<a-animation attribute="rotation" to="0 360 0" dur="4000" repeat="indefinite"></a-animation>
+				</a-torus>
+			</a-entity>
+
+			<a-entity checkpoint position="0 8 -25">
+				<a-torus color="#00ff00" radius="2" radius-tubular="0.2">
+					<a-animation attribute="rotation" to="0 0 360" dur="4000" repeat="indefinite"></a-animation>
+				</a-torus>
+			</a-entity>
+
+			<!-- Ambiente minimalista -->
+			<a-plane position="0 0 0" rotation="-90 0 0" width="200" height="200" color="#001122"
+				opacity="0.8"></a-plane>
+
+			<!-- Iluminação suave -->
+			<a-light type="ambient" color="#002244" intensity="0.3"></a-light>
+			<a-light type="directional" position="1 1 1" color="#ffffff" intensity="0.4"></a-light>
+
+			<!-- Efeito de estrelas -->
+			<a-entity position="0 50 0">
+				<a-sphere radius="0.1" color="#ffffff" position="20 0 -30" opacity="0.8"></a-sphere>
+				<a-sphere radius="0.1" color="#ffffff" position="-25 10 -40" opacity="0.6"></a-sphere>
+				<a-sphere radius="0.1" color="#ffffff" position="30 -5 -50" opacity="0.9"></a-sphere>
+				<a-sphere radius="0.1" color="#ffffff" position="-15 15 -35" opacity="0.7"></a-sphere>
+				<a-sphere radius="0.1" color="#ffffff" position="0 20 -60" opacity="0.5"></a-sphere>
+			</a-entity>
+		</a-scene>
+
+		<!-- Painel de informações -->
+		<div class="info-panel">
+			<div style="font-weight: bold; margin-bottom: 10px; color: #00ff00;">🚀 NOVO DESIGN HUD</div>
+			<div style="margin-bottom: 8px;">Baseado na imagem fornecida</div>
+			<div style="margin-bottom: 8px;">Design minimalista e limpo</div>
+			<div style="margin-bottom: 8px;">Frame angular futurístico</div>
+			<br>
+			<div style="font-weight: bold; margin-bottom: 5px;">Controles:</div>
+			<div style="margin-bottom: 4px;"><strong>H</strong> - Liga/Desliga HUD</div>
+			<div style="margin-bottom: 4px;"><strong>U</strong> - Transparência</div>
+			<div style="margin-bottom: 4px;"><strong>I</strong> - Cor do HUD</div>
+			<div style="margin-bottom: 4px;"><strong>+/-</strong> - Tamanho</div>
+			<div style="margin-bottom: 4px;"><strong>[ ]</strong> - Distância</div>
+			<div style="margin-bottom: 4px;"><strong>0</strong> - Reset</div>
+			<br>
+			<div style="font-weight: bold; margin-bottom: 5px;">Recursos:</div>
+			<div style="margin-bottom: 4px;">• Frame baseado na nova imagem</div>
+			<div style="margin-bottom: 4px;">• Crosshair central aprimorado</div>
+			<div style="margin-bottom: 4px;">• Painéis de dados minimalistas</div>
+			<div style="margin-bottom: 4px;">• Dados dinâmicos em tempo real</div>
+			<div style="margin-bottom: 4px;">• Compatibilidade total com VR</div>
+			<br>
+			<div style="font-size: 10px; opacity: 0.8;">
+				Use WASD para mover a câmera<br>
+				Console (F12) para logs detalhados
+			</div>
+		</div>
+
+		<script>
+			// Monitoramento do HUD
+			document.addEventListener('DOMContentLoaded', function () {
+				console.log("🚀 Teste do Novo Design HUD Iniciado");
+
+				setTimeout(() => {
+					const camera = document.querySelector('a-camera');
+					const hudComponent = camera?.components?.['futuristic-hud'];
+
+					if (hudComponent) {
+						console.log("✅ HUD com novo design carregado!");
+						console.log("🎨 Design baseado na imagem fornecida");
+						console.log("📊 Configurações:", hudComponent.data);
+					} else {
+						console.error("❌ HUD não carregado!");
+					}
+				}, 2000);
+			});
+
+			// Monitorar dados em tempo real
+			setInterval(() => {
+				const camera = document.querySelector('a-camera');
+				const hudComponent = camera?.components?.['futuristic-hud'];
+
+				if (hudComponent && hudComponent.hudData) {
+					const data = hudComponent.hudData;
+					console.log(`📊 [${new Date().toLocaleTimeString()}] Vel:${data.speed}km/h Alt:${data.altitude}m Bat:${data.battery}% Dist:${data.distance}m`);
+				}
+			}, 3000);
+
+			// Demonstração automática de recursos
+			setTimeout(() => {
+				console.log("🎮 Demonstração automática iniciada...");
+				console.log("💡 Pressione H para alternar o HUD");
+				console.log("💡 Use +/- para ajustar o tamanho");
+				console.log("💡 Use U para ajustar transparência");
+			}, 5000);
+		</script>
+	</body>
+
+</html>

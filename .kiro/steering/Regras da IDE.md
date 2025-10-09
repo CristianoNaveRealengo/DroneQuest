@@ -38,6 +38,7 @@
 
   <referencias>
     <regra>Use arquivos markdown como guia estrutural, sem modificá-los, a menos que solicitado.</regra>
+    <regra>Salve o arquivo em uma pasta docs na base do projeto</regra>
   </referencias>
 
   <principios>

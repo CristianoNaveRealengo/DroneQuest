@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>HUD Futurístico - Presets de Tamanho</title>
+		<script src="libs/aframe.min.js"></script>
+		<script src="js/futuristic-hud.js"></script>
+		<style>
+			body {
+				margin: 0;
+				background: #000;
+			}
+
+			.preset-buttons {
+				position: fixed;
+				top: 10px;
+				left: 10px;
+				z-index: 1000;
+			}
+
+			.preset-btn {
+				background: rgba(0, 255, 255, 0.8);
+				color: black;
+				border: none;
+				padding: 8px 12px;
+				margin: 2px;
+				border-radius: 4px;
+				cursor: pointer;
+				font-family: monospace;
+				font-weight: bold;
+			}
+
+			.preset-btn:hover {
+				background: rgba(0, 255, 255, 1);
+			}
+		</style>
+	</head>
+
+	<body>
+		<a-scene background="color: #001122" vr-mode-ui="enabled: true">
+			<!-- Assets -->
+			<a-assets>
+				<img id="hud-overlay" src="assets/hud-overlay.svg" crossorigin="anonymous">
+			</a-assets>
+
+			<!-- Câmera com HUD -->
+			<a-camera position="0 1.6 3" futuristic-hud wasd-controls>
+			</a-camera>
+
+			<!-- Drone simulado -->
+			<a-entity id="drone" position="0 2 0">
+				<a-box color="#00aa00" width="0.5" height="0.1" depth="0.5">
+					<a-animation attribute="position" to="8 4 -8" dur="15000" direction="alternate" repeat="indefinite">
+					</a-animation>
+				</a-box>
+			</a-entity>
+
+			<!-- Checkpoints -->
+			<a-entity checkpoint position="5 3 -10">
+				<a-torus color="#00ff00" radius="2" radius-tubular="0.2"></a-torus>
+			</a-entity>
+
+			<!-- Ambiente -->
+			<a-plane position="0 0 0" rotation="-90 0 0" width="100" height="100" color="#003300"></a-plane>
+			<a-light type="ambient" color="#404040"></a-light>
+			<a-light type="directional" position="1 1 1" color="#ffffff"></a-light>
+		</a-scene>
+
+		<!-- Botões de Preset -->
+		<div class="preset-buttons">
+			<div style="color: white; font-family: monospace; margin-bottom: 10px; font-weight: bold;">📏 PRESETS DE
+				TAMANHO:</div>
+			<button class="preset-btn" onclick="setPreset('small')">PEQUENO</button>
+			<button class="preset-btn" onclick="setPreset('medium')">MÉDIO</button>
+			<button class="preset-btn" onclick="setPreset('large')">GRANDE</button>
+			<button class="preset-btn" onclick="setPreset('fullscreen')">TELA CHEIA</button>
+			<br><br>
+			<button class="preset-btn" onclick="customSize(3, 2)">3x2</button>
+			<button class="preset-btn" onclick="customSize(4, 3)">4x3</button>
+			<button class="preset-btn" onclick="customSize(5, 4)">5x4</button>
+			<button class="preset-btn" onclick="customSize(6, 5)">6x5</button>
+		</div>
+
+		<div
+			style="position: fixed; bottom: 10px; left: 10px; color: white; font-family: monospace; background: rgba(0,0,0,0.8); padding: 15px; border-radius: 5px; border: 1px solid #00ffff; max-width: 400px;">
+			<strong>🚀 HUD FUTURÍSTICO - PRESETS DE TAMANHO</strong><br><br>
+
+			<strong>🖱️ Botões de Preset:</strong><br>
+			• <strong>PEQUENO</strong> - 3.0x2.25 (80% escala)<br>
+			• <strong>MÉDIO</strong> - 4.0x3.0 (100% escala) - Padrão<br>
+			• <strong>GRANDE</strong> - 5.0x3.75 (120% escala)<br>
+			• <strong>TELA CHEIA</strong> - 6.0x4.5 (150% escala)<br>
+			<br>
+
+			<strong>⌨️ Controles de Teclado:</strong><br>
+			<strong>H</strong> - Liga/Desliga HUD<br>
+			<strong>+/-</strong> - Aumentar/Diminuir (10% por vez)<br>
+			<strong>0</strong> - Reset para tamanho médio<br>
+			<strong>[ ]</strong> - Aproximar/Afastar da câmera<br>
+			<strong>U</strong> - Transparência | <strong>I</strong> - Cor<br>
+			<br>
+
+			<strong>📊 Informações:</strong><br>
+			• Escala atual: <span id="current-scale">100%</span><br>
+			• Distância: <span id="current-distance">2.5m</span><br>
+			• Dimensões: <span id="current-dimensions">4.0x3.0</span><br>
+			<br>
+
+			<small>Use WASD para mover a câmera e testar diferentes ângulos</small>
+		</div>
+
+		<script>
+			let hudComponent = null;
+
+			// Aguardar carregamento do componente
+			setTimeout(() => {
+				const camera = document.querySelector('a-camera');
+				hudComponent = camera?.components?.['futuristic-hud'];
+
+				if (hudComponent) {
+					console.log("✅ Componente HUD carregado!");
+					updateInfo();
+				} else {
+					console.error("❌ Componente HUD não encontrado!");
+				}
+			}, 2000);
+
+			// Funções de preset
+			function setPreset(preset) {
+				if (hudComponent) {
+					hudComponent.setHUDPreset(preset);
+					setTimeout(updateInfo, 100);
+				}
+			}
+
+			function customSize(width, height) {
+				if (hudComponent) {
+					hudComponent.setHUDSize(width, height, 1.0);
+					setTimeout(updateInfo, 100);
+				}
+			}
+
+			// Atualizar informações na tela
+			function updateInfo() {
+				if (hudComponent) {
+					const scale = Math.round(hudComponent.data.hudScale * 100);
+					const distance = hudComponent.data.hudDistance.toFixed(1);
+					const width = hudComponent.data.hudWidth.toFixed(1);
+					const height = hudComponent.data.hudHeight.toFixed(1);
+
+					document.getElementById('current-scale').textContent = scale + '%';
+					document.getElementById('current-distance').textContent = distance + 'm';
+					document.getElementById('current-dimensions').textContent = width + 'x' + height;
+				}
+			}
+
+			// Atualizar informações periodicamente
+			setInterval(updateInfo, 1000);
+
+			// Log de demonstração
+			console.log("🎮 Demonstração de Presets de Tamanho do HUD");
+			console.log("📏 Use os botões ou teclas para testar diferentes tamanhos");
+			console.log("🔍 Observe como o HUD se adapta mantendo a proporção");
+		</script>
+	</body>
+
+</html>

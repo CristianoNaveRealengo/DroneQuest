@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>Teste HUD Futurístico - Com Imagem</title>
+		<script src="libs/aframe.min.js"></script>
+		<script src="js/futuristic-hud.js"></script>
+		<style>
+			body {
+				margin: 0;
+				background: #000;
+			}
+		</style>
+	</head>
+
+	<body>
+		<a-scene background="color: #001122" vr-mode-ui="enabled: true">
+			<!-- Assets -->
+			<a-assets>
+				<!-- Imagem do HUD -->
+				<img id="hud-overlay" src="assets/hud-overlay.svg" crossorigin="anonymous">
+			</a-assets>
+
+			<!-- Câmera com HUD -->
+			<a-camera position="0 1.6 3" futuristic-hud wasd-controls>
+			</a-camera>
+
+			<!-- Drone simulado para teste -->
+			<a-entity id="drone" position="0 2 0">
+				<a-box color="#00aa00" width="0.5" height="0.1" depth="0.5">
+					<!-- Animação de movimento para testar dados dinâmicos -->
+					<a-animation attribute="position" to="5 3 -5" dur="10000" direction="alternate" repeat="indefinite">
+					</a-animation>
+				</a-box>
+			</a-entity>
+
+			<!-- Checkpoints para testar distância -->
+			<a-entity checkpoint position="5 3 -10">
+				<a-torus color="#00ff00" radius="2" radius-tubular="0.2"></a-torus>
+			</a-entity>
+
+			<a-entity checkpoint position="-8 4 -15">
+				<a-torus color="#00ff00" radius="2" radius-tubular="0.2"></a-torus>
+			</a-entity>
+
+			<!-- Chão -->
+			<a-plane position="0 0 0" rotation="-90 0 0" width="100" height="100" color="#003300"></a-plane>
+
+			<!-- Iluminação -->
+			<a-light type="ambient" color="#404040"></a-light>
+			<a-light type="directional" position="1 1 1" color="#ffffff"></a-light>
+		</a-scene>
+
+		<div
+			style="position: fixed; bottom: 10px; left: 10px; color: white; font-family: monospace; background: rgba(0,0,0,0.8); padding: 15px; border-radius: 5px; border: 1px solid #00ffff; max-width: 350px;">
+			<strong>🚀 HUD FUTURÍSTICO COM DIMENSÕES AJUSTÁVEIS</strong><br><br>
+			<strong>Controles Básicos:</strong><br>
+			<strong>H</strong> - Alternar HUD ON/OFF<br>
+			<strong>U</strong> - Transparência (30% → 90%)<br>
+			<strong>I</strong> - Cor (Ciano → Vermelho)<br>
+			<strong>N</strong> - Grid de Navegação<br>
+			<strong>L</strong> - Linhas de Navegação<br>
+			<br>
+			<strong>📏 Controles de Dimensão:</strong><br>
+			<strong>+</strong> - Aumentar tamanho do HUD<br>
+			<strong>-</strong> - Diminuir tamanho do HUD<br>
+			<strong>0</strong> - Reset tamanho padrão<br>
+			<strong>[</strong> - HUD mais próximo<br>
+			<strong>]</strong> - HUD mais distante<br>
+			<br>
+			<strong>🎯 Recursos:</strong><br>
+			• Interface SVG redimensionável<br>
+			• Controle de distância da câmera<br>
+			• Escala ajustável (30% - 200%)<br>
+			• Elementos de texto proporcionais<br>
+			• Dados dinâmicos em tempo real<br>
+			• Coordenadas atualizadas<br>
+			• Indicador de posição animado<br>
+			<br>
+			<small>Abra o console (F12) para logs detalhados</small>
+		</div>
+
+		<script>
+			// Debug e monitoramento
+			document.addEventListener('DOMContentLoaded', function () {
+				console.log("🎮 Página carregada - HUD com imagem");
+
+				setTimeout(() => {
+					const camera = document.querySelector('a-camera');
+					const hudComponent = camera?.components?.['futuristic-hud'];
+
+					if (hudComponent) {
+						console.log("✅ Componente HUD encontrado!");
+						console.log("📊 Estado do HUD:", hudComponent.hudData);
+					} else {
+						console.error("❌ Componente HUD NÃO encontrado!");
+					}
+
+					// Verificar se a imagem foi carregada
+					const hudPlane = document.querySelector('#futuristic-hud-container a-plane');
+					if (hudPlane) {
+						console.log("✅ Plano do HUD encontrado!");
+					} else {
+						console.warn("⚠️ Plano do HUD não encontrado!");
+					}
+				}, 3000);
+			});
+
+			// Monitorar mudanças nos dados do HUD
+			setInterval(() => {
+				const camera = document.querySelector('a-camera');
+				const hudComponent = camera?.components?.['futuristic-hud'];
+
+				if (hudComponent && hudComponent.hudData) {
+					const data = hudComponent.hudData;
+					console.log(`📊 Dados HUD: Vel:${data.speed}km/h Alt:${data.altitude}m Bat:${data.battery}% Dist:${data.distance}m`);
+				}
+			}, 5000);
+		</script>
+	</body>
+
+</html>

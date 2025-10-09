@@ -32,7 +32,7 @@
         <script src="js/collision-system.js?v=1.0.2"></script>
         <script src="js/audio-system.js?v=1.0.4"></script>
         <script src="js/navigation-arrow.js?v=1.0.2"></script>
-        <script src="js/futuristic-hud.js?v=1.0.0"></script>
+        <script src="js/futuristic-hud.js?v=1.1.0"></script>
 
         <!-- ÚNICA A-SCENE - ULTRA OTIMIZADA PARA VR -->
         <a-scene vr-mode-ui="enabled: true" webxr="requiredFeatures: local-floor; optionalFeatures: bounded-floor"
@@ -52,6 +52,9 @@
                     material="color: #00ff00; transparent: true; opacity: 0.6; metalness: 0; roughness: 1; emissive: #00ff00; emissiveIntensity: 0.4"
                     animation="property: rotation; to: 0 360 0; loop: true; dur: 8000">
                 </a-mixin>
+
+                <!-- HUD Futurístico -->
+                <img id="hud-overlay" src="assets/hud-overlay.svg" crossorigin="anonymous">
 
             </a-assets>
 
@@ -93,19 +96,7 @@
                 <a-camera id="drone-camera" position="0 -0.30 -0.5" rotation="-15 0 0" wasd-controls="enabled: false"
                     look-controls="enabled: true; pointerLockEnabled: false" vr-camera-sync futuristic-hud>
 
-                    <!-- HUD Futurístico será criado automaticamente pelo componente -->
-
-                    <!-- HUD Básico de Backup (oculto por padrão) -->
-                    <a-entity id="hud-backup" position="0 0 -2" visible="false">
-                        <a-text id="timer" position="-1.5 1 0" value="Tempo: 00:00" color="#00ff00"
-                            scale="0.8 0.8 0.8"></a-text>
-                        <a-text id="checkpoint-counter" position="1.5 1 0" value="Checkpoint: 0/3" color="#00ff00"
-                            scale="0.8 0.8 0.8"></a-text>
-                        <a-text id="speed-indicator" position="0 -1.2 0" value="Velocidade: 0 km/h" color="#ffff00"
-                            scale="0.6 0.6 0.6"></a-text>
-                        <a-text id="flight-mode-indicator" position="0 1.5 0" value="🎬 CINEMATOGRÁFICO" color="#ff8800"
-                            scale="0.7 0.7 0.7"></a-text>
-                    </a-entity>
+                    <!-- HUD Futurístico com imagem SVG será criado automaticamente pelo componente -->
                 </a-camera>
             </a-entity>
 
@@ -114,14 +105,12 @@
             <a-entity mixin="checkpoint" position="-20 12 -30" checkpoint="id: 2"></a-entity>
             <a-entity mixin="checkpoint" position="0 10 -45" checkpoint="id: 3"></a-entity>
 
-            <!-- 3D do Ambiente -->
-
+    
             <!-- Modelo da Abby -->
             <a-gltf-model src="assets/npc/AbbyRoupaClara.glb" position="-1.806 -0.07805 -3.5"></a-gltf-model>
 
-            <!-- Iluminação otimizada para o rosto da Abby -->
             <!-- Luz principal frontal para o rosto -->
-            <a-light type="point" position="-1.806 1.2 -2.8" color="#ffeeaa" intensity="3.2" distance="8"></a-light>
+            <!-- <a-light type="point" position="-1.806 1.2 -2.8" color="#ffeeaa" intensity="3.2" distance="8"></a-light> -->
 
             <!-- Luz de preenchimento lateral (ajustada) -->
             <a-light type="point" position="-0.80562 1.5 -4.30211" color="#ffeeaa" intensity="1.8"
@@ -166,13 +155,21 @@
         <div id="hud-help"
             style="position: fixed; top: 10px; right: 10px; background: rgba(0, 0, 0, 0.8); color: #00ffff; padding: 15px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 12px; z-index: 1000; border: 1px solid #00ffff; max-width: 300px;">
             <div style="font-weight: bold; margin-bottom: 10px; color: #00ff00;">🚀 HUD FUTURÍSTICO</div>
-            <div style="margin-bottom: 8px;"><strong>H</strong> - Alternar HUD Futurístico</div>
-            <div style="margin-bottom: 8px;"><strong>U</strong> - Ajustar Transparência</div>
-            <div style="margin-bottom: 8px;"><strong>I</strong> - Alterar Cor do HUD</div>
-            <div style="margin-bottom: 8px;"><strong>J</strong> - Informações do Sistema</div>
+            <div style="margin-bottom: 5px;"><strong>H</strong> - Alternar HUD Futurístico</div>
+            <div style="margin-bottom: 5px;"><strong>U</strong> - Ajustar Transparência</div>
+            <div style="margin-bottom: 5px;"><strong>I</strong> - Alterar Cor do HUD</div>
+            <div style="margin-bottom: 5px;"><strong>N</strong> - Alternar Grid de Navegação</div>
+            <div style="margin-bottom: 5px;"><strong>L</strong> - Alternar Linhas de Navegação</div>
+            <div style="color: #ffaa00; font-weight: bold; margin: 8px 0 5px 0;">📏 Dimensões:</div>
+            <div style="margin-bottom: 5px;"><strong>+/-</strong> - Aumentar/Diminuir HUD</div>
+            <div style="margin-bottom: 5px;"><strong>0</strong> - Reset tamanho padrão</div>
+            <div style="margin-bottom: 5px;"><strong>[ ]</strong> - Aproximar/Afastar HUD</div>
+            <div style="margin-bottom: 6px;"><strong>J</strong> - Informações do Sistema</div>
             <div
                 style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #00ffff; font-size: 10px; opacity: 0.8;">
-                Interface de nave espacial com dados em tempo real do drone
+                🛸 Interface de nave espacial redimensionável<br>
+                📏 Tamanho e distância ajustáveis em tempo real<br>
+                📍 Navegação com dados dinâmicos do drone
             </div>
         </div>
 
@@ -390,6 +387,24 @@
                         }
 
                         console.log('✅ Jogo inicializado com sucesso!');
+
+                        // Verificar se o HUD futurístico foi carregado
+                        setTimeout(() => {
+                            const camera = document.querySelector('#drone-camera');
+                            const hudComponent = camera?.components?.['futuristic-hud'];
+
+                            if (hudComponent) {
+                                console.log('🚀 HUD Futurístico carregado com sucesso!');
+                                console.log('📊 Configurações do HUD:', {
+                                    width: hudComponent.data.hudWidth,
+                                    height: hudComponent.data.hudHeight,
+                                    scale: hudComponent.data.hudScale,
+                                    distance: hudComponent.data.hudDistance
+                                });
+                            } else {
+                                console.warn('⚠️ HUD Futurístico não foi carregado!');
+                            }
+                        }, 1000);
 
                         // Ocultar painel de ajuda do HUD após 8 segundos
                         setTimeout(() => {
