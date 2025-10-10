@@ -1492,12 +1492,12 @@ if (!AFRAME.components["drone-controller"]) {
 
 					// Aplicar estabilização restritiva apenas se estiver fora da tolerância
 					if (absAltitudeDifference > this.stabilizationTolerance) {
-						// Força de estabilização muito mais suave para evitar oscilações grandes
-						let stabilizationMultiplier = 0.15; // Força muito reduzida
+						// Força de estabilização MUITO suave para evitar subida indesejada
+						let stabilizationMultiplier = 0.03; // Força drasticamente reduzida
 
 						// Se está abaixo de 20m, usar estabilização ligeiramente mais forte
 						if (this.isInLowAltitudeMode) {
-							stabilizationMultiplier = 0.25; // Apenas 25% mais forte
+							stabilizationMultiplier = 0.05; // Apenas um pouco mais forte
 						}
 
 						const stabilizationForce =
@@ -1526,17 +1526,9 @@ if (!AFRAME.components["drone-controller"]) {
 							this.lastStabilizationCheck = Date.now();
 						}
 					} else {
-						// Dentro da tolerância - aplicar estabilização muito suave para oscilações de ~10cm
-						let fineMultiplier = 0.05; // Força muito reduzida
-
-						// Se está abaixo de 20m, usar estabilização fina ligeiramente mais forte
-						if (this.isInLowAltitudeMode) {
-							fineMultiplier = 0.08; // Apenas um pouco mais forte
-						}
-
-						const fineStabilizationForce =
-							altitudeDifference * fineMultiplier;
-						altitudeForce += fineStabilizationForce;
+						// Dentro da tolerância - NÃO aplicar estabilização (deixar livre)
+						// Força zerada para evitar subida indesejada
+						// altitudeForce += 0;
 					}
 				}
 			} else if (this.data.altitudeStabilization) {
@@ -1698,19 +1690,18 @@ if (!AFRAME.components["drone-controller"]) {
 					this.angularVelocity.x *= 0.92;
 				}
 
-				// Roll (inclinação lateral) - manter nivelado sem oscilações
-				if (Math.abs(rotation.z) > 0.5) {
-					this.angularVelocity.z +=
-						-rotation.z * correctionForce * deltaTime;
-					this.angularVelocity.z = Math.max(
-						-maxAngularVelocity,
-						Math.min(maxAngularVelocity, this.angularVelocity.z)
-					);
-					this.angularVelocity.z *= 0.92;
-				} else {
-					// Zerar quando muito próximo de zero
-					this.angularVelocity.z *= 0.85;
-				}
+				// Roll (inclinação lateral) - SEMPRE manter nivelado (sem inclinação lateral)
+				// Força de correção mais forte para manter sempre reto
+				this.angularVelocity.z = -rotation.z * 5.0 * deltaTime;
+
+				// Limitar velocidade
+				this.angularVelocity.z = Math.max(
+					-maxAngularVelocity,
+					Math.min(maxAngularVelocity, this.angularVelocity.z)
+				);
+
+				// Amortecimento forte para zerar rapidamente
+				this.angularVelocity.z *= 0.7;
 			}
 
 			// Aplicar rotação
@@ -1734,8 +1725,8 @@ if (!AFRAME.components["drone-controller"]) {
 
 			this.el.setAttribute("rotation", newRotation);
 
-			// Aplicar inclinação nas curvas (banking)
-			this.applyBankingEffect(deltaTime);
+			// Inclinação nas curvas (banking) DESABILITADA - apenas pitch (frente/trás)
+			// this.applyBankingEffect(deltaTime);
 		},
 
 		applyBankingEffect: function (deltaTime) {

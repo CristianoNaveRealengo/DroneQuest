@@ -74,6 +74,7 @@
             <!-- Drone Principal -->
             <a-entity id="drone" position="0 0 0" drone-controller navigation-arrow
                 physics-body="type: dynamic; mass: 2; linearDamping: 0.1; angularDamping: 0.1">
+                
 
                 <!-- Corpo do Drone Ultra-Simplificado -->
                 <a-entity id="drone-body" geometry="primitive: box; width: 0.8; height: 0.2; depth: 0.8"
@@ -116,42 +117,43 @@
 
 
             <!-- Modelo da Abby -->
-            <a-gltf-model src="assets/npc/AbbyRoupaClara.glb" position="-1.806 -0.07805 -3.5"></a-gltf-model>
+            <a-gltf-model src="assets/npc/AbbyRoupaClara.glb" position="-1.806 -0.02341 -3.5"
+                gltf-model="assets/npc/AbbyRoupaClara.glb"></a-gltf-model>
 
             <!-- Luz para o rosto da Abby -->
             <a-light type="point" position="-1.806 1.5 -2.5" color="#ffffff" intensity="2.0" distance="5"></a-light>
 
-            <a-gltf-model src="#quadra" position="-0.997 -2.25903 -0.264" í="" gltf-model="assets/Quadra.glb"
+            <a-gltf-model src="#quadra" position="-0.997 -2.20397 -0.264" í="" gltf-model="assets/Quadra.glb"
                 scale="0.8 0.8 0.8"></a-gltf-model>
 
             <!-- Chão Otimizado - Tom Bege/Areia escuro -->
             <a-plane position="0 -0.1 0" rotation="-90 0 0" width="500" height="500"
-                material="color: #8A7050; metalness: 0; roughness: 0.95; flatShading: true"
+                material="color: #8A7050; metalness: 0; roughness: 0.95; flatShading: true; side: double"
                 shadow="receive: false"></a-plane>
 
             <!-- Patches com Variações sutis de Tom Bege/Areia escuros -->
-            <a-plane position="20 -0.09 25" rotation="-90 0 0" width="80" height="80"
-                material="color: #7A6040; metalness: 0; roughness: 0.92; flatShading: true"
+            <a-plane position="20 -0.05 25" rotation="-90 0 0" width="80" height="80"
+                material="color: #7A6040; metalness: 0; roughness: 0.92; flatShading: true; side: double"
                 shadow="receive: false"></a-plane>
 
-            <a-plane position="-35 -0.09 -15" rotation="-90 0 0" width="70" height="70"
-                material="color: #987A58; metalness: 0; roughness: 0.97; flatShading: true"
+            <a-plane position="-35 -0.05 -15" rotation="-90 0 0" width="70" height="70"
+                material="color: #987A58; metalness: 0; roughness: 0.97; flatShading: true; side: double"
                 shadow="receive: false"></a-plane>
 
-            <a-plane position="45 -0.09 -40" rotation="-90 0 0" width="90" height="90"
-                material="color: #705838; metalness: 0; roughness: 0.94; flatShading: true"
+            <a-plane position="45 -0.05 -40" rotation="-90 0 0" width="90" height="90"
+                material="color: #705838; metalness: 0; roughness: 0.94; flatShading: true; side: double"
                 shadow="receive: false"></a-plane>
 
-            <a-plane position="-50 -0.09 35" rotation="-90 0 0" width="75" height="75"
-                material="color: #806848; metalness: 0; roughness: 0.96; flatShading: true"
+            <a-plane position="-50 -0.05 35" rotation="-90 0 0" width="75" height="75"
+                material="color: #806848; metalness: 0; roughness: 0.96; flatShading: true; side: double"
                 shadow="receive: false"></a-plane>
 
-            <a-plane position="15 -0.09 -60" rotation="-90 0 0" width="85" height="85"
-                material="color: #A08060; metalness: 0; roughness: 0.93; flatShading: true"
+            <a-plane position="15 -0.05 -60" rotation="-90 0 0" width="85" height="85"
+                material="color: #A08060; metalness: 0; roughness: 0.93; flatShading: true; side: double"
                 shadow="receive: false"></a-plane>
 
-            <a-plane position="-25 -0.09 -50" rotation="-90 0 0" width="65" height="65"
-                material="color: #685030; metalness: 0; roughness: 0.91; flatShading: true"
+            <a-plane position="-25 -0.05 -50" rotation="-90 0 0" width="65" height="65"
+                material="color: #685030; metalness: 0; roughness: 0.91; flatShading: true; side: double"
                 shadow="receive: false"></a-plane>
 
             <!-- Controles VR Otimizados -->
@@ -170,9 +172,7 @@
 
         <!-- Tela de carregamento -->
         <div id="loading">
-            <h2>Carregando Cenário Limpo VR...</h2>
-            <p>Otimizado para Oculus Quest</p>
-            <p>Abby & Drone Adventure</p>
+            <h2>Carregando Cenário Limpo VR...</h2>        
             <div class="progress-bar">
                 <div class="progress"></div>
             </div>
