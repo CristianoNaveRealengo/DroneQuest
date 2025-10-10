@@ -1649,7 +1649,7 @@ if (!AFRAME.components["drone-controller"]) {
 				this.angularVelocity.x += this.targetPitchRotation * deltaTime;
 			}
 
-			// NOVO: Inclinação para frente ao acelerar (melhorada e mais responsiva)
+			// NOVO: Inclinação para frente ao acelerar (sutil e suave)
 			let pitchTilt = 0;
 			if (Math.abs(this.targetForwardSpeed) > 0.1) {
 				// Calcular intensidade do movimento para frente (0 a 1)
@@ -1659,8 +1659,8 @@ if (!AFRAME.components["drone-controller"]) {
 				const forwardIntensity =
 					Math.abs(this.targetForwardSpeed) / maxSpeed;
 
-				// Ângulo máximo de inclinação baseado no modo (aumentado)
-				const maxPitchAngle = this.fpvMode.enabled ? 30 : 20; // FPV: 30°, Normal: 20°
+				// Ângulo máximo de inclinação SUTIL baseado no modo
+				const maxPitchAngle = this.fpvMode.enabled ? 12 : 8; // FPV: 12°, Normal: 8° (bem sutil)
 
 				// Calcular inclinação (negativo = para frente, positivo = para trás)
 				pitchTilt =
@@ -1675,30 +1675,41 @@ if (!AFRAME.components["drone-controller"]) {
 				const targetPitch = pitchTilt;
 				const pitchDifference = targetPitch - rotation.x;
 
-				// Força de correção mais forte para resposta rápida
-				const correctionForce = this.fpvMode.enabled ? 10.0 : 6.0;
+				// Força de correção balanceada (reduzida para evitar cambalhotas)
+				const correctionForce = this.fpvMode.enabled ? 3.0 : 2.0;
 
-				// Aplicar correção direta e forte (sem acumulação)
-				this.angularVelocity.x =
+				// Aplicar correção suave e progressiva
+				this.angularVelocity.x +=
 					pitchDifference * correctionForce * deltaTime;
 
-				// Amortecimento forte para evitar oscilações (zera rapidamente)
-				if (Math.abs(pitchDifference) < 0.5) {
-					// Quando muito próximo do alvo, zerar completamente
-					this.angularVelocity.x = 0;
+				// Limitar velocidade angular máxima para evitar cambalhotas
+				const maxAngularVelocity = 2.0; // rad/s
+				this.angularVelocity.x = Math.max(
+					-maxAngularVelocity,
+					Math.min(maxAngularVelocity, this.angularVelocity.x)
+				);
+
+				// Amortecimento para parar suavemente
+				if (Math.abs(pitchDifference) < 1.0) {
+					// Quando próximo do alvo, amortecer mais
+					this.angularVelocity.x *= 0.85;
 				} else {
-					// Amortecimento progressivo
-					this.angularVelocity.x *= 0.6;
+					// Amortecimento normal
+					this.angularVelocity.x *= 0.92;
 				}
 
 				// Roll (inclinação lateral) - manter nivelado sem oscilações
-				if (Math.abs(rotation.z) > 0.3) {
-					this.angularVelocity.z =
+				if (Math.abs(rotation.z) > 0.5) {
+					this.angularVelocity.z +=
 						-rotation.z * correctionForce * deltaTime;
-					this.angularVelocity.z *= 0.6;
+					this.angularVelocity.z = Math.max(
+						-maxAngularVelocity,
+						Math.min(maxAngularVelocity, this.angularVelocity.z)
+					);
+					this.angularVelocity.z *= 0.92;
 				} else {
-					// Zerar completamente quando muito próximo de zero
-					this.angularVelocity.z = 0;
+					// Zerar quando muito próximo de zero
+					this.angularVelocity.z *= 0.85;
 				}
 			}
 
