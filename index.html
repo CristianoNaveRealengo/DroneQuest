@@ -37,7 +37,7 @@
         <!-- ÚNICA A-SCENE - ULTRA OTIMIZADA PARA VR -->
         <a-scene vr-mode-ui="enabled: true" webxr="requiredFeatures: local-floor; optionalFeatures: bounded-floor"
             background="color: #87CEEB" fog="type: linear; color: #87CEEB; near: 50; far: 200"
-            renderer="antialias: false; colorManagement: false; sortObjects: false; physicallyCorrectLights: false; gammaFactor: 2.2; highRefreshRate: true; foveationLevel: 1"
+            renderer="antialias: false; colorManagement: false; sortObjects: false; physicallyCorrectLights: false; gammaFactor: 2.2; highRefreshRate: true; foveationLevel: 0"
             game-manager="totalCheckpoints: 3; timeLimit: 180"
             urban-environment="citySize: 30; buildingCount: 0; obstacleCount: 0; treeCount: 0; vrOptimized: true; ultraLowPoly: true"
             performance-monitor="targetFPS: 90; minFPS: 72; autoOptimize: true; showStats: false; aggressiveOptimization: true"
@@ -254,7 +254,7 @@
                             physicallyCorrectLights: false,
                             gammaFactor: 2.2,
                             highRefreshRate: true,
-                            foveationLevel: 2, // Máximo foveation
+                            foveationLevel: 0, // Desativado para evitar desfoque
                             multiview: true
                         });
 
