@@ -1649,25 +1649,56 @@ if (!AFRAME.components["drone-controller"]) {
 				this.angularVelocity.x += this.targetPitchRotation * deltaTime;
 			}
 
-			// Auto-nivelamento inteligente - só aplica se estiver fora da zona morta
-			if (this.data.autoLevel) {
-				const levelingDeadzone = 2.0; // Zona morta de 2 graus para evitar oscilação
+			// NOVO: Inclinação para frente ao acelerar (melhorada e mais responsiva)
+			let pitchTilt = 0;
+			if (Math.abs(this.targetForwardSpeed) > 0.1) {
+				// Calcular intensidade do movimento para frente (0 a 1)
+				const maxSpeed = this.fpvMode.enabled
+					? this.fpvMode.maxSpeed
+					: this.data.maxSpeed;
+				const forwardIntensity =
+					Math.abs(this.targetForwardSpeed) / maxSpeed;
 
-				// Só aplicar auto-nivelamento se a rotação estiver fora da zona morta
-				if (Math.abs(rotation.x) > levelingDeadzone) {
-					this.angularVelocity.x -=
-						rotation.x * this.data.stabilization * deltaTime;
+				// Ângulo máximo de inclinação baseado no modo (aumentado)
+				const maxPitchAngle = this.fpvMode.enabled ? 30 : 20; // FPV: 30°, Normal: 20°
+
+				// Calcular inclinação (negativo = para frente, positivo = para trás)
+				pitchTilt =
+					-forwardIntensity *
+					maxPitchAngle *
+					Math.sign(this.targetForwardSpeed);
+			}
+
+			// Auto-nivelamento inteligente com transição suave e sem oscilações
+			if (this.data.autoLevel) {
+				// Calcular rotação alvo considerando a inclinação de movimento
+				const targetPitch = pitchTilt;
+				const pitchDifference = targetPitch - rotation.x;
+
+				// Força de correção mais forte para resposta rápida
+				const correctionForce = this.fpvMode.enabled ? 10.0 : 6.0;
+
+				// Aplicar correção direta e forte (sem acumulação)
+				this.angularVelocity.x =
+					pitchDifference * correctionForce * deltaTime;
+
+				// Amortecimento forte para evitar oscilações (zera rapidamente)
+				if (Math.abs(pitchDifference) < 0.5) {
+					// Quando muito próximo do alvo, zerar completamente
+					this.angularVelocity.x = 0;
 				} else {
-					// Dentro da zona morta, aplicar amortecimento suave para parar oscilações
-					this.angularVelocity.x *= 0.95;
+					// Amortecimento progressivo
+					this.angularVelocity.x *= 0.6;
 				}
 
-				if (Math.abs(rotation.z) > levelingDeadzone) {
-					this.angularVelocity.z -=
-						rotation.z * this.data.stabilization * deltaTime;
+				// Roll (inclinação lateral) - manter nivelado sem oscilações
+				if (Math.abs(rotation.z) > 0.3) {
+					this.angularVelocity.z =
+						-rotation.z * correctionForce * deltaTime;
+					this.angularVelocity.z *= 0.6;
 				} else {
-					// Dentro da zona morta, aplicar amortecimento suave para parar oscilações
-					this.angularVelocity.z *= 0.95;
+					// Zerar completamente quando muito próximo de zero
+					this.angularVelocity.z = 0;
 				}
 			}
 
