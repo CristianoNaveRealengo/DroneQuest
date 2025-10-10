@@ -127,10 +127,35 @@
             <a-gltf-model src="#quadra" position="-0.99733 6.94942 -0.26371" í="" gltf-model="assets/Quadra.glb"
                 scale="0.8 0.8 0.8"></a-gltf-model>
 
-            <!-- Chão Neutro -->
+            <!-- Chão Otimizado - Tom Amarelo/Dourado (sem textura) -->
+            <a-plane position="0 -0.1 0" rotation="-90 0 0" width="500" height="500"
+                material="color: #C9A961; metalness: 0; roughness: 0.95; flatShading: true"
+                shadow="receive: false"></a-plane>
 
-            <a-plane position="0 -0.1 0" rotation="-90 0 0" width="20000" height="20000"
-                material="color: #90EE90; metalness: 0; roughness: 1" shadow="receive: false"></a-plane>
+            <!-- Patches com Variações de Tom Amarelo/Dourado -->
+            <a-plane position="20 -0.09 25" rotation="-90 0 0" width="80" height="80"
+                material="color: #D4B76E; metalness: 0; roughness: 0.92; flatShading: true"
+                shadow="receive: false"></a-plane>
+
+            <a-plane position="-35 -0.09 -15" rotation="-90 0 0" width="70" height="70"
+                material="color: #B89A54; metalness: 0; roughness: 0.97; flatShading: true"
+                shadow="receive: false"></a-plane>
+
+            <a-plane position="45 -0.09 -40" rotation="-90 0 0" width="90" height="90"
+                material="color: #DCC57A; metalness: 0; roughness: 0.94; flatShading: true"
+                shadow="receive: false"></a-plane>
+
+            <a-plane position="-50 -0.09 35" rotation="-90 0 0" width="75" height="75"
+                material="color: #AE9350; metalness: 0; roughness: 0.96; flatShading: true"
+                shadow="receive: false"></a-plane>
+
+            <a-plane position="15 -0.09 -60" rotation="-90 0 0" width="85" height="85"
+                material="color: #E0CA82; metalness: 0; roughness: 0.93; flatShading: true"
+                shadow="receive: false"></a-plane>
+
+            <a-plane position="-25 -0.09 -50" rotation="-90 0 0" width="65" height="65"
+                material="color: #C2A85C; metalness: 0; roughness: 0.91; flatShading: true"
+                shadow="receive: false"></a-plane>
 
             <!-- Controles VR Otimizados -->
             <a-entity id="leftHand" oculus-touch-controls="hand: left; model: false" quest-controls="hand: left"
