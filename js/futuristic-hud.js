@@ -6,20 +6,25 @@
 if (!AFRAME.components["futuristic-hud"]) {
 	AFRAME.registerComponent("futuristic-hud", {
 		schema: {
-			transparency: { type: "number", default: 0.7 },
-			hudColor: { type: "color", default: "#00ffff" },
+			transparency: { type: "number", default: 0.8 },
+			hudColor: { type: "color", default: "#ffffff" },
 			warningColor: { type: "color", default: "#ff4444" },
 			successColor: { type: "color", default: "#44ff44" },
 			enabled: { type: "boolean", default: true },
-			hudWidth: { type: "number", default: 4.0 },
-			hudHeight: { type: "number", default: 3.0 },
+			hudWidth: { type: "number", default: 3.5 },
+			hudHeight: { type: "number", default: 2.5 },
 			hudScale: { type: "number", default: 1.0 },
-			hudDistance: { type: "number", default: 2.5 },
-			useCleanHUD: { type: "boolean", default: false },
+			hudDistance: { type: "number", default: 2.0 },
+			useCleanHUD: { type: "boolean", default: true },
+			parallaxIntensity: { type: "number", default: 0.03 },
+			smoothingFactor: { type: "number", default: 0.1 },
 		},
 
 		init: function () {
-			console.log("🚀 Inicializando HUD Futurístico...");
+			console.log("🚀 Inicializando HUD Fixo com hud-01.svg...");
+
+			// Forçar uso do hud-01.svg
+			console.log("🎯 FORÇANDO USO DO HUD-01.SVG COM LINHAS BRANCAS");
 
 			// Estado do HUD
 			this.hudData = {
@@ -35,6 +40,14 @@ if (!AFRAME.components["futuristic-hud"]) {
 				coordinates: { x: 0, y: 0, z: 0 },
 			};
 
+			// Sistema de paralaxe
+			this.parallax = {
+				lastDronePosition: { x: 0, y: 0, z: 0 },
+				currentOffset: { x: 0, y: 0, z: 0 },
+				targetOffset: { x: 0, y: 0, z: 0 },
+				basePosition: { x: 0, y: 0, z: -this.data.hudDistance },
+			};
+
 			// Referências aos elementos
 			this.hudElements = {};
 			this.animationFrameId = null;
@@ -43,18 +56,17 @@ if (!AFRAME.components["futuristic-hud"]) {
 			// Configurar controles de teclado
 			this.setupKeyboardControls();
 
-			// Criar estrutura do HUD
-			this.createHUDStructure();
+			// Aguardar um pouco antes de criar o HUD para garantir que a cena esteja carregada
+			setTimeout(() => {
+				this.createHUDStructure();
+				this.startUpdates();
+			}, 500);
 
-			// Iniciar atualizações
-			this.startUpdates();
-
-			console.log("✅ HUD Futurístico inicializado!");
+			console.log("✅ HUD Fixo com hud-01.svg inicializado!");
 			console.log("🎮 Controles do HUD:");
-			console.log("  H - Alternar HUD Futurístico");
+			console.log("  H - Alternar HUD");
 			console.log("  U - Ajustar transparência");
-			console.log("  I - Alternar cor do HUD");
-			console.log("  K - Alternar HUD Limpo/Completo");
+			console.log("  K - Forçar hud-01.svg");
 		},
 
 		setupKeyboardControls: function () {
@@ -109,8 +121,8 @@ if (!AFRAME.components["futuristic-hud"]) {
 						self.moveHUDFarther();
 						break;
 					case "k":
-						console.log("🎯 Comando K - Alternar HUD Limpo");
-						self.toggleCleanHUD();
+						console.log("🎯 Comando K - Forçar hud-01.svg");
+						self.forceHUD01();
 						break;
 				}
 			});
@@ -207,26 +219,40 @@ if (!AFRAME.components["futuristic-hud"]) {
 			}
 		},
 
+		forceHUD01: function () {
+			console.log("🎯 FORÇANDO HUD-01.SVG...");
+
+			// Remover HUD atual
+			if (this.hudContainer) {
+				this.hudContainer.parentNode.removeChild(this.hudContainer);
+			}
+
+			// Recriar HUD com hud-01.svg
+			setTimeout(() => {
+				this.createHUDStructure();
+				this.showNotification("🎯 HUD-01.SVG RECARREGADO!", "#ffffff");
+				console.log("🎯 HUD-01.SVG recarregado com sucesso!");
+			}, 100);
+		},
+
 		toggleCleanHUD: function () {
 			console.log("🎯 Executando toggleCleanHUD...");
-			this.data.useCleanHUD = !this.data.useCleanHUD;
 
-			// Atualizar o material do HUD
+			// Forçar uso do hud-01.svg com timestamp para evitar cache
+			const timestamp = Date.now();
 			if (this.hudElements.hudPlane) {
-				const newSrc = this.data.useCleanHUD
-					? "assets/hud-overlay-limpo.svg"
-					: "assets/hud-overlay.svg";
 				this.hudElements.hudPlane.setAttribute("material", {
-					src: newSrc,
+					src: `assets/hud-01.svg?v=${timestamp}`,
 					transparent: true,
 					opacity: this.data.transparency,
 					alphaTest: 0.1,
+					color: "#ffffff", // Manter linhas brancas
+					shader: "flat",
 				});
 			}
 
-			const hudType = this.data.useCleanHUD ? "LIMPO" : "COMPLETO";
-			this.showNotification(`🎯 HUD ${hudType} ATIVADO`, "#00ff00");
-			console.log(`🎯 HUD ${hudType} ativado`);
+			this.showNotification("🎯 HUD-01.SVG FORÇADO!", "#ffffff");
+			console.log("🎯 Forçando uso do hud-01.svg com linhas brancas");
 		},
 
 		// === CONTROLES DE DIMENSÃO DO HUD ===
@@ -388,29 +414,52 @@ if (!AFRAME.components["futuristic-hud"]) {
 		},
 
 		createHUDStructure: function () {
-			console.log("🏗️ Criando estrutura do HUD baseada em imagem...");
+			console.log("🏗️ Criando HUD fixo com movimento sutil...");
 
-			// Container principal do HUD (fixo na câmera, usando distância configurável)
+			// Container principal do HUD (fixo na câmera com paralaxe sutil)
 			this.hudContainer = document.createElement("a-entity");
-			this.hudContainer.setAttribute("id", "futuristic-hud-container");
+			this.hudContainer.setAttribute("id", "fixed-hud-container");
 			this.hudContainer.setAttribute(
 				"position",
-				`0 0 -${this.data.hudDistance}`
+				`${this.parallax.basePosition.x} ${this.parallax.basePosition.y} ${this.parallax.basePosition.z}`
 			);
 
-			// Criar HUD baseado em imagem
-			this.createImageBasedHUD();
+			// Criar HUD baseado na imagem hud-01.svg
+			this.createFixedImageHUD();
 
-			// Adicionar à câmera
+			// Adicionar à câmera para ficar sempre visível
 			this.el.appendChild(this.hudContainer);
 
 			console.log(
-				`✅ Estrutura do HUD criada! Tamanho: ${this.data.hudWidth}x${this.data.hudHeight}, Distância: ${this.data.hudDistance}m`
+				`✅ HUD Fixo criado! Tamanho: ${this.data.hudWidth}x${this.data.hudHeight}, Distância: ${this.data.hudDistance}m`
+			);
+			console.log(
+				`🎯 Paralaxe: intensidade ${this.data.parallaxIntensity}, suavização ${this.data.smoothingFactor}`
 			);
 		},
 
-		createImageBasedHUD: function () {
-			// Plano principal com a imagem do HUD (usando dimensões configuráveis)
+		createFixedImageHUD: function () {
+			console.log("🎯 Criando HUD com hud-01.svg FORÇADO...");
+
+			// Criar fundo escuro para melhor contraste
+			const hudBackground = document.createElement("a-plane");
+			hudBackground.setAttribute(
+				"width",
+				(this.data.hudWidth + 0.2) * this.data.hudScale
+			);
+			hudBackground.setAttribute(
+				"height",
+				(this.data.hudHeight + 0.2) * this.data.hudScale
+			);
+			hudBackground.setAttribute("position", "0 0 -0.01");
+			hudBackground.setAttribute("material", {
+				color: "#000000",
+				transparent: true,
+				opacity: 0.3,
+			});
+			this.hudContainer.appendChild(hudBackground);
+
+			// Plano principal com a imagem hud-01.svg (linhas brancas)
 			const hudPlane = document.createElement("a-plane");
 			hudPlane.setAttribute(
 				"width",
@@ -421,129 +470,151 @@ if (!AFRAME.components["futuristic-hud"]) {
 				this.data.hudHeight * this.data.hudScale
 			);
 			hudPlane.setAttribute("position", "0 0 0");
+
+			// Forçar uso do hud-01.svg com timestamp para evitar cache
+			const timestamp = Date.now();
 			hudPlane.setAttribute("material", {
-				src: this.data.useCleanHUD
-					? "assets/hud-overlay-limpo.svg"
-					: "assets/hud-overlay.svg",
+				src: `assets/hud-01.svg?v=${timestamp}`, // Evitar cache
 				transparent: true,
 				opacity: this.data.transparency,
 				alphaTest: 0.1,
+				color: "#ffffff", // Manter linhas brancas
+				shader: "flat", // Usar shader flat para melhor renderização do SVG
+				side: "front", // Garantir que seja renderizado na frente
 			});
 
 			this.hudContainer.appendChild(hudPlane);
 			this.hudElements.hudPlane = hudPlane;
+			this.hudElements.hudBackground = hudBackground;
+
+			console.log(
+				"✅ HUD FORÇADO para usar hud-01.svg com linhas brancas"
+			);
+			console.log(`📁 Arquivo: assets/hud-01.svg?v=${timestamp}`);
 
 			// Inicializar variável de controle de escala de texto
 			this.lastTextScale = 1.0;
 
-			// Criar elementos de texto dinâmicos sobrepostos
-			this.createDynamicTextElements();
+			// Criar elementos de dados dinâmicos compactos
+			this.createCompactDataElements();
 		},
 
-		createDynamicTextElements: function () {
-			// Velocímetro (posição ajustada para coincidir com a imagem)
+		createCompactDataElements: function () {
+			// Velocímetro (superior esquerdo - posição do painel KM/H)
 			const speedText = document.createElement("a-text");
 			speedText.setAttribute("id", "hud-speed-dynamic");
 			speedText.setAttribute("value", "96");
-			speedText.setAttribute("position", "-1.4 0.6 0.01");
+			speedText.setAttribute("position", "-1.2 0.4 0.01");
 			speedText.setAttribute("align", "center");
-			speedText.setAttribute("color", this.data.hudColor);
-			speedText.setAttribute("scale", "0.8 0.8 0.8");
+			speedText.setAttribute("color", "#ffffff");
+			speedText.setAttribute("scale", "0.7 0.7 0.7");
 			speedText.setAttribute("font", "monospace");
 			this.hudContainer.appendChild(speedText);
 			this.hudElements.speedText = speedText;
 
-			// Bateria
+			// Bateria (superior direito - posição do painel ENERGIA)
 			const batteryText = document.createElement("a-text");
 			batteryText.setAttribute("id", "hud-battery-dynamic");
 			batteryText.setAttribute("value", "87%");
-			batteryText.setAttribute("position", "1.4 0.6 0.01");
+			batteryText.setAttribute("position", "1.2 0.4 0.01");
 			batteryText.setAttribute("align", "center");
-			batteryText.setAttribute("color", this.data.hudColor);
+			batteryText.setAttribute("color", "#ffffff");
 			batteryText.setAttribute("scale", "0.6 0.6 0.6");
 			batteryText.setAttribute("font", "monospace");
 			this.hudContainer.appendChild(batteryText);
 			this.hudElements.batteryText = batteryText;
 
-			// Altímetro
+			// Altímetro (inferior esquerdo - posição do painel METROS)
 			const altitudeText = document.createElement("a-text");
 			altitudeText.setAttribute("id", "hud-altitude-dynamic");
 			altitudeText.setAttribute("value", "450");
-			altitudeText.setAttribute("position", "-1.4 -0.6 0.01");
+			altitudeText.setAttribute("position", "-1.2 -0.4 0.01");
 			altitudeText.setAttribute("align", "center");
-			altitudeText.setAttribute("color", this.data.hudColor);
-			altitudeText.setAttribute("scale", "0.8 0.8 0.8");
+			altitudeText.setAttribute("color", "#ffffff");
+			altitudeText.setAttribute("scale", "0.7 0.7 0.7");
 			altitudeText.setAttribute("font", "monospace");
 			this.hudContainer.appendChild(altitudeText);
 			this.hudElements.altitudeText = altitudeText;
 
-			// Modo de voo
-			const modeText = document.createElement("a-text");
-			modeText.setAttribute("id", "hud-mode-dynamic");
-			modeText.setAttribute("value", "CINEMATIC");
-			modeText.setAttribute("position", "-0.6 -1.0 0.01");
-			modeText.setAttribute("align", "center");
-			modeText.setAttribute("color", "#ff8800");
-			modeText.setAttribute("scale", "0.5 0.5 0.5");
-			modeText.setAttribute("font", "monospace");
-			this.hudContainer.appendChild(modeText);
-			this.hudElements.modeText = modeText;
-
-			// Objetivo
-			const objectiveText = document.createElement("a-text");
-			objectiveText.setAttribute("id", "hud-objective-dynamic");
-			objectiveText.setAttribute("value", "POINT A");
-			objectiveText.setAttribute("position", "0.6 -0.8 0.01");
-			objectiveText.setAttribute("align", "center");
-			objectiveText.setAttribute("color", "#44ff44");
-			objectiveText.setAttribute("scale", "0.5 0.5 0.5");
-			objectiveText.setAttribute("font", "monospace");
-			this.hudContainer.appendChild(objectiveText);
-			this.hudElements.objectiveText = objectiveText;
-
-			// Distância
+			// Distância para objetivo (inferior direito - área do GPS)
 			const distanceText = document.createElement("a-text");
 			distanceText.setAttribute("id", "hud-distance-dynamic");
-			distanceText.setAttribute("value", "DISTANCE: 120 M");
-			distanceText.setAttribute("position", "0.6 -1.1 0.01");
+			distanceText.setAttribute("value", "120M");
+			distanceText.setAttribute("position", "1.2 -0.2 0.01");
 			distanceText.setAttribute("align", "center");
-			distanceText.setAttribute("color", this.data.hudColor);
-			distanceText.setAttribute("scale", "0.3 0.3 0.3");
+			distanceText.setAttribute("color", "#ffffff");
+			distanceText.setAttribute("scale", "0.5 0.5 0.5");
 			distanceText.setAttribute("font", "monospace");
 			this.hudContainer.appendChild(distanceText);
 			this.hudElements.distanceText = distanceText;
 
-			// Coordenadas (superior)
+			// Modo de voo (centro inferior esquerda)
+			const modeText = document.createElement("a-text");
+			modeText.setAttribute("id", "hud-mode-dynamic");
+			modeText.setAttribute("value", "CINEMATIC");
+			modeText.setAttribute("position", "-0.5 -0.8 0.01");
+			modeText.setAttribute("align", "center");
+			modeText.setAttribute("color", "#ffffff");
+			modeText.setAttribute("scale", "0.4 0.4 0.4");
+			modeText.setAttribute("font", "monospace");
+			this.hudContainer.appendChild(modeText);
+			this.hudElements.modeText = modeText;
+
+			// Objetivo atual (centro inferior direita)
+			const objectiveText = document.createElement("a-text");
+			objectiveText.setAttribute("id", "hud-objective-dynamic");
+			objectiveText.setAttribute("value", "CHECKPOINT 1");
+			objectiveText.setAttribute("position", "0.5 -0.6 0.01");
+			objectiveText.setAttribute("align", "center");
+			objectiveText.setAttribute("color", "#ffffff");
+			objectiveText.setAttribute("scale", "0.4 0.4 0.4");
+			objectiveText.setAttribute("font", "monospace");
+			this.hudContainer.appendChild(objectiveText);
+			this.hudElements.objectiveText = objectiveText;
+
+			// Coordenadas GPS (superior centro)
 			const coordsText = document.createElement("a-text");
 			coordsText.setAttribute("id", "hud-coords-dynamic");
-			coordsText.setAttribute("value", "X:0 Y:0 Z:0");
-			coordsText.setAttribute("position", "0.6 1.3 0.01");
+			coordsText.setAttribute("value", "X:0 Y:450 Z:0");
+			coordsText.setAttribute("position", "0.5 1.0 0.01");
 			coordsText.setAttribute("align", "center");
-			coordsText.setAttribute("color", this.data.hudColor);
-			coordsText.setAttribute("scale", "0.25 0.25 0.25");
+			coordsText.setAttribute("color", "#ffffff");
+			coordsText.setAttribute("scale", "0.3 0.3 0.3");
 			coordsText.setAttribute("font", "monospace");
 			this.hudContainer.appendChild(coordsText);
 			this.hudElements.coordsText = coordsText;
 
-			// Indicador de posição dinâmico (ponto amarelo no centro)
-			const positionIndicator = document.createElement("a-circle");
-			positionIndicator.setAttribute("id", "hud-position-indicator");
-			positionIndicator.setAttribute("radius", "0.03");
-			positionIndicator.setAttribute("position", "0 0 0.02");
-			positionIndicator.setAttribute("material", {
+			// Tempo de missão (superior centro esquerda)
+			const timeText = document.createElement("a-text");
+			timeText.setAttribute("id", "hud-time-dynamic");
+			timeText.setAttribute("value", "02:34");
+			timeText.setAttribute("position", "0 1.0 0.01");
+			timeText.setAttribute("align", "center");
+			timeText.setAttribute("color", "#ffffff");
+			timeText.setAttribute("scale", "0.3 0.3 0.3");
+			timeText.setAttribute("font", "monospace");
+			this.hudContainer.appendChild(timeText);
+			this.hudElements.timeText = timeText;
+
+			// Indicador central (ponto amarelo pulsante)
+			const centerIndicator = document.createElement("a-circle");
+			centerIndicator.setAttribute("id", "hud-center-indicator");
+			centerIndicator.setAttribute("radius", "0.02");
+			centerIndicator.setAttribute("position", "0 0 0.02");
+			centerIndicator.setAttribute("material", {
 				color: "#ffff00",
 				transparent: true,
 				opacity: 0.8,
 			});
-			positionIndicator.setAttribute("animation", {
-				property: "scale",
-				to: "1.5 1.5 1.5",
-				dur: 1000,
+			centerIndicator.setAttribute("animation", {
+				property: "material.opacity",
+				to: "0.3",
+				dur: 2000,
 				dir: "alternate",
 				loop: true,
 			});
-			this.hudContainer.appendChild(positionIndicator);
-			this.hudElements.positionIndicator = positionIndicator;
+			this.hudContainer.appendChild(centerIndicator);
+			this.hudElements.centerIndicator = centerIndicator;
 		},
 
 		startUpdates: function () {
@@ -558,10 +629,71 @@ if (!AFRAME.components["futuristic-hud"]) {
 			// Atualizar dados básicos
 			this.updateBasicData();
 
+			// Atualizar paralaxe sutil
+			this.updateParallax();
+
 			// Próxima atualização
 			this.animationFrameId = requestAnimationFrame(() => {
 				this.updateHUD();
 			});
+		},
+
+		updateParallax: function () {
+			const drone = document.querySelector("#drone");
+			if (!drone || !this.hudContainer) return;
+
+			const dronePos = drone.getAttribute("position");
+
+			// Calcular movimento do drone desde a última atualização
+			const deltaX = dronePos.x - this.parallax.lastDronePosition.x;
+			const deltaY = dronePos.y - this.parallax.lastDronePosition.y;
+			const deltaZ = dronePos.z - this.parallax.lastDronePosition.z;
+
+			// Aplicar paralaxe muito sutil (movimento quase imperceptível)
+			this.parallax.targetOffset.x +=
+				deltaX * this.data.parallaxIntensity;
+			this.parallax.targetOffset.y +=
+				deltaY * this.data.parallaxIntensity * 0.5; // Menos movimento vertical
+			this.parallax.targetOffset.z +=
+				deltaZ * this.data.parallaxIntensity * 0.3; // Mínimo movimento em Z
+
+			// Suavizar movimento para evitar tremulação
+			this.parallax.currentOffset.x +=
+				(this.parallax.targetOffset.x - this.parallax.currentOffset.x) *
+				this.data.smoothingFactor;
+			this.parallax.currentOffset.y +=
+				(this.parallax.targetOffset.y - this.parallax.currentOffset.y) *
+				this.data.smoothingFactor;
+			this.parallax.currentOffset.z +=
+				(this.parallax.targetOffset.z - this.parallax.currentOffset.z) *
+				this.data.smoothingFactor;
+
+			// Limitar movimento máximo para manter HUD sempre visível
+			const maxOffset = 0.1;
+			this.parallax.currentOffset.x = Math.max(
+				-maxOffset,
+				Math.min(maxOffset, this.parallax.currentOffset.x)
+			);
+			this.parallax.currentOffset.y = Math.max(
+				-maxOffset,
+				Math.min(maxOffset, this.parallax.currentOffset.y)
+			);
+			this.parallax.currentOffset.z = Math.max(
+				-maxOffset,
+				Math.min(maxOffset, this.parallax.currentOffset.z)
+			);
+
+			// Aplicar nova posição com paralaxe
+			const newPosition = {
+				x: this.parallax.basePosition.x + this.parallax.currentOffset.x,
+				y: this.parallax.basePosition.y + this.parallax.currentOffset.y,
+				z: this.parallax.basePosition.z + this.parallax.currentOffset.z,
+			};
+
+			this.hudContainer.setAttribute("position", newPosition);
+
+			// Atualizar posição anterior do drone
+			this.parallax.lastDronePosition = { ...dronePos };
 		},
 
 		updateBasicData: function () {
@@ -612,7 +744,7 @@ if (!AFRAME.components["futuristic-hud"]) {
 		},
 
 		updateVisualElements: function () {
-			// Atualizar velocímetro
+			// Atualizar velocímetro (KM/H)
 			if (this.hudElements.speedText) {
 				this.hudElements.speedText.setAttribute(
 					"value",
@@ -620,26 +752,26 @@ if (!AFRAME.components["futuristic-hud"]) {
 				);
 			}
 
-			// Atualizar bateria
+			// Atualizar bateria com cor dinâmica
 			if (this.hudElements.batteryText) {
 				this.hudElements.batteryText.setAttribute(
 					"value",
 					`${this.hudData.battery}%`
 				);
-				// Mudar cor baseada no nível da bateria
+				// Cor baseada no nível da bateria
 				const batteryColor =
 					this.hudData.battery < 20
 						? "#ff4444"
 						: this.hudData.battery < 50
 						? "#ffaa00"
-						: "#44ff44";
+						: "#ffffff";
 				this.hudElements.batteryText.setAttribute(
 					"color",
 					batteryColor
 				);
 			}
 
-			// Atualizar altímetro
+			// Atualizar altímetro (metros)
 			if (this.hudElements.altitudeText) {
 				this.hudElements.altitudeText.setAttribute(
 					"value",
@@ -647,7 +779,16 @@ if (!AFRAME.components["futuristic-hud"]) {
 				);
 			}
 
-			// Atualizar modo
+			// Atualizar distância para próximo checkpoint
+			this.calculateDistanceToNearestCheckpoint();
+			if (this.hudElements.distanceText) {
+				this.hudElements.distanceText.setAttribute(
+					"value",
+					`${this.hudData.distance}M`
+				);
+			}
+
+			// Atualizar modo de voo
 			if (this.hudElements.modeText) {
 				this.hudElements.modeText.setAttribute(
 					"value",
@@ -655,7 +796,15 @@ if (!AFRAME.components["futuristic-hud"]) {
 				);
 			}
 
-			// Atualizar coordenadas
+			// Atualizar objetivo atual
+			if (this.hudElements.objectiveText) {
+				this.hudElements.objectiveText.setAttribute(
+					"value",
+					this.hudData.objective
+				);
+			}
+
+			// Atualizar coordenadas GPS
 			if (this.hudElements.coordsText) {
 				this.hudElements.coordsText.setAttribute(
 					"value",
@@ -663,12 +812,18 @@ if (!AFRAME.components["futuristic-hud"]) {
 				);
 			}
 
-			// Atualizar distância para checkpoint
-			this.calculateDistanceToNearestCheckpoint();
-			if (this.hudElements.distanceText) {
-				this.hudElements.distanceText.setAttribute(
+			// Atualizar tempo de missão
+			if (this.hudElements.timeText) {
+				const flightTime = Math.floor(
+					(Date.now() - this.startTime) / 1000
+				);
+				const minutes = Math.floor(flightTime / 60);
+				const seconds = flightTime % 60;
+				this.hudElements.timeText.setAttribute(
 					"value",
-					`DISTANCE: ${this.hudData.distance} M`
+					`${minutes.toString().padStart(2, "0")}:${seconds
+						.toString()
+						.padStart(2, "0")}`
 				);
 			}
 		},
@@ -765,28 +920,38 @@ if (!AFRAME.components["futuristic-hud"]) {
 		},
 
 		setHUDColor: function (color) {
-			this.data.hudColor = color;
-			console.log(`🎨 Cor do HUD definida para: ${color}`);
+			// Manter sempre branco para as linhas do HUD
+			this.data.hudColor = "#ffffff";
+			console.log(
+				`🎨 HUD mantém linhas brancas (cor solicitada: ${color})`
+			);
 
-			// Atualizar cor dos elementos de texto dinâmicos
+			// Manter todos os elementos de texto em branco
 			const textElements = [
 				this.hudElements.speedText,
-				this.hudElements.batteryText,
 				this.hudElements.altitudeText,
 				this.hudElements.coordsText,
 				this.hudElements.distanceText,
+				this.hudElements.modeText,
+				this.hudElements.objectiveText,
+				this.hudElements.timeText,
 			];
 
 			textElements.forEach((element) => {
 				if (element) {
-					element.setAttribute("color", color);
+					element.setAttribute("color", "#ffffff");
 				}
 			});
 
-			// Atualizar cor da imagem SVG
+			// Manter cor branca da imagem SVG
 			if (this.hudElements.hudPlane) {
-				this.hudElements.hudPlane.setAttribute("material.color", color);
+				this.hudElements.hudPlane.setAttribute(
+					"material.color",
+					"#ffffff"
+				);
 			}
+
+			this.showNotification("🎨 LINHAS BRANCAS MANTIDAS", "#ffffff");
 		},
 
 		remove: function () {
