@@ -1,0 +1,44 @@
+{
+	"mcpServers": {
+		"Context7": {
+			"command": "npx",
+			"args": [
+				"-y",
+				"@upstash/context7-mcp",
+				"--api-key",
+				"ctx7sk-09005bfa-199e-4ffc-a1cf-0960c86c087a"
+			],
+			"env": {},
+			"disabled": false,
+			"autoApprove": []
+		},
+		"TestSprite": {
+			"command": "npx",
+			"args": ["@testsprite/testsprite-mcp@latest"],
+			"env": {
+				"API_KEY": "sk-user-pwbV4JeCq9AYQsALVCBrse0WNmLqjkXavjnLY0Q1ES06WYzekQIdAukMP-d7-GrOnsRxMrhuru1xM-OIcYnegxCYImEVUzOr6Q6LZZzdLh7ickqpKrO6Hi_bN5DW2OTf4WI"
+			},
+			"disabled": false,
+			"autoApprove": []
+		},
+		"filesystem": {
+			"command": "npx",
+			"args": [
+				"-y",
+				"@modelcontextprotocol/server-filesystem",
+				"C:/Users/mySons/Documents"
+			],
+			"disabled": false,
+			"autoApprove": []
+		},
+		"github": {
+			"command": "npx",
+			"args": ["-y", "@modelcontextprotocol/server-github"],
+			"env": {
+				"GITHUB_PERSONAL_ACCESS_TOKEN": "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"
+			},
+			"disabled": false,
+			"autoApprove": []
+		}
+	}
+}

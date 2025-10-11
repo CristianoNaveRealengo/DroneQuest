@@ -7,6 +7,8 @@
     <ponto>Use sempre o padrão clean</ponto>
     <ponto>Separe arquivos extensos em módulos compactos para manter a fluidez e a clareza.</ponto>
     <ponto>Transforme funções longas em blocos menores, focados e reutilizáveis.</ponto>
+    <ponto>Antes de implementar qualquer funcionalidade com bibliotecas externas, consulte o Context7 para obter documentação atualizada e exemplos de código robustos.</ponto>
+    <ponto>Utilize o Context7 para verificar as melhores práticas, padrões atuais e APIs mais recentes das bibliotecas utilizadas no projeto.</ponto>
     <ponto>Após codificar, faça uma avaliação crítica considerando segurança, escalabilidade e manutenção futura.</ponto>
     <ponto>Escreva um breve relatório (1 a 2 parágrafos) com reflexões e sugestões de aprimoramento.</ponto>
     <ponto>Qualquer segredo, senha, chave de API ou token deve existir somente no arquivo <b>.env</b>, nunca no código.</ponto>
@@ -40,6 +42,13 @@
     <regra>Use arquivos markdown como guia estrutural, sem modificá-los, a menos que solicitado.</regra>
     <regra>Salve o arquivo em uma pasta docs na base do projeto</regra>
   </referencias>
+
+  <controleDeVersao>
+    <regra>Antes de qualquer alteração no código, execute git add para adicionar os arquivos modificados.</regra>
+    <regra>Após concluir as alterações, execute git commit com uma mensagem descritiva e clara.</regra>
+    <regra>Use mensagens de commit no padrão: tipo(escopo): descrição (ex: feat(auth): adiciona validação de token).</regra>
+    <regra>Tipos de commit: feat (nova funcionalidade), fix (correção), refactor (refatoração), docs (documentação), style (formatação), test (testes), chore (manutenção).</regra>
+  </controleDeVersao>
 
   <principios>
     <regra>Responda sempre em português claro e objetivo.</regra>
