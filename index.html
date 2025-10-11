@@ -82,6 +82,42 @@
             });
 
             console.log('✅ Componente sky-360-loader registrado!');
+
+            // Componente de Parallax para o Sky
+            AFRAME.registerComponent('sky-parallax', {
+                schema: {
+                    intensity: { type: 'number', default: 0.05 }
+                },
+
+                init: function () {
+                    console.log('🌊 Parallax do Sky ativado');
+                    this.drone = null;
+                    this.initialRotation = { x: 0, y: 0, z: 0 };
+                },
+
+                tick: function () {
+                    if (!this.drone) {
+                        this.drone = document.querySelector('#drone');
+                        if (!this.drone) return;
+                    }
+
+                    // Pegar posição do drone
+                    const dronePos = this.drone.object3D.position;
+
+                    // Calcular rotação do sky baseado na posição do drone
+                    const rotationY = dronePos.x * this.data.intensity;
+                    const rotationX = -dronePos.z * this.data.intensity * 0.5;
+
+                    // Aplicar rotação suave ao sky
+                    this.el.setAttribute('rotation', {
+                        x: this.initialRotation.x + rotationX,
+                        y: this.initialRotation.y + rotationY,
+                        z: this.initialRotation.z
+                    });
+                }
+            });
+
+            console.log('✅ Componente sky-parallax registrado!');
         </script>
 
         <!-- Estilos CSS -->
@@ -130,8 +166,9 @@
 
             </a-assets>
 
-            <!-- Céu 360 com imagem upscalemedia -->
-            <a-sky id="main-sky" src="assets/textures/upscalemedia-transformed.jpeg" rotation="0 0 0"></a-sky>
+            <!-- Céu 360 com imagem upscalemedia e parallax -->
+            <a-sky id="main-sky" src="assets/textures/upscalemedia-transformed.jpeg" rotation="0 0 0"
+                sky-parallax="intensity: 0.08"></a-sky>
 
             <!-- Iluminação Ensolarada Suave -->
             <a-light type="ambient" color="#ffffff" intensity="0.8"></a-light>
