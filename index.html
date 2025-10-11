@@ -17,6 +17,73 @@
         <script src="libs/aframe-extras.min.js"></script>
         <script src="libs/aframe-environment-component.min.js"></script>
 
+        <!-- Componente Sky 360 - Carregar DEPOIS do A-Frame -->
+        <script>
+            console.log('🔧 Registrando componente sky-360-loader...');
+
+            AFRAME.registerComponent('sky-360-loader', {
+                schema: {
+                    src: { type: 'string', default: 'assets/textures/bg-1.jpeg' }
+                },
+
+                init: function () {
+                    console.log('🌆 Sky 360 Loader INICIADO');
+                    console.log('📂 Caminho:', this.data.src);
+                    this.loadSkyTexture();
+                },
+
+                loadSkyTexture: function () {
+                    const loader = new THREE.TextureLoader();
+                    const sky = this.el;
+
+                    console.log('📥 Carregando textura:', this.data.src);
+
+                    // Aguardar o mesh estar pronto
+                    setTimeout(() => {
+                        loader.load(
+                            this.data.src,
+                            (texture) => {
+                                console.log('✅ SUCESSO! Textura carregada:', {
+                                    width: texture.image.width,
+                                    height: texture.image.height
+                                });
+
+                                // Forçar aplicação da textura
+                                const mesh = sky.getObject3D('mesh');
+                                if (mesh && mesh.material) {
+                                    console.log('🔧 Material antes:', mesh.material);
+
+                                    // Aplicar textura
+                                    mesh.material.map = texture;
+                                    mesh.material.needsUpdate = true;
+
+                                    // Garantir que está visível
+                                    mesh.material.side = THREE.BackSide;
+                                    mesh.material.transparent = false;
+                                    mesh.material.opacity = 1;
+
+                                    console.log('🔧 Material depois:', mesh.material);
+                                    console.log('✅ Sky 360 APLICADO!');
+                                } else {
+                                    console.error('❌ Mesh ou material não encontrado!');
+                                }
+                            },
+                            (xhr) => {
+                                const percent = (xhr.loaded / xhr.total * 100).toFixed(0);
+                                console.log(`📊 Progresso: ${percent}%`);
+                            },
+                            (error) => {
+                                console.error('❌ ERRO ao carregar:', error);
+                                console.error('❌ Caminho:', this.data.src);
+                            }
+                        );
+                    }, 1000);
+                }
+            });
+
+            console.log('✅ Componente sky-360-loader registrado!');
+        </script>
+
         <!-- Estilos CSS -->
         <link rel="stylesheet" type="text/css" href="css/style.css?v=1.0.2">
     </head>
@@ -36,14 +103,13 @@
 
         <!-- ÚNICA A-SCENE - ULTRA OTIMIZADA PARA VR -->
         <a-scene vr-mode-ui="enabled: true" webxr="requiredFeatures: local-floor; optionalFeatures: bounded-floor"
-            fog="type: linear; color: #b3d9ff; near: 80; far: 250"
             renderer="antialias: false; colorManagement: false; sortObjects: false; physicallyCorrectLights: false; gammaFactor: 2.2; highRefreshRate: true; foveationLevel: 0"
             game-manager="totalCheckpoints: 3; timeLimit: 180"
             urban-environment="citySize: 30; buildingCount: 0; obstacleCount: 0; treeCount: 0; vrOptimized: true; ultraLowPoly: true"
             performance-monitor="targetFPS: 90; minFPS: 72; autoOptimize: true; showStats: false; aggressiveOptimization: true"
             audio-system="masterVolume: 0.4; musicVolume: 0.1; sfxVolume: 0.5; ambientVolume: 0.05; enableAudio: true"
             collision-system="enabled: true; bounceForce: 0.5; showEffects: false; soundEnabled: false" hud-controls
-            vr-performance-optimizer ground-diagnostics>
+            vr-performance-optimizer ground-diagnostics sky-diagnostics>
 
             <!-- Assets -->
             <a-assets>
@@ -59,10 +125,13 @@
                 <!-- HUD Limpo -->
                 <img id="hud-overlay-limpo" src="assets/hud-01.svg" crossorigin="anonymous">
 
+                <!-- Imagem 360 para Sky -->
+                <img id="skyTexture" src="assets/textures/bg-1.jpeg">
+
             </a-assets>
 
-            <!-- Céu Ensolarado com Gradiente -->
-            <a-sky color="#87CEEB" material="shader: gradient; topColor: #0077ff; bottomColor: #87CEEB"></a-sky>
+            <!-- Céu 360 com imagem upscalemedia -->
+            <a-sky id="main-sky" src="assets/textures/upscalemedia-transformed.jpeg" rotation="0 0 0"></a-sky>
 
             <!-- Iluminação Ensolarada Suave -->
             <a-light type="ambient" color="#ffffff" intensity="0.8"></a-light>
@@ -181,6 +250,7 @@
         </div>
 
         <script>
+
             // Componente de Diagnóstico do Solo
             AFRAME.registerComponent('ground-diagnostics', {
                 init: function () {
@@ -436,6 +506,10 @@
                         }
 
                         console.log('✅ Jogo inicializado com sucesso!');
+
+                        // Verificar sky 360
+                        const mainSky = document.querySelector('#main-sky');
+                        console.log('🌆 Sky 360 bg-6 carregado:', mainSky?.getAttribute('src'));
 
                         // Verificar se o HUD Controller foi carregado
                         setTimeout(() => {

@@ -453,16 +453,10 @@ AFRAME.registerComponent("urban-environment", {
 		return this.createFuturisticStreetLight();
 	},
 
-	// Skybox neutro otimizado
+	// Skybox neutro otimizado - DESABILITADO (usando sky customizado no HTML)
 	generateSkybox: function () {
-		console.log("🌆 Configurando skybox neutro...");
-
-		// Skybox com cor neutra
-		const sky = document.createElement("a-sky");
-		sky.setAttribute("color", "#87CEEB");
-		this.el.sceneEl.appendChild(sky);
-
-		console.log("✅ Skybox neutro configurado");
+		console.log("🌆 Skybox customizado - pulando geração automática");
+		// Não criar sky aqui - usando o sky definido no HTML
 	},
 });
 
