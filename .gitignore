@@ -6,3 +6,8 @@ node_modules/
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+
+# FTP Deploy - Credenciais sensíveis
+.ftpconfig.json
+*.ftp
+*.sftp

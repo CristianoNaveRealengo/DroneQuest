@@ -1,79 +1,81 @@
 {
-  "name": "drone-racing-vr",
-  "version": "1.0.0",
-  "description": "Jogo de corrida de drone em VR para Meta Quest 3 usando A-Frame",
-  "main": "index.html",
-  "scripts": {
-    "start": "npx http-server -p 8080 -c-1 --cors",
-    "dev": "npx live-server --port=8080 --no-browser --cors",
-    "build": "node build.js",
-    "prebuild": "npm install",
-    "test": "echo 'Run tests for VR compatibility'",
-    "deploy": "echo 'Deploy to web server'"
-  },
-  "keywords": [
-    "aframe",
-    "vr",
-    "drone",
-    "racing",
-    "meta-quest",
-    "webxr",
-    "game",
-    "3d"
-  ],
-  "author": "Desenvolvedor VR",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/seu-usuario/drone-racing-vr.git"
-  },
-  "bugs": {
-    "url": "https://github.com/seu-usuario/drone-racing-vr/issues"
-  },
-  "homepage": "https://github.com/seu-usuario/drone-racing-vr#readme",
-  "devDependencies": {
-    "@playwright/test": "^1.55.1",
-    "@types/node": "^24.6.2",
-    "clean-css-cli": "^5.6.2",
-    "copyfiles": "^2.4.1",
-    "html-minifier-terser": "^7.2.0",
-    "http-server": "^14.1.1",
-    "live-server": "^1.2.2",
-    "rimraf": "^5.0.1",
-    "terser": "^5.19.2"
-  },
-  "engines": {
-    "node": ">=14.0.0",
-    "npm": ">=6.0.0"
-  },
-  "browserslist": [
-    "last 2 Chrome versions",
-    "last 2 Firefox versions",
-    "last 2 Safari versions",
-    "last 2 Edge versions"
-  ],
-  "webxr": {
-    "supportedDevices": [
-      "Meta Quest 3",
-      "Meta Quest 2",
-      "Meta Quest Pro",
-      "Oculus Rift",
-      "HTC Vive",
-      "Valve Index"
-    ],
-    "features": [
-      "hand-tracking",
-      "controller-input",
-      "room-scale",
-      "seated"
-    ]
-  },
-  "performance": {
-    "targetFPS": 90,
-    "maxPolygons": 100000,
-    "textureResolution": "1024x1024"
-  },
-  "dependencies": {
-    "aframe": "^1.7.1"
-  }
+	"name": "drone-racing-vr",
+	"version": "1.0.0",
+	"description": "Jogo de corrida de drone em VR para Meta Quest 3 usando A-Frame",
+	"main": "index.html",
+	"scripts": {
+		"start": "npx http-server -p 8080 -c-1 --cors",
+		"dev": "npx live-server --port=8080 --no-browser --cors",
+		"build": "node build.js",
+		"prebuild": "npm install",
+		"test": "echo 'Run tests for VR compatibility'",
+		"deploy": "npm run build && node deploy.js",
+		"deploy:only": "node deploy.js"
+	},
+	"keywords": [
+		"aframe",
+		"vr",
+		"drone",
+		"racing",
+		"meta-quest",
+		"webxr",
+		"game",
+		"3d"
+	],
+	"author": "Desenvolvedor VR",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/seu-usuario/drone-racing-vr.git"
+	},
+	"bugs": {
+		"url": "https://github.com/seu-usuario/drone-racing-vr/issues"
+	},
+	"homepage": "https://github.com/seu-usuario/drone-racing-vr#readme",
+	"devDependencies": {
+		"@playwright/test": "^1.55.1",
+		"@types/node": "^24.6.2",
+		"clean-css-cli": "^5.6.2",
+		"copyfiles": "^2.4.1",
+		"ftp-deploy": "^2.4.7",
+		"html-minifier-terser": "^7.2.0",
+		"http-server": "^14.1.1",
+		"live-server": "^1.2.2",
+		"rimraf": "^5.0.1",
+		"terser": "^5.19.2"
+	},
+	"engines": {
+		"node": ">=14.0.0",
+		"npm": ">=6.0.0"
+	},
+	"browserslist": [
+		"last 2 Chrome versions",
+		"last 2 Firefox versions",
+		"last 2 Safari versions",
+		"last 2 Edge versions"
+	],
+	"webxr": {
+		"supportedDevices": [
+			"Meta Quest 3",
+			"Meta Quest 2",
+			"Meta Quest Pro",
+			"Oculus Rift",
+			"HTC Vive",
+			"Valve Index"
+		],
+		"features": [
+			"hand-tracking",
+			"controller-input",
+			"room-scale",
+			"seated"
+		]
+	},
+	"performance": {
+		"targetFPS": 90,
+		"maxPolygons": 100000,
+		"textureResolution": "1024x1024"
+	},
+	"dependencies": {
+		"aframe": "^1.7.1"
+	}
 }

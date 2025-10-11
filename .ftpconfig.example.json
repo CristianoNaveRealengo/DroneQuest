@@ -1,0 +1,8 @@
+{
+	"host": "seu-servidor-ftp.com",
+	"port": 21,
+	"user": "seu_usuario_ftp",
+	"password": "sua_senha_ftp",
+	"remoteRoot": "/htdocs",
+	"domain": "seu-dominio.com"
+}
