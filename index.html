@@ -165,7 +165,7 @@
                 <img id="skyTexture" src="assets/textures/bg-1.jpeg">
 
                 <!-- Textura do Chão -->
-                <img id="ground-texture" src="assets/textures/chao-2.png" crossorigin="anonymous">
+                <img id="ground-texture" src="assets/textures/chao.jpg" crossorigin="anonymous">
 
             </a-assets>
 
@@ -236,10 +236,13 @@
             <a-gltf-model src="#quadra" position="-0.997 -2.20319 -0.264" gltf-model="assets/Quadra.glb"
                 scale="0.8 0.8 0.8"></a-gltf-model>
 
-            <!-- Chão com Textura e Cor Marrom Médio -->
-            <a-plane id="ground-main" position="0 -1 0" rotation="-90 0 0" width="600" height="600"
-                material="src: #ground-texture; color: #846338; repeat: 60 60; metalness: 0; roughness: 1; side: double; depthWrite: true; depthTest: true"
+            <!-- Chão com Textura - Mesmo tamanho do Sky -->
+            <a-plane id="ground-main" position="0 -1 0" rotation="-90 0 0" width="20000" height="20000"
+                material="src: #ground-texture; color: #846338; repeat: 200 200; metalness: 0; roughness: 1; side: double; depthWrite: true; depthTest: true"
                 shadow="receive: false" visible="true"></a-plane>
+
+            <!-- Limitador Invisível - Paredes do Sky -->
+            <a-entity id="sky-boundary" boundary-limiter="radius: 9900"></a-entity>
 
             <!-- Controles VR Otimizados -->
             <a-entity id="leftHand" oculus-touch-controls="hand: left; model: false" quest-controls="hand: left"
@@ -291,6 +294,37 @@
         </div>
 
         <script>
+
+            // Componente Limitador de Fronteira do Sky
+            AFRAME.registerComponent('boundary-limiter', {
+                schema: {
+                    radius: { type: 'number', default: 9900 }
+                },
+
+                init: function () {
+                    console.log('🚧 Limitador de Fronteira ativado - Raio:', this.data.radius);
+                    this.drone = null;
+                },
+
+                tick: function () {
+                    if (!this.drone) {
+                        this.drone = document.querySelector('#drone');
+                        if (!this.drone) return;
+                    }
+
+                    const dronePos = this.drone.object3D.position;
+                    const distance = Math.sqrt(dronePos.x * dronePos.x + dronePos.z * dronePos.z);
+
+                    // Se o drone ultrapassar o limite, empurrá-lo de volta
+                    if (distance > this.data.radius) {
+                        const angle = Math.atan2(dronePos.z, dronePos.x);
+                        dronePos.x = Math.cos(angle) * this.data.radius;
+                        dronePos.z = Math.sin(angle) * this.data.radius;
+
+                        console.log('⚠️ Drone atingiu o limite! Reposicionando...');
+                    }
+                }
+            });
 
             // Componente de Diagnóstico do Solo
             AFRAME.registerComponent('ground-diagnostics', {
