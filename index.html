@@ -167,8 +167,8 @@
             </a-assets>
 
             <!-- Céu 360 com imagem upscalemedia e parallax -->
-            <a-sky id="main-sky" src="assets/textures/upscalemedia-transformed.jpeg" rotation="0 0 0"
-                sky-parallax="intensity: 0.08"></a-sky>
+            <a-sky id="main-sky" src="assets/textures/upscalemedia-transformed.jpeg" rotation="" radius="10000"
+                sky-parallax="intensity: 0.08" material="" geometry=""></a-sky>
 
             <!-- Iluminação Ensolarada Suave -->
             <a-light type="ambient" color="#ffffff" intensity="0.8"></a-light>
@@ -210,6 +210,7 @@
                 <!-- Câmera do Drone -->
                 <a-camera id="drone-camera" position="0 -0.30 -0.5" rotation="-15 0 0" wasd-controls="enabled: false"
                     look-controls="enabled: true; pointerLockEnabled: false" vr-camera-sync
+                    camera="far: 20000; near: 0.1"
                     hud-controller="enabled: true; transparency: 1.0; hudWidth: 3.5; hudHeight: 2.5; hudDistance: 2.0; parallaxIntensity: 0.03; smoothingFactor: 0.1">
 
                     <!-- HUD Transparente com paralaxe sutil será criado automaticamente pelo componente -->
@@ -229,7 +230,7 @@
             <!-- Luz para o rosto da Abby -->
             <a-light type="point" position="-1.806 1.5 -2.5" color="#ffffff" intensity="2.0" distance="5"></a-light>
 
-            <a-gltf-model src="#quadra" position="-0.997 -0.6 -0.264" gltf-model="assets/Quadra.glb"
+            <a-gltf-model src="#quadra" position="-0.997 -2.20319 -0.264" gltf-model="assets/Quadra.glb"
                 scale="0.8 0.8 0.8"></a-gltf-model>
 
             <!-- Chão Único e Sólido - Tom Bege/Areia -->
@@ -383,8 +384,8 @@
                         scene.setAttribute('fog', {
                             type: 'linear',
                             color: '#87CEEB',
-                            near: 30,
-                            far: 120
+                            near: 500,
+                            far: 1000
                         });
                     }
                 },
@@ -444,8 +445,8 @@
                     this.el.setAttribute('fog', {
                         type: 'linear',
                         color: '#87CEEB',
-                        near: 25,
-                        far: 100
+                        near: 500,
+                        far: 1000
                     });
                 }
             });
