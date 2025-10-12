@@ -235,16 +235,13 @@
             <a-gltf-model src="assets/npc/AbbyRoupaClara.glb" position="-1.806 -0.02341 -3.5"
                 gltf-model="assets/npc/AbbyRoupaClara.glb"></a-gltf-model>
 
-            <!-- Modelo Untitled ao lado da Abby (direita) - COM DEBUG -->
-            <a-entity id="untitled-container" position="-0.3 -0.02341 -3.5">
-                <a-gltf-model id="untitled-model" src="assets/npc/Untitled.glb" scale="2 2 2" rotation="0 0 0"
-                    visible="true">
-                </a-gltf-model>
+            <!-- Modelo Untitled ao lado da Abby (SIMPLIFICADO) -->
+            <a-gltf-model id="untitled-model" src="assets/npc/Untitled.glb" position="-0.3 -0.02341 -3.5" scale="1 1 1">
+            </a-gltf-model>
 
-                <!-- Box de debug para ver se a posição está correta -->
-                <a-box color="#ff0000" width="0.5" height="2" depth="0.5" opacity="0.5" position="0 1 0">
-                </a-box>
-            </a-entity>
+            <!-- Box de debug vermelho para verificar posição -->
+            <a-box color="#ff0000" position="-0.3 1 -3.5" width="0.5" height="2" depth="0.5" opacity="0.5">
+            </a-box>
 
             <!-- Luz para o rosto da Abby -->
             <a-light type="point" position="-1.806 1.5 -2.5" color="#ffffff" intensity="2.0" distance="5"></a-light>
