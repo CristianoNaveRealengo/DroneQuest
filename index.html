@@ -83,48 +83,9 @@
 
             console.log('✅ Componente sky-360-loader registrado!');
 
-            // Componente de Parallax para o Sky
-            AFRAME.registerComponent('sky-parallax', {
-                schema: {
-                    intensity: { type: 'number', default: 0.02 }, // Reduzido de 0.05 para 0.02
-                    smoothing: { type: 'number', default: 0.1 } // Suavização para evitar tremores
-                },
-
-                init: function () {
-                    console.log('🌊 Parallax do Sky ativado com suavização');
-                    this.drone = null;
-                    this.initialRotation = { x: 0, y: 0, z: 0 };
-                    this.currentRotation = { x: 0, y: 0 }; // Rotação atual suavizada
-                    this.targetRotation = { x: 0, y: 0 }; // Rotação alvo
-                },
-
-                tick: function () {
-                    if (!this.drone) {
-                        this.drone = document.querySelector('#drone');
-                        if (!this.drone) return;
-                    }
-
-                    // Pegar posição do drone
-                    const dronePos = this.drone.object3D.position;
-
-                    // Calcular rotação alvo do sky baseado na posição do drone
-                    this.targetRotation.y = dronePos.x * this.data.intensity;
-                    this.targetRotation.x = -dronePos.z * this.data.intensity * 0.3; // Reduzido de 0.5 para 0.3
-
-                    // Aplicar suavização (lerp) para evitar tremores
-                    this.currentRotation.x += (this.targetRotation.x - this.currentRotation.x) * this.data.smoothing;
-                    this.currentRotation.y += (this.targetRotation.y - this.currentRotation.y) * this.data.smoothing;
-
-                    // Aplicar rotação suavizada ao sky
-                    this.el.setAttribute('rotation', {
-                        x: this.initialRotation.x + this.currentRotation.x,
-                        y: this.initialRotation.y + this.currentRotation.y,
-                        z: this.initialRotation.z
-                    });
-                }
-            });
-
-            console.log('✅ Componente sky-parallax registrado!');
+            // Componente sky-parallax REMOVIDO para melhor performance
+            // O parallax causava tremores e consumia recursos desnecessários
+            // Sky agora é completamente estático para máxima estabilidade e performance
         </script>
 
         <!-- Estilos CSS -->
@@ -176,9 +137,11 @@
 
             </a-assets>
 
-            <!-- Céu 360 com imagem upscalemedia e parallax suavizado -->
-            <a-sky id="main-sky" src="assets/cenario/bg-upscaler.jpg" rotation="" radius="10000"
-                sky-parallax="intensity: 0.015; smoothing: 0.08" material="" geometry=""></a-sky>
+            <!-- Céu 360 ESTÁTICO - Sem parallax para máxima performance e estabilidade -->
+            <!-- TEMPORÁRIO: Usando cor sólida até otimizar imagem (imagens atuais são muito pesadas) -->
+            <!-- Para usar imagem otimizada (< 2 MB): descomente linha abaixo e comente a-sky com color -->
+            <!-- <a-sky id="main-sky" src="assets/cenario/bg-optimized.jpg" rotation="0 0 0" radius="10000"></a-sky> -->
+            <a-sky id="main-sky" color="#87CEEB" radius="10000"></a-sky>
 
             <!-- Iluminação Ensolarada Suave -->
             <a-light type="ambient" color="#ffffff" intensity="0.8"></a-light>
@@ -269,7 +232,9 @@
 
         <!-- Tela de carregamento -->
         <div id="loading">
-            <h2>Carregando Cenário Limpo VR...</h2>
+            <h2>Carregando Cenário VR...</h2>
+            <h3>Prepare-se pra nova experiencia</h3>
+            <p>Version alfa</p>
             <div class="progress-bar">
                 <div class="progress"></div>
             </div>
@@ -342,7 +307,7 @@
 
                     setTimeout(() => {
                         const ground = document.querySelector('#ground-main');
-                        if (ground) {
+                        if (ground) { 
                             const material = ground.getAttribute('material');
                             const position = ground.getAttribute('position');
                             const visible = ground.getAttribute('visible');
