@@ -90,6 +90,30 @@ if (!AFRAME.components["drone-controller"]) {
 				responsiveness: 0.1, // Resposta mais rápida
 			};
 
+			// Sistema de Filmagem Panorâmica Automática 360°
+			this.panoramicMode = {
+				enabled: false, // Ativado com tecla P
+				speed: 0.15, // Velocidade de rotação (rad/s) - 1 volta completa em ~42 segundos
+				direction: 1, // 1 = horário, -1 = anti-horário
+				startAngle: 0, // Ângulo inicial
+				currentAngle: 0, // Ângulo atual
+				targetAngle: Math.PI * 2, // 360° em radianos
+				completed: false, // Se completou a volta
+				loop: false, // Se deve repetir continuamente
+				pauseAtEnd: true, // Pausar ao completar 360°
+				smoothStart: true, // Início suave
+				smoothEnd: true, // Fim suave
+				startTime: 0, // Tempo de início
+				// Velocidades predefinidas
+				speeds: {
+					verySlow: 0.05, // ~2 minutos para 360°
+					slow: 0.1, // ~1 minuto para 360°
+					normal: 0.15, // ~42 segundos para 360°
+					fast: 0.3, // ~21 segundos para 360°
+					veryFast: 0.5, // ~12 segundos para 360°
+				},
+			};
+
 			// Sistema de hover realista
 			this.thrustPower = 0; // Potência atual das hélices (0-1)
 			this.targetThrust = 0; // Potência alvo das hélices
@@ -420,9 +444,15 @@ if (!AFRAME.components["drone-controller"]) {
             <div>H - Redefinir altitude base (estabilização ±8cm SEMPRE ativa)</div>
             <div style="color: #ff8800; font-weight: bold; margin-top: 5px; margin-bottom: 3px;">🎬 Modos de Voo:</div>
             <div>C - Alternar CINEMATOGRÁFICO ⇄ FPV/SPORT</div>
-            <div>• 🎬 Cinematográfico: 40% velocidade, ±8cm estabilização SEMPRE</div>
-            <div>• 🚁 FPV/Sport: 100km/h máx, drone FPV, ultra responsivo</div>
+            <div>• 🎬 Cinematográfico: 50% velocidade, ±8cm estabilização SEMPRE</div>
+            <div>• 🚁 FPV/Sport: 72km/h máx, drone FPV, ultra responsivo</div>
             <div>Grip Esquerdo (VR) - Alternar modos de voo</div>
+            <div style="color: #8a2be2; font-weight: bold; margin-top: 5px; margin-bottom: 3px;">🎥 Filmagem Panorâmica 360°:</div>
+            <div>P - Iniciar/Pausar panorâmica automática</div>
+            <div>[ / ] - Diminuir/Aumentar velocidade panorâmica</div>
+            <div>\\ - Inverter direção (horário ⇄ anti-horário)</div>
+            <div>O - Reiniciar panorâmica do início</div>
+            <div>• Velocidades: Muito Lenta (2min) → Lenta (1min) → Normal (42s) → Rápida (21s) → Muito Rápida (12s)</div>
             <div style="color: #00ff88; font-weight: bold; margin-top: 5px; margin-bottom: 3px;">🛬 Sistema de Pouso:</div>
             <div>Y - Pousar/Decolar (teclado)</div>
             <div>Botão Y (VR) - Pousar/Decolar em superfícies sólidas</div>
@@ -531,6 +561,272 @@ if (!AFRAME.components["drone-controller"]) {
 		// Manter compatibilidade com função antiga
 		toggleCinematicMode: function () {
 			this.toggleFlightMode();
+		},
+
+		// === SISTEMA DE FILMAGEM PANORÂMICA 360° ===
+
+		togglePanoramicMode: function () {
+			this.panoramicMode.enabled = !this.panoramicMode.enabled;
+
+			if (this.panoramicMode.enabled) {
+				// Ativar modo panorâmico
+				this.panoramicMode.startAngle = this.el.object3D.rotation.y;
+				this.panoramicMode.currentAngle = 0;
+				this.panoramicMode.completed = false;
+				this.panoramicMode.startTime = Date.now();
+
+				// Forçar modo cinematográfico para suavidade
+				if (!this.cinematicMode.enabled) {
+					this.cinematicMode.enabled = true;
+					this.fpvMode.enabled = false;
+				}
+
+				console.log("🎥 Filmagem Panorâmica 360° INICIADA");
+				console.log(
+					`⏱️ Tempo estimado: ${Math.round(
+						(Math.PI * 2) / this.panoramicMode.speed
+					)} segundos`
+				);
+			} else {
+				console.log("🎥 Filmagem Panorâmica PAUSADA");
+			}
+
+			this.showPanoramicIndicator();
+		},
+
+		setPanoramicSpeed: function (speedName) {
+			if (this.panoramicMode.speeds[speedName]) {
+				this.panoramicMode.speed = this.panoramicMode.speeds[speedName];
+				const timeSeconds = Math.round(
+					(Math.PI * 2) / this.panoramicMode.speed
+				);
+				console.log(
+					`🎥 Velocidade panorâmica: ${speedName} (${timeSeconds}s para 360°)`
+				);
+				this.showPanoramicSpeedIndicator(speedName, timeSeconds);
+			}
+		},
+
+		togglePanoramicDirection: function () {
+			this.panoramicMode.direction *= -1;
+			const direction =
+				this.panoramicMode.direction === 1
+					? "Horário ⟳"
+					: "Anti-horário ⟲";
+			console.log(`🎥 Direção panorâmica: ${direction}`);
+			this.showPanoramicDirectionIndicator(direction);
+		},
+
+		resetPanoramic: function () {
+			this.panoramicMode.currentAngle = 0;
+			this.panoramicMode.completed = false;
+			this.panoramicMode.startTime = Date.now();
+			console.log("🎥 Panorâmica reiniciada");
+		},
+
+		showPanoramicIndicator: function () {
+			const indicator = document.createElement("div");
+			indicator.style.cssText = `
+				position: fixed;
+				top: 50%;
+				left: 50%;
+				transform: translate(-50%, -50%);
+				background: rgba(138, 43, 226, 0.95);
+				color: white;
+				padding: 25px;
+				border-radius: 15px;
+				font-size: 20px;
+				font-weight: bold;
+				z-index: 1000;
+				pointer-events: none;
+				text-align: center;
+				box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+			`;
+
+			const timeSeconds = Math.round(
+				(Math.PI * 2) / this.panoramicMode.speed
+			);
+			const direction =
+				this.panoramicMode.direction === 1
+					? "⟳ Horário"
+					: "⟲ Anti-horário";
+
+			if (this.panoramicMode.enabled) {
+				indicator.innerHTML = `
+					🎥 FILMAGEM PANORÂMICA 360°<br>
+					<div style="font-size: 14px; margin-top: 10px; opacity: 0.9;">
+						• Direção: ${direction}<br>
+						• Tempo: ${timeSeconds}s para volta completa<br>
+						• Velocidade: ${(this.panoramicMode.speed * 100).toFixed(0)}%<br>
+						• Modo: ${this.panoramicMode.loop ? "Loop contínuo" : "Uma volta"}
+					</div>
+					<div style="font-size: 12px; margin-top: 8px; opacity: 0.7;">
+						Pressione P para pausar/retomar<br>
+						Pressione [ ou ] para ajustar velocidade<br>
+						Pressione \\ para inverter direção
+					</div>
+				`;
+			} else {
+				indicator.innerHTML = `
+					⏸️ PANORÂMICA PAUSADA<br>
+					<div style="font-size: 14px; margin-top: 10px; opacity: 0.9;">
+						Progresso: ${Math.round(
+							(this.panoramicMode.currentAngle / (Math.PI * 2)) *
+								100
+						)}%<br>
+						Pressione P para retomar
+					</div>
+				`;
+			}
+
+			document.body.appendChild(indicator);
+
+			setTimeout(() => {
+				if (indicator.parentNode) {
+					document.body.removeChild(indicator);
+				}
+			}, 3000);
+		},
+
+		showPanoramicSpeedIndicator: function (speedName, timeSeconds) {
+			const indicator = document.createElement("div");
+			indicator.style.cssText = `
+				position: fixed;
+				top: 20%;
+				left: 50%;
+				transform: translateX(-50%);
+				background: rgba(138, 43, 226, 0.9);
+				color: white;
+				padding: 15px 25px;
+				border-radius: 10px;
+				font-size: 16px;
+				font-weight: bold;
+				z-index: 1000;
+				pointer-events: none;
+			`;
+
+			indicator.innerHTML = `⚡ Velocidade: ${speedName.toUpperCase()}<br><small>${timeSeconds}s para 360°</small>`;
+			document.body.appendChild(indicator);
+
+			setTimeout(() => {
+				if (indicator.parentNode) {
+					document.body.removeChild(indicator);
+				}
+			}, 2000);
+		},
+
+		showPanoramicDirectionIndicator: function (direction) {
+			const indicator = document.createElement("div");
+			indicator.style.cssText = `
+				position: fixed;
+				top: 20%;
+				left: 50%;
+				transform: translateX(-50%);
+				background: rgba(138, 43, 226, 0.9);
+				color: white;
+				padding: 15px 25px;
+				border-radius: 10px;
+				font-size: 16px;
+				font-weight: bold;
+				z-index: 1000;
+				pointer-events: none;
+			`;
+
+			indicator.innerHTML = `🔄 Direção: ${direction}`;
+			document.body.appendChild(indicator);
+
+			setTimeout(() => {
+				if (indicator.parentNode) {
+					document.body.removeChild(indicator);
+				}
+			}, 2000);
+		},
+
+		updatePanoramicRotation: function (deltaTime) {
+			if (!this.panoramicMode.enabled || this.panoramicMode.completed) {
+				return;
+			}
+
+			// Calcular incremento de rotação baseado na velocidade e deltaTime
+			const rotationIncrement =
+				this.panoramicMode.speed *
+				this.panoramicMode.direction *
+				(deltaTime / 1000);
+
+			// Atualizar ângulo atual
+			this.panoramicMode.currentAngle += Math.abs(rotationIncrement);
+
+			// Aplicar rotação suave
+			const currentRotation = this.el.object3D.rotation;
+			currentRotation.y += rotationIncrement;
+
+			// Verificar se completou 360°
+			if (this.panoramicMode.currentAngle >= Math.PI * 2) {
+				if (this.panoramicMode.loop) {
+					// Reiniciar para loop contínuo
+					this.panoramicMode.currentAngle = 0;
+				} else {
+					// Pausar ao completar
+					this.panoramicMode.completed = true;
+					this.panoramicMode.enabled = false;
+					console.log("🎥 Filmagem Panorâmica 360° CONCLUÍDA!");
+					this.showPanoramicCompletedIndicator();
+				}
+			}
+
+			// Atualizar indicador de progresso (a cada 2 segundos)
+			const now = Date.now();
+			if (
+				!this.lastPanoramicUpdate ||
+				now - this.lastPanoramicUpdate > 2000
+			) {
+				this.lastPanoramicUpdate = now;
+				const progress = Math.round(
+					(this.panoramicMode.currentAngle / (Math.PI * 2)) * 100
+				);
+				console.log(`🎥 Progresso panorâmico: ${progress}%`);
+			}
+		},
+
+		showPanoramicCompletedIndicator: function () {
+			const indicator = document.createElement("div");
+			indicator.style.cssText = `
+				position: fixed;
+				top: 50%;
+				left: 50%;
+				transform: translate(-50%, -50%);
+				background: rgba(34, 139, 34, 0.95);
+				color: white;
+				padding: 30px;
+				border-radius: 15px;
+				font-size: 24px;
+				font-weight: bold;
+				z-index: 1000;
+				pointer-events: none;
+				text-align: center;
+				box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+			`;
+
+			const totalTime = Math.round(
+				(Date.now() - this.panoramicMode.startTime) / 1000
+			);
+
+			indicator.innerHTML = `
+				✅ PANORÂMICA 360° CONCLUÍDA!<br>
+				<div style="font-size: 16px; margin-top: 10px; opacity: 0.9;">
+					Tempo total: ${totalTime}s<br>
+					Pressione O para reiniciar<br>
+					Pressione P para nova filmagem
+				</div>
+			`;
+
+			document.body.appendChild(indicator);
+
+			setTimeout(() => {
+				if (indicator.parentNode) {
+					document.body.removeChild(indicator);
+				}
+			}, 5000);
 		},
 
 		showFlightModeIndicator: function () {
@@ -1024,6 +1320,44 @@ if (!AFRAME.components["drone-controller"]) {
 						// Toggle entre modo cinematográfico e FPV/Sport
 						this.toggleFlightMode();
 						break;
+					case "KeyP":
+						// Toggle filmagem panorâmica 360°
+						this.togglePanoramicMode();
+						break;
+					case "BracketLeft":
+						// Diminuir velocidade panorâmica
+						const currentSpeedIndex = Object.values(
+							this.panoramicMode.speeds
+						).indexOf(this.panoramicMode.speed);
+						const speedNames = Object.keys(
+							this.panoramicMode.speeds
+						);
+						if (currentSpeedIndex > 0) {
+							this.setPanoramicSpeed(
+								speedNames[currentSpeedIndex - 1]
+							);
+						}
+						break;
+					case "BracketRight":
+						// Aumentar velocidade panorâmica
+						const currentSpeedIdx = Object.values(
+							this.panoramicMode.speeds
+						).indexOf(this.panoramicMode.speed);
+						const speedNms = Object.keys(this.panoramicMode.speeds);
+						if (currentSpeedIdx < speedNms.length - 1) {
+							this.setPanoramicSpeed(
+								speedNms[currentSpeedIdx + 1]
+							);
+						}
+						break;
+					case "Backslash":
+						// Inverter direção panorâmica
+						this.togglePanoramicDirection();
+						break;
+					case "KeyO":
+						// Reiniciar panorâmica
+						this.resetPanoramic();
+						break;
 					case "KeyY":
 						// Sistema de pouso (teclado)
 						this.toggleLandingMode();
@@ -1324,8 +1658,13 @@ if (!AFRAME.components["drone-controller"]) {
 			// Processar sistema de pouso
 			this.processLanding(timeDelta);
 
-			// Processar entrada de controles (apenas se não estiver pousado)
-			if (!this.isLanded) {
+			// Processar filmagem panorâmica 360° (se ativo)
+			if (this.panoramicMode.enabled && !this.isLanded) {
+				this.updatePanoramicRotation(timeDelta);
+			}
+
+			// Processar entrada de controles (apenas se não estiver pousado e não em modo panorâmico)
+			if (!this.isLanded && !this.panoramicMode.enabled) {
 				this.processControlInput();
 			}
 
