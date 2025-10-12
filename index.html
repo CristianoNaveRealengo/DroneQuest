@@ -137,8 +137,14 @@
 
             </a-assets>
 
-            <!-- Céu Simples (Imagem Normal - Leve e Rápido) -->
-            <a-sky id="main-sky" src="assets/cenario/734.jpg" rotation="0 0 0" radius="10000"></a-sky>
+            <!-- Fundo Simples (Plano ao Invés de Sky 360°) -->
+            <!-- Céu/Horizonte como plano de fundo -->
+            <a-plane id="background-plane" position="0 0 -100" rotation="0 0 0" width="300" height="150"
+                material="src: assets/cenario/734.jpg; shader: flat; side: double" visible="true">
+            </a-plane>
+
+            <!-- Cor de fundo sólida para o céu -->
+            <a-sky color="#87CEEB"></a-sky>
 
             <!-- Iluminação Ensolarada Suave -->
             <a-light type="ambient" color="#ffffff" intensity="0.8"></a-light>
