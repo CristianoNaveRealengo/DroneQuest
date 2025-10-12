@@ -7,10 +7,10 @@
 if (!AFRAME.components["drone-controller"]) {
 	AFRAME.registerComponent("drone-controller", {
 		schema: {
-			// Configurações de movimento (valores realistas para drone)
-			maxSpeed: { type: "number", default: 8.3 }, // Ajustado para 8.3 m/s (~30 km/h)
-			acceleration: { type: "number", default: 4.0 }, // Aumentado proporcionalmente para 4.0 m/s²
-			rotationSpeed: { type: "number", default: 0.6 }, // Mantido em 0.6 rad/s
+			// Configurações de movimento (valores padronizados para todos os controles)
+			maxSpeed: { type: "number", default: 10.0 }, // 10 m/s (~36 km/h) - velocidade padrão unificada
+			acceleration: { type: "number", default: 5.0 }, // 5.0 m/s² - aceleração padrão unificada
+			rotationSpeed: { type: "number", default: 0.8 }, // 0.8 rad/s - rotação padrão unificada
 
 			// Configurações de física (ajustadas para realismo)
 			mass: { type: "number", default: 0.5 }, // Massa mais leve
@@ -66,8 +66,8 @@ if (!AFRAME.components["drone-controller"]) {
 			// Sistema de filmagem panorâmica cinematográfica (PADRÃO ATIVO)
 			this.cinematicMode = {
 				enabled: true, // ATIVO POR PADRÃO
-				speedMultiplier: 0.4, // 40% da velocidade normal para suavidade cinematográfica
-				rotationMultiplier: 0.4, // 40% da rotação normal para movimentos suaves
+				speedMultiplier: 0.5, // 50% da velocidade (5 m/s = 18 km/h) - suavidade cinematográfica
+				rotationMultiplier: 0.5, // 50% da rotação - movimentos suaves
 				smoothingFactor: 0.8, // Suavização adicional dos movimentos
 				lastToggleTime: 0, // Controle de debounce para ativação
 				activationDelay: 500, // 500ms de delay entre ativações
@@ -77,15 +77,15 @@ if (!AFRAME.components["drone-controller"]) {
 			// Sistema FPV/Sport (modo manual de alta performance - drone FPV)
 			this.fpvMode = {
 				enabled: false,
-				maxSpeed: 27.8, // 100 km/h em m/s
-				speedMultiplier: 1.0, // 100% da velocidade
+				maxSpeed: 20.0, // 20 m/s (72 km/h) - velocidade máxima unificada
+				speedMultiplier: 2.0, // 200% da velocidade base (20 m/s)
 				rotationMultiplier: 2.0, // 200% da rotação para maior responsividade
 				smoothingFactor: 0.2, // Menor suavização para resposta rápida
 				bankingEnabled: true, // Inclinação nas curvas
 				maxBankAngle: 45, // Ângulo máximo de inclinação em graus (mais agressivo)
 				stabilizationDisabled: true, // Controle manual total
 				// Configurações de drone FPV
-				acceleration: 8.0, // Aceleração mais rápida
+				acceleration: 10.0, // 10.0 m/s² - aceleração FPV unificada (2x mais rápida)
 				agility: 1.5, // Agilidade aumentada
 				responsiveness: 0.1, // Resposta mais rápida
 			};
