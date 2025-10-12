@@ -86,13 +86,16 @@
             // Componente de Parallax para o Sky
             AFRAME.registerComponent('sky-parallax', {
                 schema: {
-                    intensity: { type: 'number', default: 0.05 }
+                    intensity: { type: 'number', default: 0.02 }, // Reduzido de 0.05 para 0.02
+                    smoothing: { type: 'number', default: 0.1 } // Suavização para evitar tremores
                 },
 
                 init: function () {
-                    console.log('🌊 Parallax do Sky ativado');
+                    console.log('🌊 Parallax do Sky ativado com suavização');
                     this.drone = null;
                     this.initialRotation = { x: 0, y: 0, z: 0 };
+                    this.currentRotation = { x: 0, y: 0 }; // Rotação atual suavizada
+                    this.targetRotation = { x: 0, y: 0 }; // Rotação alvo
                 },
 
                 tick: function () {
@@ -104,14 +107,18 @@
                     // Pegar posição do drone
                     const dronePos = this.drone.object3D.position;
 
-                    // Calcular rotação do sky baseado na posição do drone
-                    const rotationY = dronePos.x * this.data.intensity;
-                    const rotationX = -dronePos.z * this.data.intensity * 0.5;
+                    // Calcular rotação alvo do sky baseado na posição do drone
+                    this.targetRotation.y = dronePos.x * this.data.intensity;
+                    this.targetRotation.x = -dronePos.z * this.data.intensity * 0.3; // Reduzido de 0.5 para 0.3
 
-                    // Aplicar rotação suave ao sky
+                    // Aplicar suavização (lerp) para evitar tremores
+                    this.currentRotation.x += (this.targetRotation.x - this.currentRotation.x) * this.data.smoothing;
+                    this.currentRotation.y += (this.targetRotation.y - this.currentRotation.y) * this.data.smoothing;
+
+                    // Aplicar rotação suavizada ao sky
                     this.el.setAttribute('rotation', {
-                        x: this.initialRotation.x + rotationX,
-                        y: this.initialRotation.y + rotationY,
+                        x: this.initialRotation.x + this.currentRotation.x,
+                        y: this.initialRotation.y + this.currentRotation.y,
                         z: this.initialRotation.z
                     });
                 }
@@ -169,9 +176,9 @@
 
             </a-assets>
 
-            <!-- Céu 360 com imagem upscalemedia e parallax -->
-            <a-sky id="main-sky" src="assets/textures/upscalemedia-transformed.jpeg" rotation="" radius="10000"
-                sky-parallax="intensity: 0.08" material="" geometry=""></a-sky>
+            <!-- Céu 360 com imagem upscalemedia e parallax suavizado -->
+            <a-sky id="main-sky" src="assets/cenario/bg-upscaler.jpg" rotation="" radius="10000"
+                sky-parallax="intensity: 0.015; smoothing: 0.08" material="" geometry=""></a-sky>
 
             <!-- Iluminação Ensolarada Suave -->
             <a-light type="ambient" color="#ffffff" intensity="0.8"></a-light>
@@ -225,7 +232,7 @@
             <a-entity mixin="checkpoint" position="-20 12 -30" checkpoint="id: 2"></a-entity>
             <a-entity mixin="checkpoint" position="0 10 -45" checkpoint="id: 3"></a-entity>
 
-
+            <!--NPCs-->
             <!-- Modelo da Abby -->
             <a-gltf-model src="assets/npc/AbbyRoupaClara.glb" position="-1.806 -0.02341 -3.5"
                 gltf-model="assets/npc/AbbyRoupaClara.glb"></a-gltf-model>
@@ -233,6 +240,8 @@
             <!-- Luz para o rosto da Abby -->
             <a-light type="point" position="-1.806 1.5 -2.5" color="#ffffff" intensity="2.0" distance="5"></a-light>
 
+
+            <!-- Cenário -->
             <a-gltf-model src="#quadra" position="-0.997 -2.20319 -0.264" gltf-model="assets/Quadra.glb"
                 scale="0.8 0.8 0.8"></a-gltf-model>
 
