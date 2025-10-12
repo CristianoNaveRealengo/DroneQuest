@@ -145,13 +145,13 @@
 
         <!-- ÚNICA A-SCENE - ULTRA OTIMIZADA PARA VR -->
         <a-scene vr-mode-ui="enabled: true" webxr="requiredFeatures: local-floor; optionalFeatures: bounded-floor"
-            renderer="antialias: false; colorManagement: false; sortObjects: false; physicallyCorrectLights: false; gammaFactor: 2.2; highRefreshRate: true; foveationLevel: 0"
+            renderer="antialias: false; colorManagement: false; sortObjects: false; physicallyCorrectLights: false; gammaFactor: 2.2; highRefreshRate: true; foveationLevel: 1; powerPreference: high-performance; precision: mediump"
             game-manager="totalCheckpoints: 3; timeLimit: 180"
             urban-environment="citySize: 30; buildingCount: 0; obstacleCount: 0; treeCount: 0; vrOptimized: true; ultraLowPoly: true"
-            performance-monitor="targetFPS: 90; minFPS: 72; autoOptimize: true; showStats: false; aggressiveOptimization: true"
+            performance-monitor="targetFPS: 90; minFPS: 72; autoOptimize: true; showStats: true; aggressiveOptimization: true"
             audio-system="masterVolume: 0.4; musicVolume: 0.1; sfxVolume: 0.5; ambientVolume: 0.05; enableAudio: true"
             collision-system="enabled: true; bounceForce: 0.5; showEffects: false; soundEnabled: false" hud-controls
-            vr-performance-optimizer ground-diagnostics sky-diagnostics>
+            vr-performance-optimizer ground-diagnostics sky-diagnostics fps-optimizer>
 
             <!-- Assets -->
             <a-assets>
@@ -178,11 +178,9 @@
             <!-- Céu com Imagem -->
             <a-sky src="assets/cenario/734.jpg"></a-sky>
 
-            <!-- Iluminação Ensolarada Suave -->
-            <a-light type="ambient" color="#ffffff" intensity="0.8"></a-light>
-            <a-light type="directional" position="50 80 30" color="#ffffee" intensity="1.0"
-                castShadow="false"></a-light>
-            <a-light type="hemisphere" color="#ffffff" groundColor="#8A7050" intensity="0.5"></a-light>
+            <!-- Iluminação Otimizada (2 luzes ao invés de 3) -->
+            <a-light type="ambient" color="#ffffff" intensity="1.0"></a-light>
+            <a-light type="hemisphere" color="#ffffff" groundColor="#8A7050" intensity="0.7"></a-light>
 
 
             <!-- Drone Principal -->
@@ -218,7 +216,7 @@
                 <!-- Câmera do Drone -->
                 <a-camera id="drone-camera" position="0 -0.30 -0.5" rotation="-15 0 0" wasd-controls="enabled: false"
                     look-controls="enabled: true; pointerLockEnabled: false" vr-camera-sync
-                    camera="far: 20000; near: 0.1"
+                    camera="far: 5000; near: 0.1"
                     hud-controller="enabled: true; transparency: 1.0; hudWidth: 3.5; hudHeight: 2.5; hudDistance: 2.0; parallaxIntensity: 0.03; smoothingFactor: 0.1">
 
                     <!-- HUD Transparente com paralaxe sutil será criado automaticamente pelo componente -->
@@ -236,8 +234,8 @@
                 gltf-model="assets/npc/AbbyRoupaClara.glb"></a-gltf-model>
 
             <!-- Modelo Untitled ao lado da Abby (ESCALA AUMENTADA) -->
-            <a-gltf-model id="untitled-model" src="assets/npc/Untitled.glb" position="-0.3 0 -3.5" scale="20 20 20"
-                rotation="0 0 0" animation-mixer="clip: *; loop: repeat" visible="true">
+            <a-gltf-model id="untitled-model" src="assets/npc/Untitled.glb" position="-3.67003 0.00536 -3.5" scale=""
+                rotation="" animation-mixer="" visible="" gltf-model="assets/npc/Untitled.glb">
             </a-gltf-model>
 
             <!-- Box de debug VERDE para verificar posição -->
