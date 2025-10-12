@@ -211,6 +211,73 @@
                 material="src: #ground-texture; color: #846338; repeat: 200 200; metalness: 0; roughness: 1; side: double; depthWrite: true; depthTest: true"
                 shadow="receive: false" visible="true"></a-plane>
 
+            <!-- ========== ELEVAÇÕES DO MORRO (GEOMETRIA LEVE) ========== -->
+
+            <!-- Morro Principal - Ultra Simplificado -->
+            <a-cone position="30 0 -40" radius-bottom="35" radius-top="8" height="28"
+                material="color: #7a6d5f; roughness: 1" segments-radial="8" segments-height="4"></a-cone>
+
+            <!-- Morro Esquerda -->
+            <a-cone position="-25 0 -35" radius-bottom="22" radius-top="6" height="16"
+                material="color: #7a6d5f; roughness: 1" segments-radial="6" segments-height="3"></a-cone>
+
+            <!-- Morro Direita -->
+            <a-cone position="60 0 -30" radius-bottom="18" radius-top="8" height="8"
+                material="color: #7a6d5f; roughness: 1" segments-radial="6" segments-height="2"></a-cone>
+
+            <!-- ========== CASAS 2D (BILLBOARDS - ULTRA LEVE!) ========== -->
+
+            <!-- Casas Base Morro Principal -->
+            <a-plane position="25 6 -35" width="4" height="3" material="color: #d4a574; side: double"
+                look-at="#drone-camera"></a-plane>
+
+            <a-plane position="32 6 -42" width="3.5" height="2.8" material="color: #c49564; side: double"
+                look-at="#drone-camera"></a-plane>
+
+            <a-plane position="38 6 -38" width="4" height="3" material="color: #b48554; side: double"
+                look-at="#drone-camera"></a-plane>
+
+            <a-plane position="20 6 -45" width="3.8" height="2.9" material="color: #d4a574; side: double"
+                look-at="#drone-camera"></a-plane>
+
+            <!-- Casas Nível Médio -->
+            <a-plane position="28 13 -38" width="3.5" height="2.7" material="color: #c49564; side: double"
+                look-at="#drone-camera"></a-plane>
+
+            <a-plane position="35 13 -42" width="4" height="3" material="color: #b48554; side: double"
+                look-at="#drone-camera"></a-plane>
+
+            <a-plane position="30 13 -45" width="3.2" height="2.5" material="color: #d4a574; side: double"
+                look-at="#drone-camera"></a-plane>
+
+            <!-- Casas Nível Alto -->
+            <a-plane position="30 21 -40" width="3.5" height="2.8" material="color: #c49564; side: double"
+                look-at="#drone-camera"></a-plane>
+
+            <a-plane position="26 21 -42" width="3" height="2.5" material="color: #b48554; side: double"
+                look-at="#drone-camera"></a-plane>
+
+            <!-- Casa no Topo -->
+            <a-plane position="30 29 -40" width="3" height="2.5" material="color: #d4a574; side: double"
+                look-at="#drone-camera"></a-plane>
+
+            <!-- Casas Morro Esquerda -->
+            <a-plane position="-22 7 -32" width="3.5" height="2.8" material="color: #c49564; side: double"
+                look-at="#drone-camera"></a-plane>
+
+            <a-plane position="-28 7 -38" width="3.8" height="3" material="color: #b48554; side: double"
+                look-at="#drone-camera"></a-plane>
+
+            <a-plane position="-25 12 -35" width="3.2" height="2.6" material="color: #d4a574; side: double"
+                look-at="#drone-camera"></a-plane>
+
+            <!-- Casas Morro Direita -->
+            <a-plane position="58 5 -28" width="3.5" height="2.7" material="color: #b48554; side: double"
+                look-at="#drone-camera"></a-plane>
+
+            <a-plane position="62 5 -32" width="3.8" height="2.9" material="color: #d4a574; side: double"
+                look-at="#drone-camera"></a-plane>
+
             <!-- Limitador Invisível - Paredes do Sky -->
             <a-entity id="sky-boundary" boundary-limiter="radius: 9900"></a-entity>
 
