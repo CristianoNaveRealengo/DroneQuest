@@ -1379,17 +1379,36 @@ if (!AFRAME.components["drone-controller"]) {
 		},
 
 		processKeyboardInput: function () {
-			const speed = this.data.maxSpeed * this.data.sensitivity;
+			// Determinar velocidade baseada no modo ativo
+			let speed, rotationSpeed;
 
-			// WASD: Altitude e giro no eixo
-			if (this.keys["KeyW"]) this.targetAltitudeChange = speed * 1.0; // W = SUBIR (velocidade normal)
-			if (this.keys["KeyS"]) this.targetAltitudeChange = -speed * 1.0; // S = DESCER (velocidade normal)
-			if (this.keys["KeyA"])
-				this.targetYawRotation = this.data.rotationSpeed; // A = GIRAR ESQUERDA
-			if (this.keys["KeyD"])
-				this.targetYawRotation = -this.data.rotationSpeed; // D = GIRAR DIREITA
+			if (this.cinematicMode.enabled) {
+				speed =
+					this.data.maxSpeed *
+					this.cinematicMode.speedMultiplier *
+					this.data.sensitivity;
+				rotationSpeed =
+					this.data.rotationSpeed *
+					this.cinematicMode.rotationMultiplier;
+			} else if (this.fpvMode.enabled) {
+				speed =
+					this.fpvMode.maxSpeed *
+					this.fpvMode.speedMultiplier *
+					this.data.sensitivity;
+				rotationSpeed =
+					this.data.rotationSpeed * this.fpvMode.rotationMultiplier;
+			} else {
+				speed = this.data.maxSpeed * this.data.sensitivity;
+				rotationSpeed = this.data.rotationSpeed;
+			}
 
-			// SETAS: Frente, trás, direita e esquerda
+			// WASD: Altitude e giro no eixo - MESMA VELOCIDADE
+			if (this.keys["KeyW"]) this.targetAltitudeChange = speed; // W = SUBIR
+			if (this.keys["KeyS"]) this.targetAltitudeChange = -speed; // S = DESCER
+			if (this.keys["KeyA"]) this.targetYawRotation = rotationSpeed; // A = GIRAR ESQUERDA
+			if (this.keys["KeyD"]) this.targetYawRotation = -rotationSpeed; // D = GIRAR DIREITA
+
+			// SETAS: Frente, trás, direita e esquerda - MESMA VELOCIDADE
 			if (this.keys["ArrowUp"]) this.targetForwardSpeed = speed; // ↑ = FRENTE
 			if (this.keys["ArrowDown"]) this.targetForwardSpeed = -speed; // ↓ = TRÁS
 			if (this.keys["ArrowLeft"]) this.targetStrafeSpeed = -speed; // ← = ESQUERDA
