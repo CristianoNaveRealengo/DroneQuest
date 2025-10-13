@@ -67,10 +67,24 @@ AFRAME.registerComponent("collision-manager", {
 	addCollisionObject: function (element, type) {
 		if (!element) return;
 
+		// Obter dados de colisão se existir
+		const collisionData = element.getAttribute("model-collision");
+		let dimensions = null;
+
+		if (collisionData) {
+			dimensions = {
+				width: collisionData.width || 10,
+				height: collisionData.height || 10,
+				depth: collisionData.depth || 10,
+				offsetY: collisionData.offsetY || 0,
+			};
+		}
+
 		const obj = {
 			element: element,
 			type: type,
 			position: element.getAttribute("position"),
+			dimensions: dimensions,
 			lastCollisionTime: 0,
 			isNearby: false,
 		};
@@ -112,7 +126,18 @@ AFRAME.registerComponent("collision-manager", {
 
 		this.collisionObjects.forEach((obj) => {
 			const objPos = obj.element.getAttribute("position");
-			const distance = this.calculateDistance(dronePos, objPos);
+
+			// Calcular distância até a superfície da caixa, não até o centro
+			let distance;
+			if (obj.dimensions) {
+				distance = this.calculateDistanceToBox(
+					dronePos,
+					objPos,
+					obj.dimensions
+				);
+			} else {
+				distance = this.calculateDistance(dronePos, objPos);
+			}
 
 			obj.distance = distance;
 			obj.isNearby = distance < proximityRadius;
@@ -220,6 +245,40 @@ AFRAME.registerComponent("collision-manager", {
 		const dy = pos1.y - pos2.y;
 		const dz = pos1.z - pos2.z;
 		return Math.sqrt(dx * dx + dy * dy + dz * dz);
+	},
+
+	calculateDistanceToBox: function (dronePos, boxPos, dimensions) {
+		// Calcular distância até a superfície da caixa (AABB)
+		const halfWidth = dimensions.width / 2;
+		const halfHeight = dimensions.height / 2;
+		const halfDepth = dimensions.depth / 2;
+
+		// Ajustar posição Y com offset
+		const adjustedBoxY = boxPos.y + dimensions.offsetY;
+
+		// Encontrar o ponto mais próximo na superfície da caixa
+		const closestX = Math.max(
+			boxPos.x - halfWidth,
+			Math.min(dronePos.x, boxPos.x + halfWidth)
+		);
+		const closestY = Math.max(
+			adjustedBoxY - halfHeight,
+			Math.min(dronePos.y, adjustedBoxY + halfHeight)
+		);
+		const closestZ = Math.max(
+			boxPos.z - halfDepth,
+			Math.min(dronePos.z, boxPos.z + halfDepth)
+		);
+
+		// Calcular distância do drone até o ponto mais próximo
+		const dx = dronePos.x - closestX;
+		const dy = dronePos.y - closestY;
+		const dz = dronePos.z - closestZ;
+
+		const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+		// Se a distância é 0, o drone está dentro da caixa
+		return distance;
 	},
 
 	getNearbyObjects: function () {
