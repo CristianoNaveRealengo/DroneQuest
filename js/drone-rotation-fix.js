@@ -1,27 +1,25 @@
 /**
- * Fix para Rotação do Drone - MODO AGRESSIVO
- * Previne o drone de virar de cabeça para baixo com correção forçada
+ * Fix para Rotação do Drone - MODO BALANCEADO
+ * Previne mortais mas permite movimento normal
  */
 
 AFRAME.registerComponent("drone-rotation-limiter", {
 	schema: {
-		maxPitch: { type: "number", default: 20 }, // Reduzido para 20° (muito seguro)
-		maxRoll: { type: "number", default: 10 }, // Reduzido para 10° (super estável)
+		maxPitch: { type: "number", default: 35 }, // 35° permite movimento
+		maxRoll: { type: "number", default: 25 }, // 25° permite curvas
 		autoCorrect: { type: "boolean", default: true },
-		correctionSpeed: { type: "number", default: 8.0 }, // Aumentado para 8x mais rápido
-		forceLevel: { type: "boolean", default: true }, // Forçar nivelamento SEMPRE
+		correctionSpeed: { type: "number", default: 5.0 },
+		emergencyThreshold: { type: "number", default: 70 }, // Só corrige acima de 70°
 	},
 
 	init: function () {
+		console.log("🔒 Limitador de rotação ativado (MODO BALANCEADO)");
 		console.log(
-			"🔒 Limitador de rotação do drone ativado (MODO ULTRA AGRESSIVO)"
+			`📐 Limites: Pitch ±${this.data.maxPitch}°, Roll ±${this.data.maxRoll}°`
 		);
-		console.log(
-			`📐 Limites RESTRITOS: Pitch ±${this.data.maxPitch}°, Roll ±${this.data.maxRoll}°`
-		);
+		console.log(`🚨 Emergência: >${this.data.emergencyThreshold}°`);
 
 		this.lastValidRotation = { x: 0, y: 0, z: 0 };
-		this.correctionActive = false;
 		this.emergencyCorrection = false;
 		this.lastWarningTime = 0;
 	},
@@ -36,97 +34,72 @@ AFRAME.registerComponent("drone-rotation-limiter", {
 		const normalizedX = this.normalizeAngle(rotation.x);
 		const normalizedZ = this.normalizeAngle(rotation.z);
 
+		let needsCorrection = false;
 		let correctedRotation = {
 			x: normalizedX,
 			y: rotation.y,
 			z: normalizedZ,
 		};
 
-		// 🚨 EMERGÊNCIA CRÍTICA: Drone virando de cabeça para baixo (> 60°)
-		if (Math.abs(normalizedX) > 60 || Math.abs(normalizedZ) > 45) {
+		// 🚨 EMERGÊNCIA: Drone virando perigosamente (> 70°)
+		if (
+			Math.abs(normalizedX) > this.data.emergencyThreshold ||
+			Math.abs(normalizedZ) > this.data.emergencyThreshold - 10
+		) {
 			if (Date.now() - this.lastWarningTime > 1000) {
-				console.error(
-					"🚨 EMERGÊNCIA CRÍTICA! DRONE VIRANDO! Correção FORÇADA!"
-				);
+				console.error("🚨 EMERGÊNCIA! Correção ativada!");
 				this.lastWarningTime = Date.now();
 			}
-			// FORÇAR para 0° IMEDIATAMENTE
-			correctedRotation.x = 0;
-			correctedRotation.z = 0;
+			// Reduzir para zona segura (não para 0°)
+			correctedRotation.x = Math.sign(normalizedX) * 30;
+			correctedRotation.z = Math.sign(normalizedZ) * 20;
 			this.emergencyCorrection = true;
-			this.correctionActive = true;
+			needsCorrection = true;
 		}
-		// ⚠️ ALERTA ALTO: Inclinação perigosa (> 35°)
-		else if (Math.abs(normalizedX) > 35 || Math.abs(normalizedZ) > 25) {
-			if (Date.now() - this.lastWarningTime > 2000) {
-				console.warn("⚠️ ALERTA! Inclinação perigosa detectada!");
-				this.lastWarningTime = Date.now();
-			}
-			// Reduzir para limite seguro
-			correctedRotation.x =
-				Math.sign(normalizedX) *
-				Math.min(Math.abs(normalizedX), this.data.maxPitch);
-			correctedRotation.z =
-				Math.sign(normalizedZ) *
-				Math.min(Math.abs(normalizedZ), this.data.maxRoll);
-			this.correctionActive = true;
+		// ⚠️ ALERTA: Inclinação alta mas controlável (> 50°)
+		else if (Math.abs(normalizedX) > 50 || Math.abs(normalizedZ) > 40) {
+			// Limitar mas permitir movimento
+			correctedRotation.x = Math.sign(normalizedX) * 45;
+			correctedRotation.z = Math.sign(normalizedZ) * 35;
+			needsCorrection = true;
 		}
-		// Limitar pitch e roll normalmente
+		// Limites normais de operação
 		else {
 			if (Math.abs(normalizedX) > this.data.maxPitch) {
 				correctedRotation.x =
 					Math.sign(normalizedX) * this.data.maxPitch;
+				needsCorrection = true;
 			}
 			if (Math.abs(normalizedZ) > this.data.maxRoll) {
 				correctedRotation.z =
 					Math.sign(normalizedZ) * this.data.maxRoll;
+				needsCorrection = true;
 			}
 		}
 
-		// FORÇAR NIVELAMENTO CONTÍNUO (sempre puxando para 0°)
-		if (this.data.forceLevel) {
-			const levelSpeed = this.emergencyCorrection ? 15.0 : 3.0;
-			correctedRotation.x = this.lerp(
-				correctedRotation.x,
-				0,
-				levelSpeed * dt
-			);
-			correctedRotation.z = this.lerp(
-				correctedRotation.z,
-				0,
-				levelSpeed * dt
-			);
-		}
-
-		// Aplicar correção automática
-		if (
-			this.data.autoCorrect &&
-			(this.correctionActive || this.emergencyCorrection)
-		) {
-			const speed = this.emergencyCorrection
-				? 20.0
-				: this.data.correctionSpeed;
+		// Correção de emergência (apenas quando crítico)
+		if (this.data.autoCorrect && this.emergencyCorrection) {
+			const speed = 12.0;
 			correctedRotation.x = this.lerp(correctedRotation.x, 0, speed * dt);
 			correctedRotation.z = this.lerp(correctedRotation.z, 0, speed * dt);
 
-			// Desativar correção quando nivelado
+			// Desativar quando voltar à zona segura
 			if (
-				Math.abs(correctedRotation.x) < 3 &&
-				Math.abs(correctedRotation.z) < 3
+				Math.abs(correctedRotation.x) < 40 &&
+				Math.abs(correctedRotation.z) < 30
 			) {
-				if (this.emergencyCorrection) {
-					console.log("✅ Emergência resolvida - Drone nivelado!");
-				}
-				this.correctionActive = false;
+				console.log("✅ Zona segura restaurada");
 				this.emergencyCorrection = false;
 			}
 		}
 
-		// SEMPRE aplicar rotação corrigida (não apenas quando necessário)
-		this.el.setAttribute("rotation", correctedRotation);
+		// Aplicar correção APENAS quando necessário (não sempre)
+		if (needsCorrection || this.emergencyCorrection) {
+			this.el.setAttribute("rotation", correctedRotation);
+		}
 
 		// Salvar última rotação válida
-		if (!this.correctionActive && !this.emergencyCorrection) {
+		if (!this.emergencyCorrection) {
 			this.lastValidRotation = {
 				x: correctedRotation.x,
 				y: correctedRotation.y,
@@ -147,6 +120,4 @@ AFRAME.registerComponent("drone-rotation-limiter", {
 	},
 });
 
-console.log(
-	"📦 Módulo drone-rotation-fix.js carregado (MODO ULTRA AGRESSIVO)!"
-);
+console.log("📦 Módulo drone-rotation-fix.js carregado (MODO BALANCEADO)!");
