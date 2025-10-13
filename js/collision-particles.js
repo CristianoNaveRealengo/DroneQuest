@@ -5,9 +5,9 @@
 
 AFRAME.registerComponent("collision-particles", {
 	schema: {
-		poolSize: { type: "number", default: 50 },
-		particleDuration: { type: "number", default: 300 },
-		particleSize: { type: "number", default: 0.05 },
+		poolSize: { type: "number", default: 15 },
+		particleDuration: { type: "number", default: 200 },
+		particleSize: { type: "number", default: 0.03 },
 	},
 
 	init: function () {
@@ -45,7 +45,8 @@ AFRAME.registerComponent("collision-particles", {
 		return particle;
 	},
 
-	spawnParticles: function (position, count = 8) {
+	spawnParticles: function (position, count = 3) {
+		// Reduzido para 3 partículas por colisão
 		for (let i = 0; i < count; i++) {
 			const particle = this.getParticle();
 			if (!particle) break;

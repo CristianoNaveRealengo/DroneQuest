@@ -104,6 +104,11 @@ AFRAME.registerComponent("model-collision", {
 			if (!this.drone) return;
 		}
 
+		// Otimização: verificar apenas a cada 3 frames
+		if (!this.frameCount) this.frameCount = 0;
+		this.frameCount++;
+		if (this.frameCount % 3 !== 0) return;
+
 		// Verificar colisão
 		this.checkCollision();
 	},
@@ -142,28 +147,6 @@ AFRAME.registerComponent("model-collision", {
 			case "cylinder":
 				isColliding = this.checkCylinderCollision(dx, dy, dz);
 				break;
-		}
-
-		// Debug: Log quando próximo
-		if (distance < 10 && this.el.id === "Quadra") {
-			console.log(`📏 Distância da Quadra: ${distance.toFixed(2)}m`, {
-				dronePos: {
-					x: dronePos.x.toFixed(1),
-					y: dronePos.y.toFixed(1),
-					z: dronePos.z.toFixed(1),
-				},
-				collisionPos: {
-					x: collisionPos.x.toFixed(1),
-					y: collisionPos.y.toFixed(1),
-					z: collisionPos.z.toFixed(1),
-				},
-				delta: {
-					dx: dx.toFixed(1),
-					dy: dy.toFixed(1),
-					dz: dz.toFixed(1),
-				},
-				isColliding: isColliding,
-			});
 		}
 
 		if (isColliding) {
@@ -289,83 +272,6 @@ AFRAME.registerComponent("show-collision-boxes", {
 				`✅ ${collisionModels.length} caixas de colisão visíveis`
 			);
 		}, 2000);
-	},
-});
-
-// Componente para mostrar informações de debug
-AFRAME.registerComponent("collision-debug-info", {
-	init: function () {
-		console.log("🔍 Collision Debug Info ativado");
-
-		this.infoPanel = document.createElement("div");
-		this.infoPanel.style.cssText = `
-			position: fixed;
-			top: 10px;
-			left: 10px;
-			background: rgba(0, 0, 0, 0.9);
-			color: #00ff00;
-			padding: 15px;
-			border-radius: 8px;
-			font-family: 'Courier New', monospace;
-			font-size: 12px;
-			z-index: 2000;
-			max-width: 400px;
-		`;
-		document.body.appendChild(this.infoPanel);
-	},
-
-	tick: function () {
-		const drone = document.querySelector("#drone");
-		if (!drone) return;
-
-		const dronePos = drone.getAttribute("position");
-		const quadra = document.querySelector("#Quadra");
-
-		if (quadra) {
-			const quadraPos = quadra.getAttribute("position");
-			const quadraCollision = quadra.components["model-collision"];
-
-			let info = `<div style="font-weight: bold; color: #00ffff;">🔍 DEBUG DE COLISÃO</div><br>`;
-			info += `<strong>Drone:</strong> X:${dronePos.x.toFixed(
-				1
-			)} Y:${dronePos.y.toFixed(1)} Z:${dronePos.z.toFixed(1)}<br>`;
-			info += `<strong>Quadra:</strong> X:${quadraPos.x.toFixed(
-				1
-			)} Y:${quadraPos.y.toFixed(1)} Z:${quadraPos.z.toFixed(1)}<br>`;
-
-			if (quadraCollision) {
-				const data = quadraCollision.data;
-				info += `<br><strong>Caixa de Colisão:</strong><br>`;
-				info += `Tipo: ${data.type}<br>`;
-				info += `Dimensões: ${data.width}x${data.height}x${data.depth}<br>`;
-				info += `Offset Y: ${data.offsetY}<br>`;
-				info += `Bounce: ${data.bounceForce}<br>`;
-
-				if (quadraCollision.collisionBox) {
-					const collisionWorldPos =
-						quadraCollision.collisionBox.object3D.getWorldPosition(
-							new THREE.Vector3()
-						);
-					info += `<br><strong>Posição Mundial da Caixa:</strong><br>`;
-					info += `X:${collisionWorldPos.x.toFixed(
-						1
-					)} Y:${collisionWorldPos.y.toFixed(
-						1
-					)} Z:${collisionWorldPos.z.toFixed(1)}<br>`;
-
-					const distance = Math.sqrt(
-						Math.pow(dronePos.x - collisionWorldPos.x, 2) +
-							Math.pow(dronePos.y - collisionWorldPos.y, 2) +
-							Math.pow(dronePos.z - collisionWorldPos.z, 2)
-					);
-					info += `<br><strong style="color: ${
-						distance < 5 ? "#ff0000" : "#00ff00"
-					};">Distância: ${distance.toFixed(2)}m</strong>`;
-				}
-			}
-
-			this.infoPanel.innerHTML = info;
-		}
 	},
 });
 

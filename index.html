@@ -145,9 +145,9 @@
         <!-- ÚNICA A-SCENE - ULTRA OTIMIZADA COM INSTANCIAMENTO -->
         <a-scene vr-mode-ui="enabled: true" webxr="requiredFeatures: local-floor"
             renderer="antialias: false; colorManagement: false; sortObjects: false; physicallyCorrectLights: false; powerPreference: high-performance; precision: mediump"
-            mesh-instancing="enabled: true" collision-manager="enabled: true; proximityRadius: 15; checkInterval: 50"
-            collision-feedback="enabled: true; visualFeedback: true; audioFeedback: true; hudFeedback: true"
-            collision-particles="poolSize: 50; particleDuration: 300" collision-debug-info stats>
+            mesh-instancing="enabled: true" collision-manager="enabled: true; proximityRadius: 12; checkInterval: 100"
+            collision-feedback="enabled: true; visualFeedback: false; audioFeedback: true; hudFeedback: true"
+            collision-particles="poolSize: 15; particleDuration: 200" stats>
 
             <!-- Assets -->
             <a-assets>
@@ -208,17 +208,11 @@
                 material="src: assets/cenario/Piso-asphalt.jpg; repeat: 50 50" segments-width="1" segments-height="1"
                 shadow="receive: false" visible="true"></a-plane>
 
-            <!-- Quadra com Colisão AJUSTADA -->
+            <!-- Quadra com Colisão OTIMIZADA (sem visual) -->
             <a-gltf-model id="Quadra" position="-0.997 -2.20319 -0.264" scale="0.8 0.8 0.8"
-                model-collision="type: box; width: 20; height: 5; depth: 30; offsetY: 2.5; visible: true; bounceForce: 1.0"
+                model-collision="type: box; width: 20; height: 5; depth: 30; offsetY: 2.5; visible: false; bounceForce: 1.0"
                 gltf-model="assets/cenario/Quadra.glb">
             </a-gltf-model>
-
-            <!-- Teste: Caixa de Colisão Simples -->
-            <a-box id="test-collision" position="5 1 -5" width="3" height="3" depth="3"
-                material="color: #ff0000; transparent: true; opacity: 0.3"
-                model-collision="type: box; width: 3; height: 3; depth: 3; offsetY: 0; visible: true; bounceForce: 1.0">
-            </a-box>
 
             <!-- Limitador Invisível - Paredes do Sky -->
             <a-entity id="sky-boundary" boundary-limiter="radius:1000"></a-entity>
