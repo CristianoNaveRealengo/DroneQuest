@@ -7,13 +7,13 @@
 AFRAME.registerComponent("collision-manager", {
 	schema: {
 		enabled: { type: "boolean", default: true },
-		proximityRadius: { type: "number", default: 15 },
+		proximityRadius: { type: "number", default: 30 },
 		checkInterval: { type: "number", default: 50 },
-		vrProximityRadius: { type: "number", default: 10 },
+		vrProximityRadius: { type: "number", default: 25 },
 		vrCheckInterval: { type: "number", default: 100 },
 		maxCollisionObjects: { type: "number", default: 20 },
-		warningDistance: { type: "number", default: 3 },
-		dangerDistance: { type: "number", default: 1.5 },
+		warningDistance: { type: "number", default: 8 },
+		dangerDistance: { type: "number", default: 4 },
 	},
 
 	init: function () {
@@ -153,6 +153,19 @@ AFRAME.registerComponent("collision-manager", {
 				this.handleWarningZone(obj);
 			}
 		});
+
+		// Log de debug a cada 2 segundos
+		const now = Date.now();
+		if (!this.lastDebugLog || now - this.lastDebugLog > 2000) {
+			if (this.nearbyObjects.length > 0) {
+				console.log(
+					`📍 Distância mais próxima: ${closestDistance.toFixed(
+						1
+					)}m | Objetos próximos: ${this.nearbyObjects.length}`
+				);
+			}
+			this.lastDebugLog = now;
+		}
 
 		// Emitir estado baseado na distância mais próxima
 		if (hasDanger) {

@@ -636,9 +636,9 @@ if (!AFRAME.components["hud-advanced"]) {
 
 			// Determinar nível baseado na distância
 			let newLevel = "safe";
-			if (distance < 1.5) {
+			if (distance < 4) {
 				newLevel = "danger";
-			} else if (distance < 3) {
+			} else if (distance < 8) {
 				newLevel = "warning";
 			}
 
