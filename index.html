@@ -83,9 +83,6 @@
 
             console.log('✅ Componente sky-360-loader registrado!');
 
-            // Componente sky-parallax REMOVIDO para melhor performance
-            // O parallax causava tremores e consumia recursos desnecessários
-            // Sky agora é completamente estático para máxima estabilidade e performance
         </script>
 
         <!-- Estilos CSS -->
@@ -117,32 +114,6 @@
             });
         </script>
 
-        <!-- Script de Debug para Untitled.glb -->
-        <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                console.log('🔍 Verificando carregamento do Untitled.glb...');
-
-                setTimeout(() => {
-                    const untitledModel = document.querySelector('#untitled-model');
-
-                    if (untitledModel) {
-                        console.log('✅ Elemento #untitled-model encontrado');
-                        console.log('📍 Posição:', untitledModel.getAttribute('position'));
-                        console.log('📏 Escala:', untitledModel.getAttribute('scale'));
-
-                        untitledModel.addEventListener('model-loaded', () => {
-                            console.log('✅ Untitled.glb CARREGADO COM SUCESSO!');
-                        });
-
-                        untitledModel.addEventListener('model-error', (evt) => {
-                            console.error('❌ ERRO ao carregar Untitled.glb:', evt.detail);
-                        });
-                    } else {
-                        console.error('❌ Elemento #untitled-model NÃO encontrado!');
-                    }
-                }, 2000);
-            });
-        </script>
     </head>
 
     <body>
@@ -179,23 +150,9 @@
                     material="color: #00ff00; transparent: true; opacity: 0.6; metalness: 0; roughness: 1; emissive: #00ff00; emissiveIntensity: 0.4"
                     animation="property: rotation; to: 0 360 0; loop: true; dur: 8000">
                 </a-mixin>
-
-                <!-- HUD Futurístico Avançado -->
-                <img id="hud-advanced" src="assets/hud-01.svg" crossorigin="anonymous">
-
-                <!-- HUD Limpo (Backup) -->
-                <img id="hud-overlay-limpo" src="assets/hud-01.svg" crossorigin="anonymous">
-
-                <!-- Imagem 360 para Sky -->
-                <img id="skyTexture" src="assets/textures/bg-1.jpeg">
-
-                <!-- Textura do Chão -->
-                <!-- <img id="ground-texture" src="assets/textures/chao.jpg" crossorigin="anonymous"> -->
-
             </a-assets>
 
             <!-- Céu com Imagem (Ajustado e Alinhado) -->
-
             <!-- Iluminação Otimizada (2 luzes ao invés de 3) -->
             <a-light type="ambient" color="#ffffff" intensity="1.0"></a-light>
             <a-light type="hemisphere" color="#ffffff" groundColor="#8A7050" intensity="0.7"></a-light>
@@ -242,28 +199,16 @@
                 segments-height="8">
             </a-sky> -->
 
-            <!-- Chão Ultra Otimizado (mínimos segmentos) -->
+            <!-- Chão com Piso de Asfalto -->
             <a-plane id="ground-main" position="0 -1 0" rotation="-90 0 0" width="500" height="500"
-                material="src: #ground-texture; color: #846338; repeat: 10 10; metalness: 0; roughness: 1"
-                segments-width="1" segments-height="1" shadow="receive: false" visible="true"></a-plane>
+                material="src: assets/cenario/Piso-asphalt.jpg; repeat: 50 50" segments-width="1" segments-height="1"
+                shadow="receive: false" visible="true"></a-plane>
 
-            <!-- Quadra com Colisão
+            <!-- Quadra com Colisão-->
             <a-gltf-model id="Quadra" position="-0.997 -2.20319 -0.264" scale="0.8 0.8 0.8"
                 model-collision="type: box; width: 12; height: 0.5; depth: 18; offsetY: 0.25; visible: true; bounceForce: 0.8"
                 gltf-model="assets/cenario/Quadra.glb">
-            </a-gltf-model> -->
-
-            <!-- Gols Simplificados (Primitivas - Ultra Leve) -->
-
-            <!-- Gols REMOVIDOS para reduzir triângulos -->
-
-            <!-- Casa removida para performance -->
-
-            <!-- Modelos pesados removidos para performance (Árvore, Prédio, Escada) -->
-
-            <!-- Morros removidos para performance -->
-
-            <!-- Casas 2D removidas para melhor performance -->
+            </a-gltf-model>
 
             <!-- Limitador Invisível - Paredes do Sky -->
             <a-entity id="sky-boundary" boundary-limiter="radius: 5000"></a-entity>
