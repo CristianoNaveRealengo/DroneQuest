@@ -688,26 +688,18 @@
 
             // Inicializar o jogo quando a cena estiver carregada
             document.addEventListener('DOMContentLoaded', function () {
-                console.log('🎮 Inicializando o jogo...');
+                console.log('🎮 Jogo carregado - Drone pronto!');
 
                 const scene = document.querySelector('a-scene');
                 scene.addEventListener('loaded', function () {
-                    // Iniciar componentes principais após 2 segundos
-                    setTimeout(function () {
-                        // Iniciar drone
-                        const drone = document.querySelector('#drone');
-                        if (drone && drone.components['drone-controller']) {
-                            drone.components['drone-controller'].activateDrone();
-                            console.log('✅ Drone ativado com sucesso!');
-                        } else {
-                            console.error('❌ Erro ao ativar o drone!');
-                        }
+                    console.log('✅ Cena carregada com sucesso!');
 
-                        // Iniciar o jogo
+                    // Iniciar o jogo após 1 segundo
+                    setTimeout(function () {
                         const gameManager = document.querySelector('[game-manager]');
                         if (gameManager && gameManager.components['game-manager']) {
                             gameManager.components['game-manager'].startGame();
-                            console.log('✅ Jogo iniciado com sucesso!');
+                            console.log('✅ Jogo iniciado!');
                         } else {
                             console.error('❌ Erro ao iniciar o jogo!');
                         }
