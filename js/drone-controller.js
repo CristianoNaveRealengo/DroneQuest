@@ -6,11 +6,11 @@
 AFRAME.registerComponent("drone-controller", {
 	schema: {
 		// Velocidades
-		moveSpeed: { type: "number", default: 5.0 },
-		rotationSpeed: { type: "number", default: 1.0 },
+		moveSpeed: { type: "number", default: 2.0 },
+		rotationSpeed: { type: "number", default: 0.6 },
 
 		// Física
-		drag: { type: "number", default: 0.9 },
+		drag: { type: "number", default: 0.85 },
 	},
 
 	init: function () {
