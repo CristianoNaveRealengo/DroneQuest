@@ -197,10 +197,21 @@ AFRAME.registerComponent("model-collision", {
 
 		dronePos.set(pushBackX, pushBackY, pushBackZ);
 
+		// Reduzir velocidade do drone
+		this.reduceVelocity();
+
 		// Emitir evento de colisão
 		this.el.sceneEl.emit("model-collision", {
 			model: this.el.id,
 			position: dronePos,
+		});
+
+		// Emitir evento para collision manager
+		this.el.sceneEl.emit("collision-danger", {
+			object: this.el,
+			type: "solid",
+			distance: 0,
+			position: this.el.getAttribute("position"),
 		});
 
 		// Feedback visual (piscar vermelho)
@@ -210,6 +221,20 @@ AFRAME.registerComponent("model-collision", {
 				this.collisionBox.setAttribute("material", "opacity", 0.3);
 			}, 100);
 		}
+	},
+
+	reduceVelocity: function () {
+		// Reduzir velocidade do drone controller
+		const drone = document.querySelector("#drone");
+		if (!drone) return;
+
+		const droneController = drone.components["drone-controller"];
+		if (!droneController || !droneController.velocity) return;
+
+		// Reduzir velocidade em 70%
+		droneController.velocity.multiplyScalar(0.3);
+
+		console.log("🐌 Velocidade reduzida por colisão");
 	},
 
 	remove: function () {

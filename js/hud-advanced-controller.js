@@ -98,6 +98,11 @@ if (!AFRAME.components["hud-advanced"]) {
 						break;
 				}
 			});
+
+			// Escutar eventos de colisão
+			this.el.sceneEl.addEventListener("hud-alert", (evt) => {
+				this.showWarning(evt.detail.message);
+			});
 		},
 
 		createHUD: function () {
