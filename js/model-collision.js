@@ -149,6 +149,29 @@ AFRAME.registerComponent("model-collision", {
 				break;
 		}
 
+		// DEBUG TEMPORÁRIO
+		if (distance < 15 && this.el.id === "Quadra") {
+			console.log(
+				`🔍 Quadra - Dist: ${distance.toFixed(
+					1
+				)}m | Colidindo: ${isColliding}`,
+				{
+					drone: `(${dronePos.x.toFixed(1)}, ${dronePos.y.toFixed(
+						1
+					)}, ${dronePos.z.toFixed(1)})`,
+					collision: `(${collisionPos.x.toFixed(
+						1
+					)}, ${collisionPos.y.toFixed(1)}, ${collisionPos.z.toFixed(
+						1
+					)})`,
+					delta: `(${dx.toFixed(1)}, ${dy.toFixed(1)}, ${dz.toFixed(
+						1
+					)})`,
+					box: `${this.data.width}x${this.data.height}x${this.data.depth}`,
+				}
+			);
+		}
+
 		if (isColliding) {
 			this.handleCollision(dronePos);
 		}
@@ -272,6 +295,75 @@ AFRAME.registerComponent("show-collision-boxes", {
 				`✅ ${collisionModels.length} caixas de colisão visíveis`
 			);
 		}, 2000);
+	},
+});
+
+// Componente de debug simples
+AFRAME.registerComponent("collision-status", {
+	init: function () {
+		this.statusDiv = document.createElement("div");
+		this.statusDiv.style.cssText = `
+			position: fixed;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			background: rgba(0, 0, 0, 0.8);
+			color: #00ff00;
+			padding: 20px;
+			border-radius: 10px;
+			font-family: monospace;
+			font-size: 16px;
+			z-index: 3000;
+			text-align: center;
+			border: 2px solid #00ff00;
+		`;
+		document.body.appendChild(this.statusDiv);
+	},
+
+	tick: function () {
+		const drone = document.querySelector("#drone");
+		if (!drone) return;
+
+		const dronePos = drone.getAttribute("position");
+		const quadra = document.querySelector("#Quadra");
+
+		if (quadra) {
+			const quadraCollision = quadra.components["model-collision"];
+			if (quadraCollision && quadraCollision.collisionBox) {
+				const collisionPos =
+					quadraCollision.collisionBox.object3D.getWorldPosition(
+						new THREE.Vector3()
+					);
+				const distance = Math.sqrt(
+					Math.pow(dronePos.x - collisionPos.x, 2) +
+						Math.pow(dronePos.y - collisionPos.y, 2) +
+						Math.pow(dronePos.z - collisionPos.z, 2)
+				);
+
+				const color =
+					distance < 5
+						? "#ff0000"
+						: distance < 10
+						? "#ffaa00"
+						: "#00ff00";
+				this.statusDiv.style.borderColor = color;
+				this.statusDiv.style.color = color;
+
+				this.statusDiv.innerHTML = `
+					<div style="font-size: 20px; font-weight: bold;">SISTEMA DE COLISÃO</div>
+					<div style="margin: 10px 0;">Distância da Quadra: <strong>${distance.toFixed(
+						1
+					)}m</strong></div>
+					<div>Drone: (${dronePos.x.toFixed(1)}, ${dronePos.y.toFixed(
+					1
+				)}, ${dronePos.z.toFixed(1)})</div>
+					<div>Caixa: (${collisionPos.x.toFixed(1)}, ${collisionPos.y.toFixed(
+					1
+				)}, ${collisionPos.z.toFixed(1)})</div>
+					<div style="margin-top: 10px; font-size: 12px;">Voe em direção à parede vermelha (-10Z)</div>
+				`;
+			}
+		}
 	},
 });
 

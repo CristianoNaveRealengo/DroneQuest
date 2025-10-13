@@ -147,7 +147,7 @@
             renderer="antialias: false; colorManagement: false; sortObjects: false; physicallyCorrectLights: false; powerPreference: high-performance; precision: mediump"
             mesh-instancing="enabled: true" collision-manager="enabled: true; proximityRadius: 12; checkInterval: 100"
             collision-feedback="enabled: true; visualFeedback: false; audioFeedback: true; hudFeedback: true"
-            collision-particles="poolSize: 15; particleDuration: 200" stats>
+            collision-particles="poolSize: 15; particleDuration: 200" collision-status stats>
 
             <!-- Assets -->
             <a-assets>
@@ -208,11 +208,17 @@
                 material="src: assets/cenario/Piso-asphalt.jpg; repeat: 50 50" segments-width="1" segments-height="1"
                 shadow="receive: false" visible="true"></a-plane>
 
-            <!-- Quadra com Colisão OTIMIZADA (sem visual) -->
+            <!-- Quadra com Colisão OTIMIZADA (VISÍVEL PARA DEBUG) -->
             <a-gltf-model id="Quadra" position="-0.997 -2.20319 -0.264" scale="0.8 0.8 0.8"
-                model-collision="type: box; width: 20; height: 5; depth: 30; offsetY: 2.5; visible: false; bounceForce: 1.0"
+                model-collision="type: box; width: 20; height: 5; depth: 30; offsetY: 2.5; visible: true; bounceForce: 1.0"
                 gltf-model="assets/cenario/Quadra.glb">
             </a-gltf-model>
+
+            <!-- TESTE: Caixa Simples para Validar Colisão -->
+            <a-box id="test-wall" position="0 2 -10" width="5" height="4" depth="1"
+                material="color: #ff0000; transparent: true; opacity: 0.5"
+                model-collision="type: box; width: 5; height: 4; depth: 1; offsetY: 0; visible: true; bounceForce: 1.0">
+            </a-box>
 
             <!-- Limitador Invisível - Paredes do Sky -->
             <a-entity id="sky-boundary" boundary-limiter="radius:1000"></a-entity>
