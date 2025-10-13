@@ -119,9 +119,16 @@
     <text x="674" y="25">X:0 Y:450 Z:0</text>
   </g>
   
-  <!-- Indicador de posição central -->
-  <circle cx="512" cy="300" r="6" fill="#ffff00" opacity="0.8">
-    <animate attributeName="opacity" values="0.8;0.3;0.8" dur="2s" repeatCount="indefinite"/>
+  <!-- Indicador de posição central com sistema de colisão -->
+  <!-- Círculo externo de aviso (pulsa quando há perigo) -->
+  <circle id="collisionWarningOuter" cx="512" cy="300" r="15" fill="none" stroke="#00ff00" stroke-width="2" opacity="0"/>
+  
+  <!-- Círculo médio de aviso -->
+  <circle id="collisionWarningMiddle" cx="512" cy="300" r="10" fill="none" stroke="#00ff00" stroke-width="2" opacity="0"/>
+  
+  <!-- Ponto central - muda de cor conforme proximidade -->
+  <circle id="collisionWarningCenter" cx="512" cy="300" r="6" fill="#00ff00" opacity="0.8">
+    <animate id="collisionPulse" attributeName="opacity" values="0.8;0.3;0.8" dur="2s" repeatCount="indefinite"/>
   </circle>
   
   <!-- Linhas de referência sutis -->

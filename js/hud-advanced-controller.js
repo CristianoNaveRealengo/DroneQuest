@@ -103,6 +103,26 @@ if (!AFRAME.components["hud-advanced"]) {
 			this.el.sceneEl.addEventListener("hud-alert", (evt) => {
 				this.showWarning(evt.detail.message);
 			});
+
+			// Escutar eventos de proximidade de colisão
+			this.el.sceneEl.addEventListener("collision-danger", (evt) => {
+				this.updateCollisionIndicator("danger", evt.detail.distance);
+			});
+
+			this.el.sceneEl.addEventListener("collision-warning", (evt) => {
+				this.updateCollisionIndicator("warning", evt.detail.distance);
+			});
+
+			this.el.sceneEl.addEventListener("collision-safe", (evt) => {
+				this.updateCollisionIndicator("safe", evt.detail.distance);
+			});
+
+			// Estado padrão do indicador de colisão
+			this.collisionState = {
+				level: "safe", // safe, warning, danger
+				distance: 999,
+				lastUpdate: 0,
+			};
 		},
 
 		createHUD: function () {
@@ -291,6 +311,9 @@ if (!AFRAME.components["hud-advanced"]) {
 			if (!svg || !svg.contentDocument) return;
 
 			const doc = svg.contentDocument;
+
+			// Atualizar indicador de colisão
+			this.updateCollisionIndicatorVisual(doc);
 
 			// Atualizar velocidade
 			this.updateSVGText(doc, "speedValue", this.hudData.speed);
@@ -604,6 +627,106 @@ if (!AFRAME.components["hud-advanced"]) {
 			const randomWarning =
 				warnings[Math.floor(Math.random() * warnings.length)];
 			this.showWarning(randomWarning);
+		},
+
+		// === SISTEMA DE INDICADOR DE COLISÃO ===
+
+		updateCollisionIndicator: function (level, distance) {
+			const now = Date.now();
+
+			// Determinar nível baseado na distância
+			let newLevel = "safe";
+			if (distance < 1.5) {
+				newLevel = "danger";
+			} else if (distance < 3) {
+				newLevel = "warning";
+			}
+
+			// Atualizar estado
+			this.collisionState.level = newLevel;
+			this.collisionState.distance = distance;
+			this.collisionState.lastUpdate = now;
+		},
+
+		updateCollisionIndicatorVisual: function (doc) {
+			if (!doc) return;
+
+			const now = Date.now();
+			const timeSinceUpdate = now - this.collisionState.lastUpdate;
+
+			// Se passou mais de 500ms sem atualização, voltar para seguro
+			if (timeSinceUpdate > 500) {
+				this.collisionState.level = "safe";
+				this.collisionState.distance = 999;
+			}
+
+			const center = doc.getElementById("collisionWarningCenter");
+			const middle = doc.getElementById("collisionWarningMiddle");
+			const outer = doc.getElementById("collisionWarningOuter");
+			const pulse = doc.getElementById("collisionPulse");
+
+			if (!center || !middle || !outer || !pulse) return;
+
+			// Configurar cores e animações baseado no nível
+			switch (this.collisionState.level) {
+				case "danger":
+					// VERMELHO - Perigo iminente (< 1.5m)
+					center.setAttribute("fill", "#ff0000");
+					center.setAttribute("opacity", "1");
+					middle.setAttribute("stroke", "#ff0000");
+					middle.setAttribute("opacity", "0.8");
+					outer.setAttribute("stroke", "#ff0000");
+					outer.setAttribute("opacity", "0.6");
+
+					// Pulso rápido
+					pulse.setAttribute("values", "1;0.3;1");
+					pulse.setAttribute("dur", "0.3s");
+
+					// Aumentar tamanho
+					center.setAttribute("r", "8");
+					middle.setAttribute("r", "14");
+					outer.setAttribute("r", "20");
+					break;
+
+				case "warning":
+					// AMARELO - Proximidade moderada (1.5m - 3m)
+					center.setAttribute("fill", "#ffff00");
+					center.setAttribute("opacity", "0.9");
+					middle.setAttribute("stroke", "#ffff00");
+					middle.setAttribute("opacity", "0.6");
+					outer.setAttribute("stroke", "#ffff00");
+					outer.setAttribute("opacity", "0.3");
+
+					// Pulso médio
+					pulse.setAttribute("values", "0.9;0.4;0.9");
+					pulse.setAttribute("dur", "0.8s");
+
+					// Tamanho médio
+					center.setAttribute("r", "7");
+					middle.setAttribute("r", "12");
+					outer.setAttribute("r", "17");
+					break;
+
+				case "safe":
+				default:
+					// VERDE - Distância segura (> 3m)
+					center.setAttribute("fill", "#00ff00");
+					center.setAttribute("opacity", "0.8");
+					middle.setAttribute("stroke", "#00ff00");
+					middle.setAttribute("opacity", "0");
+					outer.setAttribute("stroke", "#00ff00");
+					outer.setAttribute("opacity", "0");
+
+					// Pulso suave
+					pulse.setAttribute("values", "0.8;0.3;0.8");
+					pulse.setAttribute("dur", "2s");
+
+					// Tamanho normal
+					center.setAttribute("r", "6");
+					middle.setAttribute("r", "10");
+					outer.setAttribute("r", "15");
+					break;
+			}
 		},
 
 		remove: function () {

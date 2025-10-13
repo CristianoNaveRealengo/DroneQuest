@@ -131,8 +131,6 @@ AFRAME.registerComponent("collision-manager", {
 	},
 
 	checkCollisions: function () {
-		const dronePos = this.drone.getAttribute("position");
-
 		this.nearbyObjects.forEach((obj) => {
 			const distance = obj.distance;
 
@@ -145,6 +143,13 @@ AFRAME.registerComponent("collision-manager", {
 				this.handleWarningZone(obj);
 			}
 		});
+
+		// Se não há objetos próximos, emitir estado seguro
+		if (this.nearbyObjects.length === 0) {
+			this.el.emit("collision-safe", {
+				distance: 999,
+			});
+		}
 	},
 
 	handleDangerZone: function (obj) {
