@@ -131,23 +131,38 @@ AFRAME.registerComponent("collision-manager", {
 	},
 
 	checkCollisions: function () {
+		let closestDistance = 999;
+		let hasWarning = false;
+		let hasDanger = false;
+
 		this.nearbyObjects.forEach((obj) => {
 			const distance = obj.distance;
 
+			if (distance < closestDistance) {
+				closestDistance = distance;
+			}
+
 			// Verificar zona de perigo
 			if (distance < this.data.dangerDistance) {
+				hasDanger = true;
 				this.handleDangerZone(obj);
 			}
 			// Verificar zona de aviso
 			else if (distance < this.data.warningDistance) {
+				hasWarning = true;
 				this.handleWarningZone(obj);
 			}
 		});
 
-		// Se não há objetos próximos, emitir estado seguro
-		if (this.nearbyObjects.length === 0) {
+		// Emitir estado baseado na distância mais próxima
+		if (hasDanger) {
+			// Já emitido em handleDangerZone
+		} else if (hasWarning) {
+			// Já emitido em handleWarningZone
+		} else {
+			// Estado seguro - emitir sempre
 			this.el.emit("collision-safe", {
-				distance: 999,
+				distance: closestDistance,
 			});
 		}
 	},

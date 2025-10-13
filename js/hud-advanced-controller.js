@@ -642,6 +642,15 @@ if (!AFRAME.components["hud-advanced"]) {
 				newLevel = "warning";
 			}
 
+			// Log para debug
+			if (this.collisionState.level !== newLevel) {
+				console.log(
+					`🎯 Indicador de colisão: ${newLevel.toUpperCase()} (${distance.toFixed(
+						2
+					)}m)`
+				);
+			}
+
 			// Atualizar estado
 			this.collisionState.level = newLevel;
 			this.collisionState.distance = distance;

@@ -100,8 +100,7 @@
   <!-- Modo de voo (centro inferior direita) -->
   <g>
     <text x="724" y="520" text-anchor="middle" fill="#ffffff" font-family="monospace" font-size="8">MODO DE VOO</text>
-    <text x="724" y="535" text-anchor="middle" fill="#ffffff" font-family="monospace" font-size="12" font-weight="bold">CINEMATOGRÁFICO</text>
-    <text x="724" y="550" text-anchor="middle" fill="#ffffff" font-family="monospace" font-size="8">ESTABILIZADO</text>
+    <text id="modeValue" x="724" y="540" text-anchor="middle" fill="#ffffff" font-family="monospace" font-size="10" font-weight="bold">NORMAL</text>
   </g>
   
   <!-- Indicadores de direção -->
