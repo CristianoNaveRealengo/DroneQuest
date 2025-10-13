@@ -249,13 +249,14 @@
 
             <!-- ========== CENÁRIO ========== -->
 
-            <!-- Sky Otimizado (10x menor) -->
-            <a-sky src="assets/cenario/sky-1.jpg" rotation="0 0 0" radius="500" segments-width="16" segments-height="8">
+            <!-- Sky e Chão com Tamanho Balanceado -->
+            <a-sky src="assets/cenario/sky-1.jpg" rotation="0 0 0" radius="1000" segments-width="16"
+                segments-height="8">
             </a-sky>
 
-            <!-- Chão Otimizado (100x menor) -->
-            <a-plane id="ground-main" position="0 -1 0" rotation="-90 0 0" width="200" height="200"
-                material="src: #ground-texture; color: #846338; repeat: 10 10; metalness: 0; roughness: 1"
+            <!-- Chão do mesmo tamanho que o sky (2000x2000m) -->
+            <a-plane id="ground-main" position="0 -1 0" rotation="-90 0 0" width="2000" height="2000"
+                material="src: #ground-texture; color: #846338; repeat: 20 20; metalness: 0; roughness: 1"
                 shadow="receive: false" visible="true"></a-plane>
 
             <!-- Quadra com Colisão -->
