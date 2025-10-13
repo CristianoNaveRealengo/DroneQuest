@@ -202,6 +202,7 @@
 
             <!-- Drone Principal -->
             <a-entity id="drone" position="0 0 0" drone-controller navigation-arrow
+                drone-navigation-arrow="arrowColor: #00ff00; arrowSize: 1.2; offsetDistance: 3; offsetHeight: 1.5"
                 physics-body="type: dynamic; mass: 2; linearDamping: 0.1; angularDamping: 0.1">
 
                 <!-- Corpo do Drone Ultra-Simplificado -->
@@ -232,10 +233,8 @@
             </a-entity>
 
             <!-- Percurso de Checkpoints Simplificado -->
-            <a-entity mixin="checkpoint" position="15 8 -15" checkpoint="id: 1"
-                checkpoint-arrow="targetCheckpointId: 2; arrowColor: #00ff00; arrowSize: 1.5; offsetY: 0"></a-entity>
-            <a-entity mixin="checkpoint" position="-20 12 -30" checkpoint="id: 2"
-                checkpoint-arrow="targetCheckpointId: 3; arrowColor: #00ff00; arrowSize: 1.5; offsetY: 0"></a-entity>
+            <a-entity mixin="checkpoint" position="15 8 -15" checkpoint="id: 1"></a-entity>
+            <a-entity mixin="checkpoint" position="-20 12 -30" checkpoint="id: 2"></a-entity>
             <a-entity mixin="checkpoint" position="0 10 -45" checkpoint="id: 3"></a-entity>
 
             <!--  ========== NPCs  ==========-->

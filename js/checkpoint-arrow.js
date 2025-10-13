@@ -1,181 +1,234 @@
 /**
- * Sistema de Setas de Navegação para Checkpoints
- * Setas estilo GPS que apontam para o próximo objetivo
+ * Sistema de Seta de Navegação GPS para Drone
+ * Seta única que segue o drone e aponta para o próximo checkpoint ativo
  */
 
-AFRAME.registerComponent("checkpoint-arrow", {
+AFRAME.registerComponent("drone-navigation-arrow", {
 	schema: {
-		targetCheckpointId: { type: "number", default: 2 },
 		arrowColor: { type: "color", default: "#00ff00" },
-		arrowSize: { type: "number", default: 1.5 },
-		offsetY: { type: "number", default: 0 },
+		arrowSize: { type: "number", default: 1.2 },
+		offsetDistance: { type: "number", default: 3 },
+		offsetHeight: { type: "number", default: 1.5 },
 	},
 
 	init: function () {
-		console.log(
-			`🎯 Criando seta para checkpoint ${this.data.targetCheckpointId}...`
-		);
+		console.log("🧭 Inicializando seta de navegação GPS...");
 
 		this.arrow = null;
-		this.targetCheckpoint = null;
+		this.arrowBody = null;
+		this.arrowHead = null;
+		this.currentTargetCheckpoint = null;
+		this.nextCheckpointId = 1;
+		this.allCheckpoints = [];
 
 		// Aguardar cena carregar
 		if (this.el.sceneEl.hasLoaded) {
-			this.createArrow();
+			this.setup();
 		} else {
 			this.el.sceneEl.addEventListener("loaded", () => {
-				this.createArrow();
+				this.setup();
 			});
 		}
+
+		// Escutar eventos de checkpoint ativado
+		this.el.sceneEl.addEventListener("checkpoint-reached", (evt) => {
+			this.onCheckpointReached(evt.detail);
+		});
+	},
+
+	setup: function () {
+		// Buscar todos os checkpoints
+		this.findAllCheckpoints();
+
+		// Criar seta
+		this.createArrow();
+
+		// Definir primeiro alvo
+		this.updateTarget();
+
+		console.log("✅ Seta de navegação GPS configurada!");
+	},
+
+	findAllCheckpoints: function () {
+		const checkpoints = document.querySelectorAll("[checkpoint]");
+
+		checkpoints.forEach((cp) => {
+			const cpComponent = cp.components.checkpoint;
+			if (cpComponent) {
+				this.allCheckpoints.push({
+					id: cpComponent.data.id,
+					element: cp,
+					activated: false,
+				});
+			}
+		});
+
+		// Ordenar por ID
+		this.allCheckpoints.sort((a, b) => a.id - b.id);
+
+		console.log(`📍 ${this.allCheckpoints.length} checkpoints encontrados`);
 	},
 
 	createArrow: function () {
-		// Criar container da seta
+		// Container da seta
 		this.arrow = document.createElement("a-entity");
-		this.arrow.setAttribute(
-			"id",
-			`arrow-to-${this.data.targetCheckpointId}`
-		);
-
-		const checkpointPos = this.el.getAttribute("position");
-
-		// Posicionar seta acima do checkpoint
-		this.arrow.setAttribute("position", {
-			x: checkpointPos.x,
-			y: checkpointPos.y + this.data.offsetY,
-			z: checkpointPos.z,
-		});
+		this.arrow.setAttribute("id", "gps-navigation-arrow");
 
 		// Criar corpo da seta (cilindro)
-		const arrowBody = document.createElement("a-cylinder");
-		arrowBody.setAttribute("geometry", {
-			radius: 0.15 * this.data.arrowSize,
-			height: 2 * this.data.arrowSize,
+		this.arrowBody = document.createElement("a-cylinder");
+		this.arrowBody.setAttribute("geometry", {
+			radius: 0.12 * this.data.arrowSize,
+			height: 1.8 * this.data.arrowSize,
 		});
-		arrowBody.setAttribute("material", {
-			color: this.data.arrowColor,
-			emissive: this.data.arrowColor,
-			emissiveIntensity: 0.5,
-			metalness: 0.3,
-			roughness: 0.7,
-		});
-		arrowBody.setAttribute("position", "0 0 0");
-		arrowBody.setAttribute("rotation", "0 0 0");
-
-		// Criar ponta da seta (cone)
-		const arrowHead = document.createElement("a-cone");
-		arrowHead.setAttribute("geometry", {
-			radiusBottom: 0.4 * this.data.arrowSize,
-			radiusTop: 0,
-			height: 0.8 * this.data.arrowSize,
-		});
-		arrowHead.setAttribute("material", {
+		this.arrowBody.setAttribute("material", {
 			color: this.data.arrowColor,
 			emissive: this.data.arrowColor,
 			emissiveIntensity: 0.6,
-			metalness: 0.3,
-			roughness: 0.7,
+			metalness: 0.4,
+			roughness: 0.6,
 		});
-		arrowHead.setAttribute("position", `0 ${1.4 * this.data.arrowSize} 0`);
-		arrowHead.setAttribute("rotation", "0 0 0");
+		this.arrowBody.setAttribute("position", "0 0 0");
+
+		// Criar ponta da seta (cone)
+		this.arrowHead = document.createElement("a-cone");
+		this.arrowHead.setAttribute("geometry", {
+			radiusBottom: 0.35 * this.data.arrowSize,
+			radiusTop: 0,
+			height: 0.7 * this.data.arrowSize,
+		});
+		this.arrowHead.setAttribute("material", {
+			color: this.data.arrowColor,
+			emissive: this.data.arrowColor,
+			emissiveIntensity: 0.7,
+			metalness: 0.4,
+			roughness: 0.6,
+		});
+		this.arrowHead.setAttribute(
+			"position",
+			`0 ${1.25 * this.data.arrowSize} 0`
+		);
 
 		// Adicionar componentes à seta
-		this.arrow.appendChild(arrowBody);
-		this.arrow.appendChild(arrowHead);
+		this.arrow.appendChild(this.arrowBody);
+		this.arrow.appendChild(this.arrowHead);
 
 		// Adicionar seta à cena
 		this.el.sceneEl.appendChild(this.arrow);
-
-		// Buscar checkpoint alvo
-		this.findTargetCheckpoint();
 
 		// Animação sutil de pulso
 		this.arrow.setAttribute("animation__pulse", {
 			property: "scale",
 			from: "1 1 1",
-			to: "1 1.1 1",
-			dur: 1500,
+			to: "1 1.08 1",
+			dur: 1200,
 			dir: "alternate",
 			loop: true,
 			easing: "easeInOutSine",
 		});
 
-		// Animação sutil de brilho
-		arrowBody.setAttribute("animation__glow", {
-			property: "material.emissiveIntensity",
-			from: 0.5,
-			to: 0.8,
-			dur: 2000,
-			dir: "alternate",
-			loop: true,
-			easing: "easeInOutSine",
-		});
-
-		arrowHead.setAttribute("animation__glow", {
+		// Animação sutil de brilho no corpo
+		this.arrowBody.setAttribute("animation__glow", {
 			property: "material.emissiveIntensity",
 			from: 0.6,
 			to: 0.9,
-			dur: 2000,
+			dur: 1800,
 			dir: "alternate",
 			loop: true,
 			easing: "easeInOutSine",
 		});
 
-		console.log(
-			`✅ Seta criada apontando para checkpoint ${this.data.targetCheckpointId}`
-		);
-	},
-
-	findTargetCheckpoint: function () {
-		// Buscar checkpoint alvo
-		const checkpoints = document.querySelectorAll("[checkpoint]");
-
-		checkpoints.forEach((cp) => {
-			const cpComponent = cp.components.checkpoint;
-			if (
-				cpComponent &&
-				cpComponent.data.id === this.data.targetCheckpointId
-			) {
-				this.targetCheckpoint = cp;
-				console.log(
-					`🎯 Checkpoint alvo encontrado: ${this.data.targetCheckpointId}`
-				);
-			}
+		// Animação sutil de brilho na ponta
+		this.arrowHead.setAttribute("animation__glow", {
+			property: "material.emissiveIntensity",
+			from: 0.7,
+			to: 1.0,
+			dur: 1800,
+			dir: "alternate",
+			loop: true,
+			easing: "easeInOutSine",
 		});
 
-		if (this.targetCheckpoint) {
-			this.updateArrowDirection();
+		console.log("🎯 Seta GPS criada");
+	},
+
+	updateTarget: function () {
+		// Buscar próximo checkpoint não ativado
+		const nextCheckpoint = this.allCheckpoints.find((cp) => !cp.activated);
+
+		if (nextCheckpoint) {
+			this.currentTargetCheckpoint = nextCheckpoint.element;
+			this.nextCheckpointId = nextCheckpoint.id;
+			console.log(`🎯 Novo alvo: Checkpoint ${this.nextCheckpointId}`);
+		} else {
+			// Todos os checkpoints foram ativados
+			this.currentTargetCheckpoint = null;
+			console.log("🏁 Todos os checkpoints completados!");
+
+			// Ocultar seta
+			if (this.arrow) {
+				this.arrow.setAttribute("visible", false);
+			}
 		}
+	},
+
+	onCheckpointReached: function (detail) {
+		console.log(`✅ Checkpoint ${detail.id} alcançado!`);
+
+		// Marcar checkpoint como ativado
+		const checkpoint = this.allCheckpoints.find(
+			(cp) => cp.id === detail.id
+		);
+		if (checkpoint) {
+			checkpoint.activated = true;
+		}
+
+		// Atualizar para próximo alvo
+		this.updateTarget();
 	},
 
 	tick: function () {
-		if (this.arrow && this.targetCheckpoint) {
-			this.updateArrowDirection();
-		}
+		if (!this.arrow || !this.currentTargetCheckpoint) return;
+
+		// Posicionar seta próxima ao drone
+		this.updateArrowPosition();
+
+		// Rotacionar seta para apontar ao alvo
+		this.updateArrowDirection();
+	},
+
+	updateArrowPosition: function () {
+		const dronePos = this.el.object3D.position;
+		const droneRot = this.el.object3D.rotation;
+
+		// Calcular posição à frente do drone
+		const offsetX = Math.sin(droneRot.y) * this.data.offsetDistance;
+		const offsetZ = Math.cos(droneRot.y) * this.data.offsetDistance;
+
+		this.arrow.object3D.position.set(
+			dronePos.x + offsetX,
+			dronePos.y + this.data.offsetHeight,
+			dronePos.z + offsetZ
+		);
 	},
 
 	updateArrowDirection: function () {
-		const currentPos = this.el.getAttribute("position");
-		const targetPos = this.targetCheckpoint.getAttribute("position");
+		const arrowPos = this.arrow.object3D.position;
+		const targetPos = this.currentTargetCheckpoint.object3D.position;
 
 		// Calcular direção
-		const dx = targetPos.x - currentPos.x;
-		const dy = targetPos.y - currentPos.y;
-		const dz = targetPos.z - currentPos.z;
+		const dx = targetPos.x - arrowPos.x;
+		const dy = targetPos.y - arrowPos.y;
+		const dz = targetPos.z - arrowPos.z;
 
 		// Calcular ângulo de rotação (yaw)
-		const angleY = Math.atan2(dx, dz) * (180 / Math.PI);
+		const angleY = Math.atan2(dx, dz);
 
 		// Calcular ângulo de inclinação (pitch)
 		const horizontalDistance = Math.sqrt(dx * dx + dz * dz);
-		const angleX = Math.atan2(dy, horizontalDistance) * (180 / Math.PI);
+		const angleX = Math.atan2(dy, horizontalDistance);
 
 		// Aplicar rotação à seta
-		this.arrow.setAttribute("rotation", {
-			x: -angleX,
-			y: angleY,
-			z: 0,
-		});
+		this.arrow.object3D.rotation.set(-angleX, angleY, 0);
 	},
 
 	remove: function () {
@@ -185,4 +238,4 @@ AFRAME.registerComponent("checkpoint-arrow", {
 	},
 });
 
-console.log("📦 Módulo checkpoint-arrow.js carregado com sucesso!");
+console.log("📦 Módulo drone-navigation-arrow.js carregado com sucesso!");
