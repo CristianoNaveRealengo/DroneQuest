@@ -155,6 +155,7 @@
         <script src="js/urban-environment.js?v=1.0.3"></script>
         <script src="js/performance-monitor.js?v=1.0.2"></script>
         <script src="js/collision-system.js?v=1.0.2"></script>
+        <script src="js/model-collision.js?v=1.0.0"></script>
         <script src="js/audio-system.js?v=1.0.4"></script>
         <script src="js/navigation-arrow.js?v=1.0.2"></script>
         <script src="js/hud-controller.js?v=1.0.0"></script>
@@ -193,12 +194,12 @@
                 <a-asset-item id="quadra" src="assets/Quadra.glb"></a-asset-item>
                 <a-asset-item id="gol-left" src="assets/cenario/Gol.glb"></a-asset-item>
                 <a-asset-item id="gol-right" src="assets/cenario/Gol.glb"></a-asset-item>
+                <a-asset-item id="casa-lojinha" src="assets/cenario/Casa-e-Lojinha.glb"></a-asset-item>
 
             </a-assets>
 
             <!-- Céu com Imagem (Ajustado e Alinhado) -->
-            <a-sky src="assets/cenario/sky-1.jpg" rotation="0 0 0" radius="5000">
-            </a-sky>
+
 
             <!-- Iluminação Otimizada (2 luzes ao invés de 3) -->
             <a-light type="ambient" color="#ffffff" intensity="1.0"></a-light>
@@ -253,6 +254,10 @@
                 gltf-model="assets/npc/AbbyHandRaising.glb">
             </a-gltf-model>
 
+            <a-gltf-model id="untitled-model" position="0.53202 0 -3.5" scale="" rotation="" animation-mixer=""
+                visible="" frustum-culling-fix="" gltf-model="assets/npc/AbbyHandRaising.glb">
+            </a-gltf-model>
+
 
             <!--  ========== Iluminação  ==========-->
             <!-- Luz para o rosto da Abby -->
@@ -261,26 +266,47 @@
             <!-- Luz para o Untitled -->
             <a-light type="point" position="-0.3 1.5 -2.5" color="#ffffff" intensity="2.0" distance="5"></a-light>
 
-            <!-- Cenário -->
+            <!-- ========== CENÁRIO ========== -->
 
+            <a-sky src="assets/cenario/sky-1.jpg" rotation="0 0 0" radius="5000">
+            </a-sky>
 
             <!-- Chão com Textura (Reduzido pela Metade) -->
             <a-plane id="ground-main" position="0 -1 0" rotation="-90 0 0" width="10000" height="10000"
                 material="src: #ground-texture; color: #846338; repeat: 100 100; metalness: 0; roughness: 1; side: double; depthWrite: true; depthTest: true"
                 shadow="receive: false" visible="true"></a-plane>
 
-            <!-- ========== CENÁRIO - QUADRA E GOLS ========== -->
+            <!-- Quadra com Colisão -->
+            <a-gltf-model id="quadra-model" src="#quadra" position="-0.997 -2.20319 -0.264" scale="0.8 0.8 0.8"
+                model-collision="type: box; width: 12; height: 0.5; depth: 18; offsetY: 0.25; visible: true; bounceForce: 0.8">
+            </a-gltf-model>
 
-            <!-- Quadra -->
-            <a-gltf-model src="#quadra" position="-0.997 -2.20319 -0.264" scale="0.8 0.8 0.8"></a-gltf-model>
+            <!-- Gol Esquerdo com Colisão -->
+            <a-gltf-model id="gol-left-model" src="#gol-left" position="-1.25771 1.64154 12.14842" scale="0.8 0.8 0.8"
+                rotation="0 -179.92077978477624 0"
+                model-collision="type: box; width: 3; height: 2.5; depth: 1.5; offsetY: 1.25; visible: true; bounceForce: 0.8">
+            </a-gltf-model>
 
-            <!-- Gol Esquerdo -->
-            <a-gltf-model src="#gol-left" position="-5 -2.20319 -0.264" scale="0.8 0.8 0.8"
-                rotation="0 90 0"></a-gltf-model>
+            <!-- Gol Direito com Colisão -->
+            <a-gltf-model id="gol-right-model" src="#gol-right" position="-0.55671 2.34324 -12.82934"
+                scale="0.8 0.8 0.8" rotation="0 0.33861805692231656 0"
+                model-collision="type: box; width: 3; height: 2.5; depth: 1.5; offsetY: 1.25; visible: true; bounceForce: 0.8">
+            </a-gltf-model>
 
-            <!-- Gol Direito -->
-            <a-gltf-model src="#gol-right" position="5 -2.20319 -0.264" scale="0.8 0.8 0.8"
-                rotation="0 -90 0"></a-gltf-model>
+            <!-- Casa e Lojinha com Colisão -->
+            <a-gltf-model id="casa-lojinha-model" src="#casa-lojinha" position="-25.72106 -0.28993 2.72127"
+                scale="1 1 1" rotation="0 93.48551272693051 0"
+                model-collision="type: box; width: 8; height: 4; depth: 6; offsetY: 2; visible: true; bounceForce: 0.8">
+            </a-gltf-model>
+
+            <a-gltf-model id="#Arvore" position="-25.72106 -0.28993 -6.82891" scale="" rotation="0 93.48551272693051 0"
+                gltf-model="assets/cenario/Arvore.glb"></a-gltf-model>
+
+            <a-gltf-model id="#Predio-em-L" position="-25.721 4.245 20.035" scale="4 4 4" rotation="0 93.486 0"
+                gltf-model="assets/cenario/Predio-em-L.glb"></a-gltf-model>
+
+            <a-gltf-model id="#Escada" position="-52.746 -0.32993 -41.107" scale="0.5 0.5 0.405" rotation="0 93.486 0"
+                gltf-model="assets/cenario/Escada.glb"></a-gltf-model>
 
             <!-- ========== ELEVAÇÕES DO MORRO ========== -->
 
@@ -370,7 +396,7 @@
         <div id="loading">
             <h2>Carregando Cenário VR...</h2>
             <h3>Prepare-se pra nova experiencia</h3>
-            <small>V. alfa</small>
+            <small>Version - Alfa</small>
             <div class="progress-bar">
                 <div class="progress"></div>
             </div>
