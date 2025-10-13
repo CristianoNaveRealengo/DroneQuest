@@ -129,7 +129,7 @@ if (!AFRAME.components["hud-advanced"]) {
 
 			const timestamp = Date.now();
 			hudPlane.setAttribute("material", {
-				src: `assets/hud-02.svg?v=${timestamp}`,
+				src: `assets/hud-01.svg?v=${timestamp}`,
 				transparent: true,
 				opacity: this.data.opacity,
 				alphaTest: 0.01,
