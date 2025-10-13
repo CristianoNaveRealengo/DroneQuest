@@ -189,6 +189,11 @@
                 <!-- Textura do Chão -->
                 <img id="ground-texture" src="assets/textures/chao.jpg" crossorigin="anonymous">
 
+                <!-- Modelos 3D do Cenário -->
+                <a-asset-item id="quadra" src="assets/Quadra.glb"></a-asset-item>
+                <a-asset-item id="gol-left" src="assets/cenario/Gol.glb"></a-asset-item>
+                <a-asset-item id="gol-right" src="assets/cenario/Gol.glb"></a-asset-item>
+
             </a-assets>
 
             <!-- Céu com Imagem (Ajustado e Alinhado) -->
@@ -256,19 +261,28 @@
             <!-- Luz para o Untitled -->
             <a-light type="point" position="-0.3 1.5 -2.5" color="#ffffff" intensity="2.0" distance="5"></a-light>
 
-
             <!-- Cenário -->
-            <a-gltf-model src="#quadra" position="-0.997 -2.20319 -0.264" gltf-model="assets/Quadra.glb"
-                scale="0.8 0.8 0.8"></a-gltf-model>
+
 
             <!-- Chão com Textura (Reduzido pela Metade) -->
             <a-plane id="ground-main" position="0 -1 0" rotation="-90 0 0" width="10000" height="10000"
                 material="src: #ground-texture; color: #846338; repeat: 100 100; metalness: 0; roughness: 1; side: double; depthWrite: true; depthTest: true"
                 shadow="receive: false" visible="true"></a-plane>
 
-            <!-- ========== ELEVAÇÕES DO MORRO (CENÁRIOS) ========== -->
+            <!-- ========== CENÁRIO - QUADRA E GOLS ========== -->
 
+            <!-- Quadra -->
+            <a-gltf-model src="#quadra" position="-0.997 -2.20319 -0.264" scale="0.8 0.8 0.8"></a-gltf-model>
 
+            <!-- Gol Esquerdo -->
+            <a-gltf-model src="#gol-left" position="-5 -2.20319 -0.264" scale="0.8 0.8 0.8"
+                rotation="0 90 0"></a-gltf-model>
+
+            <!-- Gol Direito -->
+            <a-gltf-model src="#gol-right" position="5 -2.20319 -0.264" scale="0.8 0.8 0.8"
+                rotation="0 -90 0"></a-gltf-model>
+
+            <!-- ========== ELEVAÇÕES DO MORRO ========== -->
 
             <!-- Morro Principal - Reduzido pela Metade -->
             <a-cone position="15 0 -20" radius-bottom="17.5" radius-top="4" height="14"
