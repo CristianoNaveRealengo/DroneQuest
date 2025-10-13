@@ -237,20 +237,7 @@
             <a-entity mixin="checkpoint" position="-20 12 -30" checkpoint="id: 2"></a-entity>
             <a-entity mixin="checkpoint" position="0 10 -45" checkpoint="id: 3"></a-entity>
 
-            <!--  ========== NPCs  ==========-->
-            <!-- Modelo da Abby (COM FRUSTUM CULLING DESABILITADO) -->
-            <a-gltf-model src="assets/npc/AbbyRoupaClara.glb" position="-1.806 -0.02341 -3.5" frustum-culling-fix>
-            </a-gltf-model>
-
-            <!-- Modelo Untitled ao lado da Abby (COM FRUSTUM CULLING DESABILITADO) -->
-            <a-gltf-model id="untitled-model" src="assets/npc/AbbyHandRaising.glb" position="0.53202 0 -3.5" scale=""
-                rotation="" animation-mixer="" visible="" frustum-culling-fix=""
-                gltf-model="assets/npc/AbbyHandRaising.glb">
-            </a-gltf-model>
-
-            <a-gltf-model id="untitled-model" position="0.53202 0 -3.5" scale="" rotation="" animation-mixer=""
-                visible="" frustum-culling-fix="" gltf-model="assets/npc/AbbyHandRaising.glb">
-            </a-gltf-model>
+            <!-- NPCs removidos para performance -->
 
 
             <!--  ========== Iluminação  ==========-->
@@ -262,12 +249,13 @@
 
             <!-- ========== CENÁRIO ========== -->
 
-            <a-sky src="assets/cenario/sky-1.jpg" rotation="0 0 0" radius="5000">
+            <!-- Sky Otimizado (10x menor) -->
+            <a-sky src="assets/cenario/sky-1.jpg" rotation="0 0 0" radius="500" segments-width="16" segments-height="8">
             </a-sky>
 
-            <!-- Chão com Textura (Reduzido pela Metade) -->
-            <a-plane id="ground-main" position="0 -1 0" rotation="-90 0 0" width="10000" height="10000"
-                material="src: #ground-texture; color: #846338; repeat: 100 100; metalness: 0; roughness: 1; side: double; depthWrite: true; depthTest: true"
+            <!-- Chão Otimizado (100x menor) -->
+            <a-plane id="ground-main" position="0 -1 0" rotation="-90 0 0" width="200" height="200"
+                material="src: #ground-texture; color: #846338; repeat: 10 10; metalness: 0; roughness: 1"
                 shadow="receive: false" visible="true"></a-plane>
 
             <!-- Quadra com Colisão -->
@@ -307,19 +295,7 @@
             <a-gltf-model id="#Escada" position="-52.746 -0.32993 -41.107" scale="0.5 0.5 0.405" rotation="0 93.486 0"
                 gltf-model="assets/cenario/Escada.glb"></a-gltf-model>
 
-            <!-- ========== ELEVAÇÕES DO MORRO ========== -->
-
-            <!-- Morro Principal - Reduzido pela Metade -->
-            <a-cone position="15 0 -20" radius-bottom="17.5" radius-top="4" height="14"
-                material="color: #7a6d5f; roughness: 1" segments-radial="6" segments-height="3"></a-cone>
-
-            <!-- Morro Esquerda - Reduzido pela Metade -->
-            <a-cone position="-12.5 0 -17.5" radius-bottom="11" radius-top="3" height="8"
-                material="color: #7a6d5f; roughness: 1" segments-radial="4" segments-height="2"></a-cone>
-
-            <!-- Morro Direita - Reduzido pela Metade -->
-            <a-cone position="30 0 -15" radius-bottom="9" radius-top="4" height="4"
-                material="color: #7a6d5f; roughness: 1" segments-radial="4" segments-height="2"></a-cone>
+            <!-- Morros removidos para performance -->
 
             <!-- Casas 2D removidas para melhor performance -->
 
