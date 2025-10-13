@@ -91,6 +91,32 @@
         <!-- Estilos CSS -->
         <link rel="stylesheet" type="text/css" href="css/style.css?v=1.0.2">
 
+        <!-- Componente para Desabilitar Frustum Culling -->
+        <script>
+            AFRAME.registerComponent('frustum-culling-fix', {
+                init: function () {
+                    console.log('🔧 Desabilitando frustum culling...');
+
+                    this.el.addEventListener('model-loaded', () => {
+                        console.log('✅ Modelo carregado - aplicando fix de culling');
+
+                        // Desabilitar frustum culling em todos os meshes
+                        this.el.object3D.traverse((node) => {
+                            if (node.isMesh) {
+                                node.frustumCulled = false;
+                                console.log('✅ Frustum culling desabilitado para:', node.name);
+                            }
+                        });
+
+                        // Forçar renderização sempre visível
+                        this.el.object3D.frustumCulled = false;
+
+                        console.log('✅ Fix de culling aplicado com sucesso!');
+                    });
+                }
+            });
+        </script>
+
         <!-- Script de Debug para Untitled.glb -->
         <script>
             document.addEventListener('DOMContentLoaded', function () {
@@ -98,21 +124,14 @@
 
                 setTimeout(() => {
                     const untitledModel = document.querySelector('#untitled-model');
-                    const untitledContainer = document.querySelector('#untitled-container');
 
                     if (untitledModel) {
                         console.log('✅ Elemento #untitled-model encontrado');
                         console.log('📍 Posição:', untitledModel.getAttribute('position'));
                         console.log('📏 Escala:', untitledModel.getAttribute('scale'));
-                        console.log('🔄 Rotação:', untitledModel.getAttribute('rotation'));
-                        console.log('👁️ Visível:', untitledModel.getAttribute('visible'));
 
-                        // Verificar se o modelo carregou
                         untitledModel.addEventListener('model-loaded', () => {
                             console.log('✅ Untitled.glb CARREGADO COM SUCESSO!');
-                            const object3D = untitledModel.object3D;
-                            console.log('📦 Object3D:', object3D);
-                            console.log('📊 Children:', object3D.children.length);
                         });
 
                         untitledModel.addEventListener('model-error', (evt) => {
@@ -120,10 +139,6 @@
                         });
                     } else {
                         console.error('❌ Elemento #untitled-model NÃO encontrado!');
-                    }
-
-                    if (untitledContainer) {
-                        console.log('✅ Container encontrado na posição:', untitledContainer.getAttribute('position'));
                     }
                 }, 2000);
             });
@@ -228,14 +243,14 @@
             <a-entity mixin="checkpoint" position="-20 12 -30" checkpoint="id: 2"></a-entity>
             <a-entity mixin="checkpoint" position="0 10 -45" checkpoint="id: 3"></a-entity>
 
-            <!--NPCs-->
-            <!-- Modelo da Abby -->
-            <a-gltf-model src="assets/npc/AbbyRoupaClara.glb" position="-1.806 -0.02341 -3.5"
-                gltf-model="assets/npc/AbbyRoupaClara.glb"></a-gltf-model>
+            <!--  ========== NPCs  ==========-->
+            <!-- Modelo da Abby (COM FRUSTUM CULLING DESABILITADO) -->
+            <a-gltf-model src="assets/npc/AbbyRoupaClara.glb" position="-1.806 -0.02341 -3.5" frustum-culling-fix>
+            </a-gltf-model>
 
-            <!-- Modelo Untitled ao lado da Abby (ESCALA AUMENTADA) -->
-            <a-gltf-model id="untitled-model" src="assets/npc/Untitled.glb" position="-3.67003 0.00536 -3.5" scale=""
-                rotation="" animation-mixer="" visible="" gltf-model="assets/npc/Untitled.glb">
+            <!-- Modelo Untitled ao lado da Abby (COM FRUSTUM CULLING DESABILITADO) -->
+            <a-gltf-model id="untitled-model" src="assets/npc/Untitled.glb" position="-0.3 0 -3.5" scale="20 20 20"
+                rotation="0 0 0" animation-mixer="clip: *; loop: repeat" visible="true" frustum-culling-fix>
             </a-gltf-model>
 
             <!-- Luz para o rosto da Abby -->
