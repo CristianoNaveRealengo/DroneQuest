@@ -672,9 +672,10 @@ if (!AFRAME.components["hud-advanced"]) {
 			const center = doc.getElementById("collisionWarningCenter");
 			const middle = doc.getElementById("collisionWarningMiddle");
 			const outer = doc.getElementById("collisionWarningOuter");
+			const glow = doc.getElementById("collisionGlowOuter");
 			const pulse = doc.getElementById("collisionPulse");
 
-			if (!center || !middle || !outer || !pulse) return;
+			if (!center || !middle || !outer || !pulse || !glow) return;
 
 			// Configurar cores e animações baseado no nível
 			switch (this.collisionState.level) {
@@ -682,6 +683,8 @@ if (!AFRAME.components["hud-advanced"]) {
 					// VERMELHO - Perigo iminente (< 1.5m)
 					center.setAttribute("fill", "#ff0000");
 					center.setAttribute("opacity", "1");
+					glow.setAttribute("fill", "#ff0000");
+					glow.setAttribute("opacity", "0.5");
 					middle.setAttribute("stroke", "#ff0000");
 					middle.setAttribute("opacity", "0.8");
 					outer.setAttribute("stroke", "#ff0000");
@@ -692,15 +695,18 @@ if (!AFRAME.components["hud-advanced"]) {
 					pulse.setAttribute("dur", "0.3s");
 
 					// Aumentar tamanho
-					center.setAttribute("r", "8");
-					middle.setAttribute("r", "14");
-					outer.setAttribute("r", "20");
+					center.setAttribute("r", "11");
+					glow.setAttribute("r", "16");
+					middle.setAttribute("r", "18");
+					outer.setAttribute("r", "22");
 					break;
 
 				case "warning":
 					// AMARELO - Proximidade moderada (1.5m - 3m)
 					center.setAttribute("fill", "#ffff00");
 					center.setAttribute("opacity", "0.9");
+					glow.setAttribute("fill", "#ffff00");
+					glow.setAttribute("opacity", "0.4");
 					middle.setAttribute("stroke", "#ffff00");
 					middle.setAttribute("opacity", "0.6");
 					outer.setAttribute("stroke", "#ffff00");
@@ -711,9 +717,10 @@ if (!AFRAME.components["hud-advanced"]) {
 					pulse.setAttribute("dur", "0.8s");
 
 					// Tamanho médio
-					center.setAttribute("r", "7");
-					middle.setAttribute("r", "12");
-					outer.setAttribute("r", "17");
+					center.setAttribute("r", "10");
+					glow.setAttribute("r", "15");
+					middle.setAttribute("r", "17");
+					outer.setAttribute("r", "21");
 					break;
 
 				case "safe":
@@ -721,19 +728,22 @@ if (!AFRAME.components["hud-advanced"]) {
 					// VERDE - Distância segura (> 3m)
 					center.setAttribute("fill", "#00ff00");
 					center.setAttribute("opacity", "0.8");
+					glow.setAttribute("fill", "#00ff00");
+					glow.setAttribute("opacity", "0.3");
 					middle.setAttribute("stroke", "#00ff00");
 					middle.setAttribute("opacity", "0");
 					outer.setAttribute("stroke", "#00ff00");
 					outer.setAttribute("opacity", "0");
 
 					// Pulso suave
-					pulse.setAttribute("values", "0.8;0.3;0.8");
+					pulse.setAttribute("values", "0.8;0.5;0.8");
 					pulse.setAttribute("dur", "2s");
 
 					// Tamanho normal
-					center.setAttribute("r", "6");
-					middle.setAttribute("r", "10");
-					outer.setAttribute("r", "15");
+					center.setAttribute("r", "9");
+					glow.setAttribute("r", "14");
+					middle.setAttribute("r", "16");
+					outer.setAttribute("r", "20");
 					break;
 			}
 		},

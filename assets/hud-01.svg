@@ -34,21 +34,39 @@
     <path d="M 824 360 L 844 360 L 864 380 L 844 400 L 824 400" stroke="#ffffff" stroke-width="1"/>
   </g>
   
-  <!-- Crosshair central minimalista -->
-  <g stroke="#ffffff" stroke-width="2" fill="none" opacity="0.9">
-    <!-- Cruz central -->
-    <line x1="492" y1="300" x2="532" y2="300"/>
-    <line x1="512" y1="280" x2="512" y2="320"/>
+  <!-- Crosshair central com indicador de colisão -->
+  <g id="crosshairGroup" opacity="0.9">
+    <!-- Linhas da cruz (brancas fixas) -->
+    <line x1="512" y1="270" x2="512" y2="288" stroke="#ffffff" stroke-width="2"/>
+    <line x1="512" y1="312" x2="512" y2="330" stroke="#ffffff" stroke-width="2"/>
+    <line x1="482" y1="300" x2="500" y2="300" stroke="#ffffff" stroke-width="2"/>
+    <line x1="524" y1="300" x2="542" y2="300" stroke="#ffffff" stroke-width="2"/>
     
-    <!-- Círculo central -->
-    <circle cx="512" cy="300" r="8" stroke="#ffffff" stroke-width="2" fill="none"/>
-    <circle cx="512" cy="300" r="3" fill="#ffffff"/>
+    <!-- Círculo externo com blur (efeito de brilho) -->
+    <defs>
+      <filter id="glowFilter">
+        <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+        <feMerge>
+          <feMergeNode in="coloredBlur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+    </defs>
     
-    <!-- Marcadores de mira -->
-    <path d="M 480 288 L 480 292 L 484 292 L 484 288 Z" fill="#ffffff"/>
-    <path d="M 544 288 L 544 292 L 540 292 L 540 288 Z" fill="#ffffff"/>
-    <path d="M 500 268 L 504 268 L 504 272 L 500 272 Z" fill="#ffffff"/>
-    <path d="M 500 332 L 504 332 L 504 328 L 500 328 Z" fill="#ffffff"/>
+    <!-- Círculo externo de brilho - muda de cor -->
+    <circle id="collisionGlowOuter" cx="512" cy="300" r="14" fill="#00ff00" opacity="0.3" filter="url(#glowFilter)"/>
+    
+    <!-- Círculo médio (anel branco) -->
+    <circle cx="512" cy="300" r="11" fill="none" stroke="#ffffff" stroke-width="1.5" opacity="0.8"/>
+    
+    <!-- Círculo interno preenchido - INDICADOR DE COLISÃO -->
+    <circle id="collisionWarningCenter" cx="512" cy="300" r="9" fill="#00ff00" opacity="0.8">
+      <animate id="collisionPulse" attributeName="opacity" values="0.8;0.5;0.8" dur="2s" repeatCount="indefinite"/>
+    </circle>
+    
+    <!-- Círculos de aviso adicionais (invisíveis por padrão) -->
+    <circle id="collisionWarningMiddle" cx="512" cy="300" r="16" fill="none" stroke="#00ff00" stroke-width="2" opacity="0"/>
+    <circle id="collisionWarningOuter" cx="512" cy="300" r="20" fill="none" stroke="#00ff00" stroke-width="2" opacity="0"/>
   </g>
   
   <!-- Painéis de dados limpos (sem valores numéricos) -->
@@ -118,17 +136,7 @@
     <text x="674" y="25">X:0 Y:450 Z:0</text>
   </g>
   
-  <!-- Indicador de posição central com sistema de colisão -->
-  <!-- Círculo externo de aviso (pulsa quando há perigo) -->
-  <circle id="collisionWarningOuter" cx="512" cy="300" r="15" fill="none" stroke="#00ff00" stroke-width="2" opacity="0"/>
-  
-  <!-- Círculo médio de aviso -->
-  <circle id="collisionWarningMiddle" cx="512" cy="300" r="10" fill="none" stroke="#00ff00" stroke-width="2" opacity="0"/>
-  
-  <!-- Ponto central - muda de cor conforme proximidade -->
-  <circle id="collisionWarningCenter" cx="512" cy="300" r="6" fill="#00ff00" opacity="0.8">
-    <animate id="collisionPulse" attributeName="opacity" values="0.8;0.3;0.8" dur="2s" repeatCount="indefinite"/>
-  </circle>
+
   
   <!-- Linhas de referência sutis -->
   <g stroke="#ffffff" stroke-width="1" fill="none" opacity="0.2">
