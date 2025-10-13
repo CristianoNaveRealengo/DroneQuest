@@ -190,8 +190,9 @@
 
             </a-assets>
 
-            <!-- Céu com Imagem (Radius Reduzido) -->
-            <a-sky src="assets/cenario/734.jpg" radius="5000"></a-sky>
+            <!-- Céu com Imagem (Ajustado e Alinhado) -->
+            <a-sky src="assets/cenario/2151339729.jpg" rotation="0 0 0" radius="5000">
+            </a-sky>
 
             <!-- Iluminação Otimizada (2 luzes ao invés de 3) -->
             <a-light type="ambient" color="#ffffff" intensity="1.0"></a-light>
@@ -249,8 +250,9 @@
             </a-gltf-model>
 
             <!-- Modelo Untitled ao lado da Abby (COM FRUSTUM CULLING DESABILITADO) -->
-            <a-gltf-model id="untitled-model" src="assets/npc/Untitled.glb" position="-0.3 0 -3.5" scale="20 20 20"
-                rotation="0 0 0" animation-mixer="clip: *; loop: repeat" visible="true" frustum-culling-fix>
+            <a-gltf-model id="untitled-model" src="assets/npc/AbbyHandRaising.glb" position="0.53202 0 -3.5" scale=""
+                rotation="" animation-mixer="" visible="" frustum-culling-fix=""
+                gltf-model="assets/npc/AbbyHandRaising.glb">
             </a-gltf-model>
 
             <!-- Luz para o rosto da Abby -->
@@ -357,7 +359,7 @@
         <div id="loading">
             <h2>Carregando Cenário VR...</h2>
             <h3>Prepare-se pra nova experiencia</h3>
-            <p>Version alfa</p>
+            <small>Version alfa</small>
             <div class="progress-bar">
                 <div class="progress"></div>
             </div>
