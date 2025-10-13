@@ -154,6 +154,9 @@
         <script src="js/model-collision.js?v=1.0.0"></script>
         <script src="js/mesh-instancing.js?v=1.0.0"></script>
 
+        <!-- HUD Advanced Controller - ATIVADO -->
+        <script src="js/hud-advanced-controller.js?v=2.0.0"></script>
+
         <!-- Scripts Desativados para Performance -->
         <!-- <script src="js/utils.js?v=1.0.2"></script> -->
         <!-- <script src="js/game-manager.js?v=1.0.2"></script> -->
@@ -178,10 +181,10 @@
                     animation="property: rotation; to: 0 360 0; loop: true; dur: 8000">
                 </a-mixin>
 
-                <!-- HUD Futurístico
-                <img id="hud-overlay" src="assets/hud-overlay.svg" crossorigin="anonymous"> -->
+                <!-- HUD Futurístico Avançado -->
+                <img id="hud-advanced" src="assets/hud-02.svg" crossorigin="anonymous">
 
-                <!-- HUD Limpo -->
+                <!-- HUD Limpo (Backup) -->
                 <img id="hud-overlay-limpo" src="assets/hud-01.svg" crossorigin="anonymous">
 
                 <!-- Imagem 360 para Sky -->
@@ -217,7 +220,7 @@
                 <a-camera id="drone-camera" position="0 -0.30 -0.5" rotation="-15 0 0" wasd-controls="enabled: false"
                     look-controls="enabled: true; pointerLockEnabled: false" vr-camera-sync
                     camera="far: 5000; near: 0.1"
-                    hud-controller="enabled: true; transparency: 1.0; hudWidth: 3.5; hudHeight: 2.5; hudDistance: 2.0; parallaxIntensity: 0.03; smoothingFactor: 0.1">
+                    hud-advanced="enabled: true; hudWidth: 4.8; hudHeight: 2.7; hudDistance: 2.5; opacity: 0.9; parallaxIntensity: 0.02; smoothingFactor: 0.15">
                 </a-camera>
             </a-entity>
 
@@ -284,36 +287,46 @@
         <div id="loading">
             <h2>Carregando Cenário VR...</h2>
             <h3>Prepare-se pra nova experiencia</h3>
-            <small>Version - Alfa</small>
+            <small>Alfa - 1.0</small>
             <div class="progress-bar">
                 <div class="progress"></div>
             </div>
         </div>
 
-        <!-- Painel de Controles do HUD -->
+        <!-- Painel de Controles do HUD Advanced -->
         <div id="hud-help"
-            style="position: fixed; top: 10px; right: 10px; background: rgba(0, 0, 0, 0.8); color: #ffffff; padding: 15px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 12px; z-index: 1000; border: 1px solid #ffffff; max-width: 320px;">
-            <div style="font-weight: bold; margin-bottom: 10px; color: #ffffff;">🎯 HUD CONTROLLER CENTRALIZADO</div>
-            <div style="margin-bottom: 5px;"><strong>H</strong> - Alternar HUD</div>
-            <div style="margin-bottom: 5px;"><strong>U</strong> - Ajustar Transparência</div>
-            <div style="margin-bottom: 5px;"><strong>K</strong> - Recarregar HUD</div>
-            <div style="color: #ffaa00; font-weight: bold; margin: 8px 0 5px 0;">📏 Dimensões:</div>
-            <div style="margin-bottom: 5px;"><strong>+/-</strong> - Aumentar/Diminuir HUD</div>
-            <div style="margin-bottom: 5px;"><strong>0</strong> - Reset completo</div>
-            <div style="color: #ffaa00; font-weight: bold; margin: 8px 0 5px 0;">📊 Dados Exibidos:</div>
-            <div style="margin-bottom: 3px;">• Velocidade (KM/H)</div>
-            <div style="margin-bottom: 3px;">• Altitude (Metros)</div>
-            <div style="margin-bottom: 3px;">• Bateria (% com cor dinâmica)</div>
-            <div style="margin-bottom: 3px;">• Coordenadas GPS</div>
-            <div style="margin-bottom: 3px;">• Distância para Objetivo</div>
-            <div style="margin-bottom: 3px;">• Modo de Voo</div>
-            <div style="margin-bottom: 3px;">• Tempo de Missão</div>
+            style="position: fixed; top: 10px; right: 10px; background: rgba(0, 20, 30, 0.9); color: #00ffff; padding: 15px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 12px; z-index: 1000; border: 2px solid #00ffff; max-width: 350px; box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);">
+            <div style="font-weight: bold; margin-bottom: 10px; color: #00ff88; text-align: center; font-size: 14px;">🚀
+                HUD FUTURÍSTICA AVANÇADA</div>
+
+            <div style="color: #00ffff; font-weight: bold; margin: 8px 0 5px 0;">⌨️ Controles:</div>
+            <div style="margin-bottom: 5px;"><strong style="color: #00ff88;">H</strong> - Alternar HUD</div>
+            <div style="margin-bottom: 5px;"><strong style="color: #00ff88;">J</strong> - Ajustar Opacidade</div>
+            <div style="margin-bottom: 5px;"><strong style="color: #00ff88;">K</strong> - Recarregar HUD</div>
+            <div style="margin-bottom: 5px;"><strong style="color: #00ff88;">+/-</strong> - Aumentar/Diminuir</div>
+            <div style="margin-bottom: 5px;"><strong style="color: #00ff88;">0</strong> - Reset Completo</div>
+            <div style="margin-bottom: 5px;"><strong style="color: #00ff88;">T</strong> - Testar Aviso</div>
+
+            <div style="color: #00ffff; font-weight: bold; margin: 10px 0 5px 0;">📊 Dados em Tempo Real:</div>
+            <div style="margin-bottom: 3px; font-size: 11px;">✓ Velocidade com barra de progresso</div>
+            <div style="margin-bottom: 3px; font-size: 11px;">✓ Altitude com marcador visual</div>
+            <div style="margin-bottom: 3px; font-size: 11px;">✓ Bateria com indicador de cor</div>
+            <div style="margin-bottom: 3px; font-size: 11px;">✓ Coordenadas GPS precisas</div>
+            <div style="margin-bottom: 3px; font-size: 11px;">✓ Distância para checkpoint</div>
+            <div style="margin-bottom: 3px; font-size: 11px;">✓ Modo de voo ativo</div>
+            <div style="margin-bottom: 3px; font-size: 11px;">✓ Tempo de missão</div>
+            <div style="margin-bottom: 3px; font-size: 11px;">✓ Bússola com heading</div>
+            <div style="margin-bottom: 3px; font-size: 11px;">✓ Horizonte artificial</div>
+            <div style="margin-bottom: 3px; font-size: 11px;">✓ Indicador de roll</div>
+            <div style="margin-bottom: 3px; font-size: 11px;">✓ Status de sistemas (GPS/IMU/Motor/Link)</div>
+
             <div
-                style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #ffffff; font-size: 10px; opacity: 0.8;">
-                🎯 HUD totalmente transparente (sem fundo)<br>
-                📏 Sistema centralizado para fácil manutenção<br>
-                📍 Paralaxe sutil baseado no movimento do drone<br>
-                🛸 Apenas linhas brancas do hud-01.svg visíveis
+                style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #00ffff; font-size: 10px; opacity: 0.8;">
+                🎯 Design futurístico de drone racing<br>
+                🥽 Compatível com Desktop e VR<br>
+                🌐 Integrado ao mundo 3D<br>
+                ⚡ Paralaxe dinâmico suave<br>
+                ⚠️ Sistema de avisos inteligente
             </div>
         </div>
 
