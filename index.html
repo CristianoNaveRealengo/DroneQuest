@@ -120,7 +120,7 @@
         <!-- Scripts Essenciais (Otimizado para Performance) -->
         <script src="js/drone-controller.js?v=1.0.5"></script>
         <script src="js/vr-joystick-controls.js?v=1.0.0"></script>
-        <script src="js/fixed-cockpit-hud.js?v=1.0.0"></script>
+        <script src="js/cockpit-hud-data.js?v=1.0.0"></script>
         <script src="js/drone-rotation-fix.js?v=1.0.0"></script>
         <script src="js/checkpoint-system.js?v=1.0.2"></script>
         <script src="js/checkpoint-arrow.js?v=1.0.0"></script>
@@ -180,17 +180,16 @@
                     gltf-model="assets/drone/cockpit_vr.glb" frustum-culling-fix>
                 </a-gltf-model>
 
-                <!-- Corpo do Drone REMOVIDO - Apenas Cockpit -->
+                <!-- HUD Fixo no Painel do Cockpit (não se move com a cabeça) -->
+                <a-plane id="cockpit-hud" position="0 1.0 -0.3" rotation="0 0 0" width="1.6" height="0.9"
+                    material="src: assets/drone/hud-01.png; transparent: true; opacity: 0.9; shader: flat"
+                    cockpit-hud-data>
+                </a-plane>
 
                 <!-- Câmera do Piloto - Dentro do Cockpit -->
                 <a-camera id="drone-camera" position="0 1.2 0.5" rotation="0 0 0" wasd-controls="enabled: false"
                     look-controls="enabled: true; pointerLockEnabled: false" vr-camera-sync
                     camera="far: 5000; near: 0.1">
-
-                    <!-- HUD Fixo no Cockpit (não segue movimento da cabeça) -->
-                    <a-entity id="fixed-hud-container" position="0 -0.1 -1.0"
-                        fixed-cockpit-hud="enabled: true; hudWidth: 2.0; hudHeight: 1.2; opacity: 0.95">
-                    </a-entity>
                 </a-camera>
             </a-entity>
 
