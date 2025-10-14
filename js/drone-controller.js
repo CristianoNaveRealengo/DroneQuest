@@ -92,9 +92,9 @@ AFRAME.registerComponent("drone-controller", {
 
 		// === MOVIMENTO COM SETAS ===
 
-		// Frente/Trás (setas)
+		// Frente/Trás (setas) - INVERTIDO
 		if (this.keys["ArrowUp"]) {
-			const forward = new THREE.Vector3(0, 0, -1);
+			const forward = new THREE.Vector3(0, 0, 1); // Invertido: era -1
 			forward.applyAxisAngle(
 				new THREE.Vector3(0, 1, 0),
 				THREE.MathUtils.degToRad(rotation.y)
@@ -102,7 +102,7 @@ AFRAME.registerComponent("drone-controller", {
 			this.velocity.add(forward.multiplyScalar(this.data.moveSpeed * dt));
 		}
 		if (this.keys["ArrowDown"]) {
-			const backward = new THREE.Vector3(0, 0, 1);
+			const backward = new THREE.Vector3(0, 0, -1); // Invertido: era 1
 			backward.applyAxisAngle(
 				new THREE.Vector3(0, 1, 0),
 				THREE.MathUtils.degToRad(rotation.y)
@@ -112,9 +112,9 @@ AFRAME.registerComponent("drone-controller", {
 			);
 		}
 
-		// Esquerda/Direita (setas)
+		// Esquerda/Direita (setas) - INVERTIDO
 		if (this.keys["ArrowLeft"]) {
-			const left = new THREE.Vector3(-1, 0, 0);
+			const left = new THREE.Vector3(1, 0, 0); // Invertido: era -1
 			left.applyAxisAngle(
 				new THREE.Vector3(0, 1, 0),
 				THREE.MathUtils.degToRad(rotation.y)
@@ -122,7 +122,7 @@ AFRAME.registerComponent("drone-controller", {
 			this.velocity.add(left.multiplyScalar(this.data.moveSpeed * dt));
 		}
 		if (this.keys["ArrowRight"]) {
-			const right = new THREE.Vector3(1, 0, 0);
+			const right = new THREE.Vector3(-1, 0, 0); // Invertido: era 1
 			right.applyAxisAngle(
 				new THREE.Vector3(0, 1, 0),
 				THREE.MathUtils.degToRad(rotation.y)
@@ -132,12 +132,12 @@ AFRAME.registerComponent("drone-controller", {
 
 		// === WASD - SUBIR/DESCER/GIRAR ===
 
-		// Subir/Descer (W/S)
+		// Subir/Descer (W/S) - INVERTIDO
 		if (this.keys["KeyW"]) {
-			this.velocity.y += this.data.moveSpeed * dt;
+			this.velocity.y -= this.data.moveSpeed * dt; // Invertido: era +=
 		}
 		if (this.keys["KeyS"]) {
-			this.velocity.y -= this.data.moveSpeed * dt;
+			this.velocity.y += this.data.moveSpeed * dt; // Invertido: era -=
 		}
 
 		// Girar Esquerda/Direita (A/D)
