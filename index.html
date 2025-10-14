@@ -175,21 +175,21 @@
                 physics-body="type: dynamic; mass: 2; linearDamping: 0.1; angularDamping: 0.1">
 
                 <!-- Cockpit VR - Nave Principal -->
-                <a-gltf-model id="cockpit" position="0 0 0" scale="1.0 1.0 1.0"
+                <a-gltf-model id="cockpit" position="0 0 0" rotation="0 180 0" scale="1.0 1.0 1.0"
                     model-collision="type: box; width: 2; height: 2; depth: 3; offsetY: 0; visible: false; bounceForce: 1.0"
                     gltf-model="assets/drone/cockpit_vr.glb" frustum-culling-fix>
                 </a-gltf-model>
 
-                <!-- HUD Fixo no Painel do Cockpit (não se move com a cabeça) -->
-                <a-plane id="cockpit-hud" position="0 1.0 -0.3" rotation="0 0 0" width="1.6" height="0.9"
-                    material="src: assets/drone/hud-01.png; transparent: true; opacity: 0.9; shader: flat"
-                    cockpit-hud-data>
-                </a-plane>
-
-                <!-- Câmera do Piloto - Dentro do Cockpit -->
-                <a-camera id="drone-camera" position="0 1.2 0.5" rotation="0 0 0" wasd-controls="enabled: false"
+                <!-- Câmera do Piloto - Dentro do Cockpit (Visão Elevada) -->
+                <a-camera id="drone-camera" position="0 1.6 -0.2" rotation="0 180 0" wasd-controls="enabled: false"
                     look-controls="enabled: true; pointerLockEnabled: false" vr-camera-sync
                     camera="far: 5000; near: 0.1">
+
+                    <!-- HUD na Frente do Usuário (segue a cabeça) -->
+                    <a-plane id="cockpit-hud" position="0 -0.15 -1.2" rotation="0 0 0" width="1.8" height="1.0"
+                        material="src: assets/drone/hud-01.png; transparent: true; opacity: 0.85; shader: flat"
+                        cockpit-hud-data>
+                    </a-plane>
                 </a-camera>
             </a-entity>
 
