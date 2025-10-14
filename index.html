@@ -120,6 +120,7 @@
         <!-- Scripts Essenciais (Otimizado para Performance) -->
         <script src="js/drone-controller.js?v=1.0.5"></script>
         <script src="js/vr-joystick-controls.js?v=1.0.0"></script>
+        <script src="js/fixed-cockpit-hud.js?v=1.0.0"></script>
         <script src="js/drone-rotation-fix.js?v=1.0.0"></script>
         <script src="js/checkpoint-system.js?v=1.0.2"></script>
         <script src="js/checkpoint-arrow.js?v=1.0.0"></script>
@@ -131,8 +132,8 @@
         <script src="js/collision-feedback.js?v=1.0.0"></script>
         <script src="js/collision-particles.js?v=1.0.0"></script>
 
-        <!-- HUD Advanced Controller - ATIVADO -->
-        <script src="js/hud-advanced-controller.js?v=2.0.1"></script>
+        <!-- HUD Advanced Controller - DESATIVADO (usando fixed-cockpit-hud) -->
+        <!-- <script src="js/hud-advanced-controller.js?v=2.0.1"></script> -->
 
         <!-- Scripts Desativados para Performance -->
         <!-- <script src="js/utils.js?v=1.0.2"></script> -->
@@ -182,10 +183,14 @@
                 <!-- Corpo do Drone REMOVIDO - Apenas Cockpit -->
 
                 <!-- Câmera do Piloto - Dentro do Cockpit -->
-                <a-camera id="drone-camera" position="0 0.5 0.3" rotation="0 0 0" wasd-controls="enabled: false"
+                <a-camera id="drone-camera" position="0 1.2 0.5" rotation="0 0 0" wasd-controls="enabled: false"
                     look-controls="enabled: true; pointerLockEnabled: false" vr-camera-sync
-                    camera="far: 5000; near: 0.1"
-                    hud-advanced="enabled: true; hudWidth: 2.4; hudHeight: 1.35; hudDistance: 1.2; opacity: 0.95; parallaxIntensity: 0.01; smoothingFactor: 0.08; cockpitMode: true">
+                    camera="far: 5000; near: 0.1">
+
+                    <!-- HUD Fixo no Cockpit (não segue movimento da cabeça) -->
+                    <a-entity id="fixed-hud-container" position="0 -0.1 -1.0"
+                        fixed-cockpit-hud="enabled: true; hudWidth: 2.0; hudHeight: 1.2; opacity: 0.95">
+                    </a-entity>
                 </a-camera>
             </a-entity>
 
