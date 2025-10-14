@@ -181,13 +181,13 @@
                 </a-gltf-model>
 
                 <!-- HUD Fixo no Painel (na frente do usuário, não segue a cabeça) -->
-                <a-plane id="cockpit-hud" position="0 1.45 -0.8" rotation="0 0 0" width="1.8" height="1.0"
+                <a-plane id="cockpit-hud" position="0 1.45 0.8" rotation="0 180 0" width="1.8" height="1.0"
                     material="src: assets/drone/hud-01.png; transparent: true; opacity: 0.85; shader: flat"
                     cockpit-hud-data>
                 </a-plane>
 
                 <!-- Câmera do Piloto - Dentro do Cockpit (Visão Elevada) -->
-                <a-camera id="drone-camera" position="0 1.6 0.5" rotation="0 0 0" wasd-controls="enabled: false"
+                <a-camera id="drone-camera" position="0 1.6 0.5" rotation="0 180 0" wasd-controls="enabled: false"
                     look-controls="enabled: true; pointerLockEnabled: false" vr-camera-sync
                     camera="far: 5000; near: 0.1">
                 </a-camera>
