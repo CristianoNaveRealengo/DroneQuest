@@ -171,21 +171,22 @@
                 drone-rotation-limiter="maxPitch: 35; maxRoll: 25; autoCorrect: true; correctionSpeed: 5.0; emergencyThreshold: 70"
                 navigation-arrow
                 drone-navigation-arrow="arrowColor: #00ff00; arrowSize: 1.2; offsetDistance: 3; offsetHeight: 1.5"
-                physics-body="type: dynamic; mass: 2; linearDamping: 0.1; angularDamping: 0.1"></a-entity>
+                physics-body="type: dynamic; mass: 2; linearDamping: 0.1; angularDamping: 0.1">
 
-            <!-- Cockpit VR - Nave Principal -->
-            <a-gltf-model id="cockpit" position="0 0 0" scale="1.0 1.0 1.0"
-                model-collision="type: box; width: 2; height: 2; depth: 3; offsetY: 0; visible: false; bounceForce: 1.0"
-                gltf-model="assets/drone/cockpit_vr.glb" frustum-culling-fix>
-            </a-gltf-model>
+                <!-- Cockpit VR - Nave Principal -->
+                <a-gltf-model id="cockpit" position="0 0 0" scale="1.0 1.0 1.0"
+                    model-collision="type: box; width: 2; height: 2; depth: 3; offsetY: 0; visible: false; bounceForce: 1.0"
+                    gltf-model="assets/drone/cockpit_vr.glb" frustum-culling-fix>
+                </a-gltf-model>
 
-            <!-- Corpo do Drone REMOVIDO - Apenas Cockpit -->
+                <!-- Corpo do Drone REMOVIDO - Apenas Cockpit -->
 
-            <!-- Câmera do Piloto - Dentro do Cockpit -->
-            <a-camera id="drone-camera" position="0 0.5 0.3" rotation="0 0 0" wasd-controls="enabled: false"
-                look-controls="enabled: true; pointerLockEnabled: false" vr-camera-sync camera="far: 5000; near: 0.1"
-                hud-advanced="enabled: true; hudWidth: 2.4; hudHeight: 1.35; hudDistance: 1.2; opacity: 0.95; parallaxIntensity: 0.01; smoothingFactor: 0.08; cockpitMode: true"></a-camera>
-            </a-camera>
+                <!-- Câmera do Piloto - Dentro do Cockpit -->
+                <a-camera id="drone-camera" position="0 0.5 0.3" rotation="0 0 0" wasd-controls="enabled: false"
+                    look-controls="enabled: true; pointerLockEnabled: false" vr-camera-sync
+                    camera="far: 5000; near: 0.1"
+                    hud-advanced="enabled: true; hudWidth: 2.4; hudHeight: 1.35; hudDistance: 1.2; opacity: 0.95; parallaxIntensity: 0.01; smoothingFactor: 0.08; cockpitMode: true">
+                </a-camera>
             </a-entity>
 
             <!-- Checkpoints REMOVIDOS temporariamente para teste -->
