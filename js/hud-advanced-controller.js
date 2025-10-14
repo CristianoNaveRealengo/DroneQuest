@@ -8,12 +8,13 @@ if (!AFRAME.components["hud-advanced"]) {
 	AFRAME.registerComponent("hud-advanced", {
 		schema: {
 			enabled: { type: "boolean", default: true },
-			hudWidth: { type: "number", default: 4.8 },
-			hudHeight: { type: "number", default: 2.7 },
-			hudDistance: { type: "number", default: 2.5 },
-			opacity: { type: "number", default: 0.9 },
-			parallaxIntensity: { type: "number", default: 0.02 },
-			smoothingFactor: { type: "number", default: 0.15 },
+			hudWidth: { type: "number", default: 2.4 },
+			hudHeight: { type: "number", default: 1.35 },
+			hudDistance: { type: "number", default: 1.2 },
+			opacity: { type: "number", default: 0.95 },
+			parallaxIntensity: { type: "number", default: 0.01 },
+			smoothingFactor: { type: "number", default: 0.08 },
+			cockpitMode: { type: "boolean", default: true },
 		},
 
 		init: function () {
@@ -59,12 +60,15 @@ if (!AFRAME.components["hud-advanced"]) {
 		},
 
 		setupParallax: function () {
+			// Posição do HUD como display do cockpit
+			const hudY = this.data.cockpitMode ? -0.15 : 0; // Ligeiramente abaixo do centro
+
 			this.parallax = {
 				lastDronePosition: { x: 0, y: 0, z: 0 },
 				lastDroneRotation: { x: 0, y: 0, z: 0 },
 				currentOffset: { x: 0, y: 0, z: 0 },
 				targetOffset: { x: 0, y: 0, z: 0 },
-				basePosition: { x: 0, y: 0, z: -this.data.hudDistance },
+				basePosition: { x: 0, y: hudY, z: -this.data.hudDistance },
 			};
 		},
 

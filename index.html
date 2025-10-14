@@ -119,6 +119,7 @@
     <body>
         <!-- Scripts Essenciais (Otimizado para Performance) -->
         <script src="js/drone-controller.js?v=1.0.5"></script>
+        <script src="js/vr-joystick-controls.js?v=1.0.0"></script>
         <script src="js/drone-rotation-fix.js?v=1.0.0"></script>
         <script src="js/checkpoint-system.js?v=1.0.2"></script>
         <script src="js/checkpoint-arrow.js?v=1.0.0"></script>
@@ -147,7 +148,7 @@
             renderer="antialias: false; colorManagement: false; sortObjects: false; physicallyCorrectLights: false; powerPreference: high-performance; precision: mediump"
             mesh-instancing="enabled: true" collision-manager="enabled: true; proximityRadius: 12; checkInterval: 100"
             collision-feedback="enabled: true; visualFeedback: false; audioFeedback: true; hudFeedback: true"
-            collision-particles="poolSize: 15; particleDuration: 200" stats>
+            collision-particles="poolSize: 15; particleDuration: 200" stats>ion-status stats>
 
             <!-- Assets -->
             <a-assets>
@@ -160,31 +161,31 @@
             </a-assets>
 
             <!-- Céu com Imagem (Ajustado e Alinhado) -->
-            <!-- Iluminação Otimizada (2 luzes ao invés de 3) -->
+            <!-- Iluminação Otimizada -->
             <a-light type="ambient" color="#ffffff" intensity="1.0"></a-light>
             <a-light type="hemisphere" color="#ffffff" groundColor="#8A7050" intensity="0.7"></a-light>
 
-
-            <!-- Drone Principal -->
-            <a-entity id="drone" position="0 0 0" drone-controller
+            <!-- Drone Principal - Cockpit VR -->
+            <a-entity id="drone" position="0 3 0" drone-controller
+                vr-joystick-controls="moveSpeed: 3.0; rotationSpeed: 1.2"
                 drone-rotation-limiter="maxPitch: 35; maxRoll: 25; autoCorrect: true; correctionSpeed: 5.0; emergencyThreshold: 70"
                 navigation-arrow
                 drone-navigation-arrow="arrowColor: #00ff00; arrowSize: 1.2; offsetDistance: 3; offsetHeight: 1.5"
-                physics-body="type: dynamic; mass: 2; linearDamping: 0.1; angularDamping: 0.1">
+                physics-body="type: dynamic; mass: 2; linearDamping: 0.1; angularDamping: 0.1"></a-entity>
 
-                <!-- Corpo do Drone Ultra-Simplificado -->
-                <a-entity id="drone-body" geometry="primitive: box; width: 0.8; height: 0.2; depth: 0.8"
-                    material="color: #00aa00; metalness: 0; roughness: 1; emissive: #001100; emissiveIntensity: 0.3">
-                </a-entity>
+            <!-- Cockpit VR - Nave Principal -->
+            <a-gltf-model id="cockpit" position="0 0 0" scale="1.0 1.0 1.0"
+                model-collision="type: box; width: 2; height: 2; depth: 3; offsetY: 0; visible: false; bounceForce: 1.0"
+                gltf-model="assets/drone/cockpit_vr.glb" frustum-culling-fix>
+            </a-gltf-model>
 
-                <!-- Hélices REMOVIDAS para reduzir triângulos -->
+            <!-- Corpo do Drone REMOVIDO - Apenas Cockpit -->
 
-                <!-- Câmera do Drone -->
-                <a-camera id="drone-camera" position="0 -0.30 -0.5" rotation="-15 0 0" wasd-controls="enabled: false"
-                    look-controls="enabled: true; pointerLockEnabled: false" vr-camera-sync
-                    camera="far: 5000; near: 0.1"
-                    hud-advanced="enabled: true; hudWidth: 4.8; hudHeight: 2.7; hudDistance: 2.5; opacity: 0.9; parallaxIntensity: 0.02; smoothingFactor: 0.15">
-                </a-camera>
+            <!-- Câmera do Piloto - Dentro do Cockpit -->
+            <a-camera id="drone-camera" position="0 0.5 0.3" rotation="0 0 0" wasd-controls="enabled: false"
+                look-controls="enabled: true; pointerLockEnabled: false" vr-camera-sync camera="far: 5000; near: 0.1"
+                hud-advanced="enabled: true; hudWidth: 2.4; hudHeight: 1.35; hudDistance: 1.2; opacity: 0.95; parallaxIntensity: 0.01; smoothingFactor: 0.08; cockpitMode: true"></a-camera>
+            </a-camera>
             </a-entity>
 
             <!-- Checkpoints REMOVIDOS temporariamente para teste -->
@@ -241,19 +242,31 @@
             </div>
         </div>
 
-        <!-- Painel de Controles do HUD Advanced -->
+        <!-- Painel de Controles do Cockpit VR -->
         <div id="hud-help"
             style="position: fixed; top: 10px; right: 10px; background: rgba(0, 20, 30, 0.9); color: #00ffff; padding: 15px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 12px; z-index: 1000; border: 2px solid #00ffff; max-width: 350px; box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);">
-            <div style="font-weight: bold; margin-bottom: 10px; color: #00ff88; text-align: center; font-size: 14px;">🚀
-                HUD FUTURÍSTICA AVANÇADA</div>
+            <div style="font-weight: bold; margin-bottom: 10px; color: #00ff88; text-align: center; font-size: 14px;">�
+                COCKPIT VR - PILOTO</div>
 
-            <div style="color: #00ffff; font-weight: bold; margin: 8px 0 5px 0;">⌨️ Controles:</div>
+            <div style="color: #00ffff; font-weight: bold; margin: 8px 0 5px 0;">⌨️ Desktop:</div>
+            <div style="margin-bottom: 5px;"><strong style="color: #00ff88;">↑/I</strong> - Frente | <strong
+                    style="color: #00ff88;">↓/K</strong> - Trás</div>
+            <div style="margin-bottom: 5px;"><strong style="color: #00ff88;">←/J</strong> - Esquerda | <strong
+                    style="color: #00ff88;">→/L</strong> - Direita</div>
+            <div style="margin-bottom: 5px;"><strong style="color: #00ff88;">W</strong> - Subir | <strong
+                    style="color: #00ff88;">S</strong> - Descer</div>
+            <div style="margin-bottom: 5px;"><strong style="color: #00ff88;">A/D</strong> - Girar</div>
+            <div style="margin-bottom: 5px;"><strong style="color: #00ff88;">R</strong> - Reset</div>
+
+            <div style="color: #00ffff; font-weight: bold; margin: 10px 0 5px 0;">🥽 VR (Quest):</div>
+            <div style="margin-bottom: 5px;">🕹️ <strong>Esquerdo</strong> - Movimento (Frente/Trás/Lateral)</div>
+            <div style="margin-bottom: 5px;">🕹️ <strong>Direito</strong> - Rotação (Yaw)</div>
+            <div style="margin-bottom: 5px;">🔘 <strong>X</strong> - Subir | <strong>Y</strong> - Descer</div>
+
+            <div style="color: #00ffff; font-weight: bold; margin: 10px 0 5px 0;">🖥️ HUD:</div>
             <div style="margin-bottom: 5px;"><strong style="color: #00ff88;">H</strong> - Alternar HUD</div>
             <div style="margin-bottom: 5px;"><strong style="color: #00ff88;">J</strong> - Ajustar Opacidade</div>
-            <div style="margin-bottom: 5px;"><strong style="color: #00ff88;">K</strong> - Recarregar HUD</div>
             <div style="margin-bottom: 5px;"><strong style="color: #00ff88;">+/-</strong> - Aumentar/Diminuir</div>
-            <div style="margin-bottom: 5px;"><strong style="color: #00ff88;">0</strong> - Reset Completo</div>
-            <div style="margin-bottom: 5px;"><strong style="color: #00ff88;">T</strong> - Testar Aviso</div>
 
             <div style="color: #00ffff; font-weight: bold; margin: 10px 0 5px 0;">📊 Dados em Tempo Real:</div>
             <div style="margin-bottom: 3px; font-size: 11px;">✓ Velocidade com barra de progresso</div>
