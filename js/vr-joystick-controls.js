@@ -1,6 +1,7 @@
 /**
  * Controles VR com Joysticks Virtuais (Thumbsticks)
  * Controllers do Quest funcionam como joysticks de nave
+ * CORRIGIDO: Direções corretas + Inclinação visual de 15°
  */
 
 AFRAME.registerComponent("vr-joystick-controls", {
@@ -11,7 +12,7 @@ AFRAME.registerComponent("vr-joystick-controls", {
 	},
 
 	init: function () {
-		console.log("🎮 Controles VR Joystick iniciados");
+		console.log("🎮 Controles VR Joystick iniciados (CORRIGIDOS)");
 
 		this.leftController = null;
 		this.rightController = null;
@@ -47,6 +48,9 @@ AFRAME.registerComponent("vr-joystick-controls", {
 
 		if (!isVR) return; // Só funciona em VR
 
+		// Variável para inclinação visual (apenas frontal)
+		let targetPitch = 0;
+
 		// === CONTROLLER ESQUERDO - MOVIMENTO (Thumbstick) ===
 		if (this.leftController) {
 			const leftGamepad =
@@ -63,7 +67,7 @@ AFRAME.registerComponent("vr-joystick-controls", {
 					const stickX = axes[2]; // Thumbstick X (esquerda/direita)
 					const stickY = axes[3]; // Thumbstick Y (frente/trás)
 
-					// Movimento lateral (strafe)
+					// Movimento lateral (strafe) - CORRIGIDO (SEM inclinação lateral)
 					if (Math.abs(stickX) > 0.1) {
 						const strafe = new THREE.Vector3(stickX, 0, 0);
 						strafe.applyAxisAngle(
@@ -74,15 +78,18 @@ AFRAME.registerComponent("vr-joystick-controls", {
 						position.z += strafe.z * this.data.moveSpeed * dt;
 					}
 
-					// Movimento frente/trás
+					// Movimento frente/trás - CORRIGIDO
 					if (Math.abs(stickY) > 0.1) {
-						const forward = new THREE.Vector3(0, 0, stickY);
+						const forward = new THREE.Vector3(0, 0, -stickY); // Invertido para corrigir
 						forward.applyAxisAngle(
 							new THREE.Vector3(0, 1, 0),
 							THREE.MathUtils.degToRad(rotation.y)
 						);
 						position.x += forward.x * this.data.moveSpeed * dt;
 						position.z += forward.z * this.data.moveSpeed * dt;
+
+						// Inclinação visual de 15° frente/trás
+						targetPitch = stickY * 15;
 					}
 				}
 
@@ -125,6 +132,10 @@ AFRAME.registerComponent("vr-joystick-controls", {
 			}
 		}
 
+		// Aplicar inclinação visual suave (apenas frontal)
+		const smoothing = 0.1;
+		rotation.x = THREE.MathUtils.lerp(rotation.x, targetPitch, smoothing);
+
 		// Limitar altura mínima
 		if (position.y < 0.5) {
 			position.y = 0.5;
@@ -136,4 +147,4 @@ AFRAME.registerComponent("vr-joystick-controls", {
 	},
 });
 
-console.log("📦 VR Joystick Controls carregado!");
+console.log("📦 VR Joystick Controls carregado (CORRIGIDO)!");

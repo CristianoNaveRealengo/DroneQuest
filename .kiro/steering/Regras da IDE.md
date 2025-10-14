@@ -43,9 +43,8 @@
     <regra>Salve o arquivo em uma pasta docs na base do projeto</regra>
   </referencias>
 
-  <controleDeVersao>
-    <regra>Antes de qualquer alteração no código, execute git add para adicionar os arquivos modificados.</regra>
-    <regra>Após concluir as alterações, execute git commit com uma mensagem descritiva e clara.</regra>
+  <controleDeVersao>    
+    <regra>Após concluir as alterações, é pra salvar no git execute git commit com uma mensagem descritiva e clara. </regra>
     <regra>Use mensagens de commit no padrão: tipo(escopo): descrição (ex: feat(auth): adiciona validação de token).</regra>
     <regra>Tipos de commit: feat (nova funcionalidade), fix (correção), refactor (refatoração), docs (documentação), style (formatação), test (testes), chore (manutenção).</regra>
   </controleDeVersao>

@@ -32,6 +32,7 @@ AFRAME.registerComponent("drone-controller", {
 	setupKeyboardControls: function () {
 		window.addEventListener("keydown", (e) => {
 			this.keys[e.code] = true;
+			console.log(`🎮 Tecla pressionada: ${e.code}`);
 		});
 
 		window.addEventListener("keyup", (e) => {
@@ -87,22 +88,38 @@ AFRAME.registerComponent("drone-controller", {
 		const position = this.el.getAttribute("position");
 		const rotation = this.el.getAttribute("rotation");
 
+		// Debug: verificar se alguma tecla está pressionada
+		const anyKeyPressed = Object.values(this.keys).some((k) => k === true);
+		if (anyKeyPressed && Math.random() < 0.01) {
+			// Log ocasional
+			console.log(
+				"🎮 Teclas ativas:",
+				Object.keys(this.keys).filter((k) => this.keys[k])
+			);
+		}
+
 		// Resetar velocidade
 		this.velocity.multiplyScalar(this.data.drag);
 
-		// === MOVIMENTO COM SETAS ===
+		// Variável para controlar inclinação visual (apenas frontal)
+		let targetPitch = 0;
 
-		// Frente/Trás (setas) - INVERTIDO
-		if (this.keys["ArrowUp"]) {
-			const forward = new THREE.Vector3(0, 0, 1); // Invertido: era -1
+		// === MOVIMENTO COM SETAS E IJKL ===
+
+		// Frente (setas ↑ ou I)
+		if (this.keys["ArrowUp"] || this.keys["KeyI"]) {
+			const forward = new THREE.Vector3(0, 0, -1);
 			forward.applyAxisAngle(
 				new THREE.Vector3(0, 1, 0),
 				THREE.MathUtils.degToRad(rotation.y)
 			);
 			this.velocity.add(forward.multiplyScalar(this.data.moveSpeed * dt));
+			targetPitch = -15;
 		}
-		if (this.keys["ArrowDown"]) {
-			const backward = new THREE.Vector3(0, 0, -1); // Invertido: era 1
+
+		// Trás (setas ↓ ou K)
+		if (this.keys["ArrowDown"] || this.keys["KeyK"]) {
+			const backward = new THREE.Vector3(0, 0, 1);
 			backward.applyAxisAngle(
 				new THREE.Vector3(0, 1, 0),
 				THREE.MathUtils.degToRad(rotation.y)
@@ -110,19 +127,22 @@ AFRAME.registerComponent("drone-controller", {
 			this.velocity.add(
 				backward.multiplyScalar(this.data.moveSpeed * dt)
 			);
+			targetPitch = 15;
 		}
 
-		// Esquerda/Direita (setas) - INVERTIDO
-		if (this.keys["ArrowLeft"]) {
-			const left = new THREE.Vector3(1, 0, 0); // Invertido: era -1
+		// Esquerda (setas ← ou J)
+		if (this.keys["ArrowLeft"] || this.keys["KeyJ"]) {
+			const left = new THREE.Vector3(-1, 0, 0);
 			left.applyAxisAngle(
 				new THREE.Vector3(0, 1, 0),
 				THREE.MathUtils.degToRad(rotation.y)
 			);
 			this.velocity.add(left.multiplyScalar(this.data.moveSpeed * dt));
 		}
-		if (this.keys["ArrowRight"]) {
-			const right = new THREE.Vector3(-1, 0, 0); // Invertido: era 1
+
+		// Direita (setas → ou L)
+		if (this.keys["ArrowRight"] || this.keys["KeyL"]) {
+			const right = new THREE.Vector3(1, 0, 0);
 			right.applyAxisAngle(
 				new THREE.Vector3(0, 1, 0),
 				THREE.MathUtils.degToRad(rotation.y)
@@ -132,21 +152,39 @@ AFRAME.registerComponent("drone-controller", {
 
 		// === WASD - SUBIR/DESCER/GIRAR ===
 
-		// Subir/Descer (W/S) - INVERTIDO
+		// Subir (W)
 		if (this.keys["KeyW"]) {
-			this.velocity.y -= this.data.moveSpeed * dt; // Invertido: era +=
-		}
-		if (this.keys["KeyS"]) {
-			this.velocity.y += this.data.moveSpeed * dt; // Invertido: era -=
+			this.velocity.y += this.data.moveSpeed * dt;
 		}
 
-		// Girar Esquerda/Direita (A/D)
+		// Descer (S)
+		if (this.keys["KeyS"]) {
+			this.velocity.y -= this.data.moveSpeed * dt;
+		}
+
+		// Girar Esquerda (A)
 		if (this.keys["KeyA"]) {
 			rotation.y += this.data.rotationSpeed * 50 * dt;
 		}
+
+		// Girar Direita (D)
 		if (this.keys["KeyD"]) {
 			rotation.y -= this.data.rotationSpeed * 50 * dt;
 		}
+
+		// Retornar inclinação frontal ao centro quando não há movimento
+		if (
+			!this.keys["ArrowUp"] &&
+			!this.keys["ArrowDown"] &&
+			!this.keys["KeyI"] &&
+			!this.keys["KeyK"]
+		) {
+			rotation.x = THREE.MathUtils.lerp(rotation.x, 0, 0.05);
+		}
+
+		// Aplicar inclinação visual suave (apenas frontal)
+		const smoothing = 0.1;
+		rotation.x += (targetPitch - rotation.x) * smoothing;
 
 		// === RESET ===
 		if (this.keys["KeyR"]) {
@@ -157,7 +195,7 @@ AFRAME.registerComponent("drone-controller", {
 			rotation.y = 0;
 			rotation.z = 0;
 			this.velocity.set(0, 0, 0);
-			console.log("� Posiçaão resetada");
+			console.log("🔄 Posição resetada");
 		}
 
 		// Aplicar movimento

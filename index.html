@@ -117,48 +117,23 @@
     </head>
 
     <body>
-        <!-- Scripts Essenciais (Otimizado para Performance) -->
+        <!-- Scripts Essenciais (Limpo e Otimizado) -->
+        <script src="js/experience-selector.js?v=2.0.0"></script>
         <script src="js/drone-controller.js?v=1.0.5"></script>
         <script src="js/vr-joystick-controls.js?v=1.0.0"></script>
         <script src="js/cockpit-hud-data.js?v=1.0.0"></script>
-        <script src="js/drone-rotation-fix.js?v=1.0.0"></script>
         <script src="js/checkpoint-system.js?v=1.0.2"></script>
-        <script src="js/checkpoint-arrow.js?v=1.0.0"></script>
         <script src="js/model-collision.js?v=1.0.1"></script>
-        <script src="js/mesh-instancing.js?v=1.0.0"></script>
-
-        <!-- Sistema de Colisão Avançado -->
-        <script src="js/collision-manager.js?v=1.0.0"></script>
-        <script src="js/collision-feedback.js?v=1.0.0"></script>
-        <script src="js/collision-particles.js?v=1.0.0"></script>
-
-        <!-- HUD Advanced Controller - DESATIVADO (usando fixed-cockpit-hud) -->
-        <!-- <script src="js/hud-advanced-controller.js?v=2.0.1"></script> -->
-
-        <!-- Scripts Desativados para Performance -->
-        <!-- <script src="js/utils.js?v=1.0.2"></script> -->
-        <!-- <script src="js/game-manager.js?v=1.0.2"></script> -->
-        <!-- <script src="js/urban-environment.js?v=1.0.3"></script> -->
-        <!-- <script src="js/performance-monitor.js?v=1.0.2"></script> -->
-        <!-- <script src="js/collision-system.js?v=1.0.2"></script> -->
-        <!-- <script src="js/audio-system.js?v=1.0.4"></script> -->
-        <!-- <script src="js/navigation-arrow.js?v=1.0.2"></script> -->
+        <script src="js/hover-animation.js?v=1.0.0"></script>
 
         <!-- ÚNICA A-SCENE - ULTRA OTIMIZADA COM INSTANCIAMENTO -->
         <a-scene vr-mode-ui="enabled: true" webxr="requiredFeatures: local-floor"
             renderer="antialias: false; colorManagement: false; sortObjects: false; physicallyCorrectLights: false; powerPreference: high-performance; precision: mediump"
-            mesh-instancing="enabled: true" collision-manager="enabled: true; proximityRadius: 12; checkInterval: 100"
-            collision-feedback="enabled: true; visualFeedback: false; audioFeedback: true; hudFeedback: true"
-            collision-particles="poolSize: 15; particleDuration: 200" stats>ion-status stats>
+            mesh-instancing="enabled: true" experience-selector="defaultExperience: cockpit" stats>
 
             <!-- Assets -->
             <a-assets>
-                <!-- Mixins para reutilização -->
-                <a-mixin id="checkpoint"
-                    geometry="primitive: torus; radius: 3; radiusTubular: 0.3; segmentsRadial: 6; segmentsTubular: 8"
-                    material="color: #00ff00; transparent: true; opacity: 0.6; metalness: 0; roughness: 1; emissive: #00ff00; emissiveIntensity: 0.4"
-                    animation="property: rotation; to: 0 360 0; loop: true; dur: 8000">
-                </a-mixin>
+                <!-- Assets vazios - checkpoints agora são formas básicas individuais -->
             </a-assets>
 
             <!-- Céu com Imagem (Ajustado e Alinhado) -->
@@ -169,10 +144,7 @@
             <!-- Drone Principal - Cockpit VR -->
             <a-entity id="drone" position="0 3 0" drone-controller
                 vr-joystick-controls="moveSpeed: 3.0; rotationSpeed: 1.2"
-                drone-rotation-limiter="maxPitch: 35; maxRoll: 25; autoCorrect: true; correctionSpeed: 5.0; emergencyThreshold: 70"
-                navigation-arrow
-                drone-navigation-arrow="arrowColor: #00ff00; arrowSize: 1.2; offsetDistance: 3; offsetHeight: 1.5"
-                physics-body="type: dynamic; mass: 2; linearDamping: 0.1; angularDamping: 0.1">
+                hover-animation="enabled: true; amplitude: 0.08; duration: 2000">
 
                 <!-- Cockpit VR - Nave Principal (Girado 180° para frente ficar correta) -->
                 <a-gltf-model id="cockpit" position="0 0 0" rotation="0 180 0" scale="1.0 1.0 1.0"
@@ -181,19 +153,61 @@
                 </a-gltf-model>
 
                 <!-- HUD Fixo no Painel (na frente do usuário, não segue a cabeça) -->
-                <a-plane id="cockpit-hud" position="0 1.45 -1.8" rotation="0 0 0" width="2.4" height="1.35"
-                    material="src: assets/drone/hud-01.svg; transparent: true; opacity: 0.85; shader: flat"
-                    cockpit-hud-data>
+                <a-plane id="cockpit-hud" position="0.00887 1.3971 -1.78627" rotation="-16.58 0 0" width="2.4"
+                    height="1.35" scale="0.574 0.75 1"
+                    material="src: assets/drone/hud-01.svg; transparent: true; opacity: 0.5; shader: flat; depthWrite: false; depthTest: true"
+                    cockpit-hud-data="" geometry="" visible="" render-order="-1">
                 </a-plane>
 
                 <!-- Câmera do Piloto - Dentro do Cockpit (Visão Elevada) -->
-                <a-camera id="drone-camera" position="0 1.6 -0.8" rotation="0 0 0" wasd-controls="enabled: false"
-                    look-controls="enabled: true; pointerLockEnabled: false" vr-camera-sync
+                <!-- VISÃO 360° TOTALMENTE LIBERADA: Passageiro pode olhar livremente ao redor -->
+                <a-camera id="drone-camera" position="0 1.6 0.07007" rotation="0 0 0" wasd-controls="enabled: false"
+                    look-controls="enabled: true; reverseMouseDrag: false; reverseTouchDrag: false; touchEnabled: true; mouseEnabled: true; pointerLockEnabled: false; magicWindowTrackingEnabled: true"
                     camera="far: 5000; near: 0.1">
                 </a-camera>
             </a-entity>
 
-            <!-- Checkpoints REMOVIDOS temporariamente para teste -->
+            <!-- ========== CHECKPOINTS (ARGOLAS) - FORMAS BÁSICAS ========== -->
+
+            <!-- Checkpoint 1 -->
+            <a-torus id="checkpoint-1" position="0 3 -15" rotation="0 0 0" radius="3" radius-tubular="0.3"
+                segments-radial="16" segments-tubular="32" color="#00ff00"
+                material="transparent: true; opacity: 0.7; metalness: 0; roughness: 1; emissive: #00ff00; emissiveIntensity: 0.5; depthWrite: true; depthTest: true"
+                animation="property: rotation; to: 0 360 0; loop: true; dur: 8000; easing: linear"
+                checkpoint="id: 1; nextCheckpoint: 2" render-order="1"></a-torus>
+            </a-torus>
+
+            <!-- Checkpoint 2 -->
+            <a-torus id="checkpoint-2" position="10 4 -30" rotation="0 0 0" radius="3" radius-tubular="0.3"
+                segments-radial="16" segments-tubular="32" color="#00ff00"
+                material="transparent: true; opacity: 0.7; metalness: 0; roughness: 1; emissive: #00ff00; emissiveIntensity: 0.5; depthWrite: true; depthTest: true"
+                animation="property: rotation; to: 0 360 0; loop: true; dur: 8000; easing: linear"
+                checkpoint="id: 2; nextCheckpoint: 3" render-order="1"></a-torus>
+            </a-torus>
+
+            <!-- Checkpoint 3 -->
+            <a-torus id="checkpoint-3" position="-10 5 -45" rotation="0 0 0" radius="3" radius-tubular="0.3"
+                segments-radial="16" segments-tubular="32" color="#00ff00"
+                material="transparent: true; opacity: 0.7; metalness: 0; roughness: 1; emissive: #00ff00; emissiveIntensity: 0.5; depthWrite: true; depthTest: true"
+                animation="property: rotation; to: 0 360 0; loop: true; dur: 8000; easing: linear"
+                checkpoint="id: 3; nextCheckpoint: 4" render-order="1"></a-torus>
+            </a-torus>
+
+            <!-- Checkpoint 4 -->
+            <a-torus id="checkpoint-4" position="15 3 -60" rotation="0 0 0" radius="3" radius-tubular="0.3"
+                segments-radial="16" segments-tubular="32" color="#00ff00"
+                material="transparent: true; opacity: 0.7; metalness: 0; roughness: 1; emissive: #00ff00; emissiveIntensity: 0.5; depthWrite: true; depthTest: true"
+                animation="property: rotation; to: 0 360 0; loop: true; dur: 8000; easing: linear"
+                checkpoint="id: 4; nextCheckpoint: 5" render-order="1"></a-torus>
+            </a-torus>
+
+            <!-- Checkpoint 5 -->
+            <a-torus id="checkpoint-5" position="-5 6 -75" rotation="0 0 0" radius="3" radius-tubular="0.3"
+                segments-radial="16" segments-tubular="32" color="#00ff00"
+                material="transparent: true; opacity: 0.7; metalness: 0; roughness: 1; emissive: #00ff00; emissiveIntensity: 0.5; depthWrite: true; depthTest: true"
+                animation="property: rotation; to: 0 360 0; loop: true; dur: 8000; easing: linear"
+                checkpoint="id: 5; nextCheckpoint: finish" render-order="1"></a-torus>
+            </a-torus>
 
             <!-- NPCs removidos para performance -->
             <!--  ========== Iluminação  ==========-->
@@ -555,9 +569,24 @@
             document.addEventListener('DOMContentLoaded', function () {
                 console.log('🎮 Jogo carregado - Drone pronto!');
 
+                // Esconder loading após 2 segundos (fallback)
+                setTimeout(function () {
+                    const loading = document.getElementById('loading');
+                    if (loading) {
+                        loading.style.display = 'none';
+                        console.log('✅ Tela de loading escondida');
+                    }
+                }, 2000);
+
                 const scene = document.querySelector('a-scene');
                 scene.addEventListener('loaded', function () {
                     console.log('✅ Cena carregada com sucesso!');
+
+                    // Esconder tela de carregamento imediatamente
+                    const loading = document.getElementById('loading');
+                    if (loading) {
+                        loading.style.display = 'none';
+                    }
 
                     // Iniciar o jogo após 1 segundo
                     setTimeout(function () {
@@ -566,13 +595,7 @@
                             gameManager.components['game-manager'].startGame();
                             console.log('✅ Jogo iniciado!');
                         } else {
-                            console.error('❌ Erro ao iniciar o jogo!');
-                        }
-
-                        // Esconder tela de carregamento
-                        const loading = document.getElementById('loading');
-                        if (loading) {
-                            loading.style.display = 'none';
+                            console.log('⚠️ Game manager não encontrado (opcional)');
                         }
 
                         console.log('✅ Jogo inicializado com sucesso!');

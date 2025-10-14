@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title>Teste HUD Futurística Avançada</title>
+		<script src="libs/aframe.min.js"></script>
+		<style>
+			body {
+				margin: 0;
+				background: #000;
+				font-family: 'Courier New', monospace;
+			}
+
+			#info {
+				position: fixed;
+				top: 10px;
+				left: 10px;
+				color: #00ffff;
+				background: rgba(0, 20, 30, 0.9);
+				padding: 15px;
+				border-radius: 8px;
+				border: 2px solid #00ffff;
+				max-width: 350px;
+				z-index: 1000;
+				box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+			}
+
+			#info h3 {
+				margin: 0 0 10px 0;
+				color: #00ff88;
+				text-align: center;
+			}
+
+			#info p {
+				margin: 5px 0;
+				font-size: 12px;
+			}
+
+			#info strong {
+				color: #00ff88;
+			}
+
+			.section {
+				margin-top: 10px;
+				padding-top: 10px;
+				border-top: 1px solid #00ffff;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div id="info">
+			<h3>🚀 Teste HUD Futurística</h3>
+
+			<p><strong>H</strong> - Alternar HUD</p>
+			<p><strong>J</strong> - Ajustar Opacidade</p>
+			<p><strong>K</strong> - Recarregar HUD</p>
+			<p><strong>+/-</strong> - Aumentar/Diminuir</p>
+			<p><strong>0</strong> - Reset Completo</p>
+			<p><strong>T</strong> - Testar Aviso</p>
+
+			<div class="section">
+				<p style="color: #00ff88; font-weight: bold;">📊 Dados Simulados:</p>
+				<p style="font-size: 11px;">✓ Velocidade: 0-200 KM/H</p>
+				<p style="font-size: 11px;">✓ Altitude: 0-500 M</p>
+				<p style="font-size: 11px;">✓ Bateria: 100% → 0%</p>
+				<p style="font-size: 11px;">✓ Coordenadas GPS</p>
+				<p style="font-size: 11px;">✓ Heading: 0-360°</p>
+				<p style="font-size: 11px;">✓ Pitch/Roll: ±45°</p>
+				<p style="font-size: 11px;">✓ Status de Sistemas</p>
+			</div>
+
+			<div class="section">
+				<p style="font-size: 10px; opacity: 0.8;">
+					🎯 HUD futurística completa<br>
+					🥽 Pronta para VR<br>
+					⚡ Animações em tempo real
+				</p>
+			</div>
+		</div>
+
+		<a-scene background="color: #000510" vr-mode-ui="enabled: true">
+			<a-assets>
+				<img id="hud-advanced" src="assets/hud-02.svg" crossorigin="anonymous">
+			</a-assets>
+
+			<!-- Câmera com HUD -->
+			<a-camera position="0 1.6 0" wasd-controls look-controls>
+				<!-- HUD Futurística -->
+				<a-plane id="hud-plane" src="#hud-advanced" position="0 0 -2.5" width="4.8" height="2.7"
+					material="transparent: true; opacity: 0.9; color: #ffffff; shader: flat" visible="true">
+				</a-plane>
+			</a-camera>
+
+			<!-- Ambiente de teste -->
+			<a-plane position="0 0 -4" rotation="0 0 0" width="4" height="4" color="#001122"></a-plane>
+			<a-light type="ambient" color="#ffffff" intensity="0.5"></a-light>
+		</a-scene>
+
+		<script>
+			console.log("🎯 Teste HUD Futurística iniciado");
+
+			// Simulação de dados dinâmicos
+			let simulatedData = {
+				speed: 0,
+				altitude: 0,
+				battery: 100,
+				heading: 0,
+				pitch: 0,
+				roll: 0,
+				time: 0
+			};
+
+			// Atualizar dados simulados
+			setInterval(() => {
+				simulatedData.speed = Math.floor(Math.random() * 200);
+				simulatedData.altitude = Math.floor(Math.random() * 500);
+				simulatedData.battery = Math.max(0, simulatedData.battery - 0.1);
+				simulatedData.heading = (simulatedData.heading + 1) % 360;
+				simulatedData.pitch = Math.sin(Date.now() / 1000) * 30;
+				simulatedData.roll = Math.cos(Date.now() / 1000) * 25;
+				simulatedData.time++;
+
+				updateHUDData();
+			}, 100);
+
+			function updateHUDData() {
+				const hudPlane = document.querySelector('#hud-plane');
+				if (!hudPlane) return;
+
+				const svg = hudPlane.components.material.material.map?.image;
+				if (!svg || !svg.contentDocument) return;
+
+				const doc = svg.contentDocument;
+
+				// Atualizar velocidade
+				updateSVGText(doc, 'speedValue', simulatedData.speed);
+				updateSVGBar(doc, 'speedBar', (simulatedData.speed / 200) * 260);
+
+				// Atualizar altitude
+				updateSVGText(doc, 'altitudeValue', simulatedData.altitude);
+				const altMarkerY = 75 - (simulatedData.altitude / 500) * 35;
+				updateSVGAttribute(doc, 'altMarker', 'cy', altMarkerY);
+
+				// Atualizar bateria
+				updateSVGText(doc, 'batteryValue', `${Math.round(simulatedData.battery)}%`);
+				const batteryWidth = (simulatedData.battery / 100) * 236;
+				updateSVGAttribute(doc, 'batteryFill', 'width', batteryWidth);
+
+				// Cor da bateria
+				let batteryColor = '#00ff88';
+				if (simulatedData.battery < 20) batteryColor = '#ff0000';
+				else if (simulatedData.battery < 50) batteryColor = '#ffaa00';
+				updateSVGAttribute(doc, 'batteryFill', 'fill', batteryColor);
+				updateSVGAttribute(doc, 'batteryValue', 'fill', batteryColor);
+
+				// Atualizar telemetria
+				updateSVGText(doc, 'distanceValue', `DIST: ${Math.floor(Math.random() * 500)}M`);
+				updateSVGText(doc, 'coordsValue', `GPS: ${Math.floor(Math.random() * 100)},${simulatedData.altitude},${Math.floor(Math.random() * 100)}`);
+
+				// Tempo
+				const minutes = Math.floor(simulatedData.time / 600);
+				const seconds = Math.floor((simulatedData.time % 600) / 10);
+				updateSVGText(doc, 'timeValue', `TEMPO: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+
+				// Modo
+				updateSVGText(doc, 'modeValue', 'MODO: TESTE');
+
+				// Bússola
+				updateSVGText(doc, 'headingValue', `${Math.round(simulatedData.heading)}°`);
+
+				// Horizonte artificial
+				updateSVGTransform(doc, 'horizonLine', `rotate(${-simulatedData.roll})`);
+
+				// Roll indicator
+				updateSVGTransform(doc, 'rollLine', `rotate(${simulatedData.roll})`);
+
+				// Status dos sistemas (todos verdes)
+				['gps', 'imu', 'motor', 'link'].forEach(system => {
+					updateSVGAttribute(doc, `${system}Status`, 'fill', '#00ff88');
+				});
+			}
+
+			function updateSVGText(doc, id, value) {
+				const element = doc.getElementById(id);
+				if (element) element.textContent = value;
+			}
+
+			function updateSVGAttribute(doc, id, attr, value) {
+				const element = doc.getElementById(id);
+				if (element) element.setAttribute(attr, value);
+			}
+
+			function updateSVGBar(doc, id, width) {
+				const element = doc.getElementById(id);
+				if (element) element.setAttribute('width', Math.max(0, Math.min(260, width)));
+			}
+
+			function updateSVGTransform(doc, id, transform) {
+				const element = doc.getElementById(id);
+				if (element) element.setAttribute('transform', transform);
+			}
+
+			// Controles de teclado
+			document.addEventListener('keydown', (evt) => {
+				const hud = document.querySelector('#hud-plane');
+
+				switch (evt.key.toLowerCase()) {
+					case 'h':
+						const isVisible = hud.getAttribute('visible');
+						hud.setAttribute('visible', !isVisible);
+						console.log(`HUD ${!isVisible ? 'ATIVADO' : 'DESATIVADO'}`);
+						break;
+
+					case 'j':
+						const currentOpacity = parseFloat(hud.getAttribute('material').opacity);
+						const opacities = [0.3, 0.5, 0.7, 0.9, 1.0];
+						const currentIndex = opacities.findIndex(o => Math.abs(o - currentOpacity) < 0.1);
+						const nextOpacity = opacities[(currentIndex + 1) % opacities.length];
+						hud.setAttribute('material.opacity', nextOpacity);
+						console.log(`Opacidade: ${Math.round(nextOpacity * 100)}%`);
+						break;
+
+					case 'k':
+						const timestamp = Date.now();
+						hud.setAttribute('material', {
+							src: `assets/hud-02.svg?v=${timestamp}`,
+							transparent: true,
+							opacity: 0.9,
+							color: '#ffffff',
+							shader: 'flat'
+						});
+						console.log(`HUD recarregado: ${timestamp}`);
+						break;
+
+					case '+':
+					case '=':
+						const currentWidth = parseFloat(hud.getAttribute('width'));
+						const currentHeight = parseFloat(hud.getAttribute('height'));
+						hud.setAttribute('width', currentWidth + 0.2);
+						hud.setAttribute('height', currentHeight + 0.1125);
+						console.log(`Tamanho: ${(currentWidth + 0.2).toFixed(1)}x${(currentHeight + 0.1125).toFixed(1)}`);
+						break;
+
+					case '-':
+					case '_':
+						const width = parseFloat(hud.getAttribute('width'));
+						const height = parseFloat(hud.getAttribute('height'));
+						hud.setAttribute('width', Math.max(3.0, width - 0.2));
+						hud.setAttribute('height', Math.max(2.0, height - 0.1125));
+						console.log(`Tamanho: ${Math.max(3.0, width - 0.2).toFixed(1)}x${Math.max(2.0, height - 0.1125).toFixed(1)}`);
+						break;
+
+					case '0':
+						hud.setAttribute('width', 4.8);
+						hud.setAttribute('height', 2.7);
+						hud.setAttribute('material.opacity', 0.9);
+						console.log('HUD resetado para valores padrão');
+						break;
+
+					case 't':
+						const svg = hud.components.material.material.map?.image;
+						if (svg && svg.contentDocument) {
+							const doc = svg.contentDocument;
+							const warnings = ['⚠️ TESTE DE AVISO', '⚠️ BATERIA CRÍTICA', '⚠️ ALTITUDE BAIXA', '⚠️ FALHA: GPS'];
+							const randomWarning = warnings[Math.floor(Math.random() * warnings.length)];
+							updateSVGText(doc, 'warningText', randomWarning);
+							updateSVGAttribute(doc, 'warningText', 'opacity', '1');
+							updateSVGAttribute(doc, 'warningBox', 'opacity', '0.6');
+							setTimeout(() => {
+								updateSVGAttribute(doc, 'warningText', 'opacity', '0');
+								updateSVGAttribute(doc, 'warningBox', 'opacity', '0');
+							}, 2500);
+						}
+						console.log('Teste de aviso ativado');
+						break;
+				}
+			});
+
+			// Verificar carregamento
+			setTimeout(() => {
+				const asset = document.querySelector('#hud-advanced');
+				if (asset && asset.complete) {
+					console.log("✅ hud-02.svg carregado com sucesso!");
+				} else {
+					console.error("❌ Erro ao carregar hud-02.svg");
+				}
+			}, 1000);
+		</script>
+	</body>
+
+</html>
