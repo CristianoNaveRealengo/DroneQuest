@@ -90,10 +90,10 @@ AFRAME.registerComponent("drone-controller", {
 		// Resetar velocidade
 		this.velocity.multiplyScalar(this.data.drag);
 
-		// === MOVIMENTO ===
+		// === MOVIMENTO COM SETAS ===
 
-		// Frente/Trás (setas ou I/K)
-		if (this.keys["ArrowUp"] || this.keys["KeyI"]) {
+		// Frente/Trás (setas)
+		if (this.keys["ArrowUp"]) {
 			const forward = new THREE.Vector3(0, 0, -1);
 			forward.applyAxisAngle(
 				new THREE.Vector3(0, 1, 0),
@@ -101,7 +101,7 @@ AFRAME.registerComponent("drone-controller", {
 			);
 			this.velocity.add(forward.multiplyScalar(this.data.moveSpeed * dt));
 		}
-		if (this.keys["ArrowDown"] || this.keys["KeyK"]) {
+		if (this.keys["ArrowDown"]) {
 			const backward = new THREE.Vector3(0, 0, 1);
 			backward.applyAxisAngle(
 				new THREE.Vector3(0, 1, 0),
@@ -112,8 +112,8 @@ AFRAME.registerComponent("drone-controller", {
 			);
 		}
 
-		// Esquerda/Direita (setas ou J/L)
-		if (this.keys["ArrowLeft"] || this.keys["KeyJ"]) {
+		// Esquerda/Direita (setas)
+		if (this.keys["ArrowLeft"]) {
 			const left = new THREE.Vector3(-1, 0, 0);
 			left.applyAxisAngle(
 				new THREE.Vector3(0, 1, 0),
@@ -121,7 +121,7 @@ AFRAME.registerComponent("drone-controller", {
 			);
 			this.velocity.add(left.multiplyScalar(this.data.moveSpeed * dt));
 		}
-		if (this.keys["ArrowRight"] || this.keys["KeyL"]) {
+		if (this.keys["ArrowRight"]) {
 			const right = new THREE.Vector3(1, 0, 0);
 			right.applyAxisAngle(
 				new THREE.Vector3(0, 1, 0),
@@ -130,15 +130,15 @@ AFRAME.registerComponent("drone-controller", {
 			this.velocity.add(right.multiplyScalar(this.data.moveSpeed * dt));
 		}
 
-		// Cima/Baixo (W/S)
+		// === WASD - SUBIR/DESCER/GIRAR ===
+
+		// Subir/Descer (W/S)
 		if (this.keys["KeyW"]) {
 			this.velocity.y += this.data.moveSpeed * dt;
 		}
 		if (this.keys["KeyS"]) {
 			this.velocity.y -= this.data.moveSpeed * dt;
 		}
-
-		// === ROTAÇÃO ===
 
 		// Girar Esquerda/Direita (A/D)
 		if (this.keys["KeyA"]) {

@@ -81,6 +81,9 @@ AFRAME.registerComponent("collision-feedback", {
 		oscillator.connect(gainNode);
 		gainNode.connect(this.audioContext.destination);
 
+		// Iniciar oscilador ANTES de configurar stop
+		oscillator.start(now);
+
 		if (type === "hard") {
 			oscillator.frequency.setValueAtTime(200, now);
 			oscillator.frequency.exponentialRampToValueAtTime(50, now + 0.1);
@@ -94,8 +97,6 @@ AFRAME.registerComponent("collision-feedback", {
 			gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
 			oscillator.stop(now + 0.1);
 		}
-
-		oscillator.start(now);
 	},
 
 	showHUDAlert: function (message, color) {
